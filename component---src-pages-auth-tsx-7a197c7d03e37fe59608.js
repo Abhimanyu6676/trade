@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunktrade=self.webpackChunktrade||[]).push([[577],{4749:function(e,l,t){t.r(l);var n=t(6540);l.default=()=>n.createElement(n.Fragment,null,n.createElement("h1",null,"Hello World"),n.createElement("button",{onClick:()=>console.log("Button clicked")},"Click Me "))}}]);
+//# sourceMappingURL=component---src-pages-auth-tsx-7a197c7d03e37fe59608.js.map
