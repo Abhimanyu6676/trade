@@ -1,6 +1,13 @@
-import type { GatsbyConfig } from "gatsby";
+import { createRequire } from "module";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import remarkGfm from "remark-gfm";
+import { siteUrl } from "./defaults.mjs";
 
-const config: GatsbyConfig = {
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+
+const config = {
   pathPrefix: "/trade",
   siteMetadata: {
     title: `trade`,
