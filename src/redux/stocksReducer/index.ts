@@ -17,11 +17,10 @@ export const stocksSlice = createSlice({
     setStocks: (
       state,
       action: {
-        payload: Stock_i[];
         type: string;
+        payload: Stock_i[];
       },
     ) => {
-      console.log("Setting stocks:");
       console.log("current State:", state);
       console.log("Setting stocks:", action);
       let newStocksList: Stock_i[] = [];

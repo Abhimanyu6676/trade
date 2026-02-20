@@ -1,11 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import reduxStore from ".";
+import { getLocalData } from "../util/localStorage";
+import { setStocks } from "./stocksReducer";
 
-// eslint-disable-next-line react/display-name, react/prop-types
 const ReduxWrapper = ({ children }: any) => {
   const store = reduxStore;
-  //return <Provider store={store}>{element}</Provider>;
+
+  useEffect(() => {
+    setTimeout(async () => {
+      let localStoreData: any = await getLocalData("stocksList");
+      console.log("localStoreData :: ", localStoreData);
+      if (localStoreData) store.dispatch(setStocks(localStoreData));
+    }, 500);
+    return () => {};
+  }, []);
+
   return (
     <Provider store={store}>
       <div style={{}}>{children}</div>

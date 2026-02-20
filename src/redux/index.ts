@@ -3,6 +3,7 @@ import countReducer from "./countReducer";
 import createSagaMiddleware from "redux-saga";
 import rootSaga from "./saga";
 import stocksReducer from "./stocksReducer";
+import clientReducer from "./clientReducer";
 
 const sagaMiddleware = createSagaMiddleware();
 const middleware = [sagaMiddleware];
@@ -11,6 +12,7 @@ const store = configureStore({
   reducer: {
     counter: countReducer,
     stocks: stocksReducer,
+    client: clientReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

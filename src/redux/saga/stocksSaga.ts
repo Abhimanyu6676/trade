@@ -1,4 +1,5 @@
 import store from "..";
+import openAlgoClient from "../../api";
 import { reduxConstant_e } from "../baseAction";
 import { setStocks } from "../stocksReducer";
 import { _getWorker } from "./baseSaga";
@@ -23,11 +24,12 @@ export const [stocksSagaAction, stocksSagaWatcher] =
       console.log("Current Stock Array : ", previousStockList);
       console.log("Current Stock Object : ", previousStockListObj);
 
-      const newStockList = [...previousStockList];
-      const newStockListObj = { ...previousStockListObj };
+      let newStockList = [...previousStockList];
+      let newStockListObj = { ...previousStockListObj };
 
       // remove symbols
-      props.removeStocks?.map((stock) => {
+      openAlgoClient.unSubscribeLTP(props.removeStocks);
+      props.removeStocks?.forEach((stock) => {
         if (newStockListObj[stock.key_id]) {
           console.log("removing stock - ", stock.key_id);
           // Remove  element from Object
@@ -39,6 +41,9 @@ export const [stocksSagaAction, stocksSagaWatcher] =
           if (index > -1) {
             newStockList.splice(index, 1);
           }
+          /* newStockList = newStockList.filter(
+            (item) => item.key_id !== stock.key_id,
+          ); */
         } else {
           console.log(
             "Cannot delete as stock - ",
@@ -49,7 +54,8 @@ export const [stocksSagaAction, stocksSagaWatcher] =
       });
 
       //add symbols
-      props.addStocks?.map((stock) => {
+      if (props.addStocks) openAlgoClient.subscribeLTP(props.addStocks);
+      props.addStocks?.forEach((stock) => {
         if (!newStockListObj[stock.key_id]) {
           console.log("adding stock - ", stock.key_id);
           // add element from Object
@@ -69,7 +75,7 @@ export const [stocksSagaAction, stocksSagaWatcher] =
       });
 
       //update symbols
-      props.updateStocks?.map((stock) => {
+      props.updateStocks?.forEach((stock) => {
         // update element from Object if exists
         if (newStockListObj[stock.key_id]) {
           console.log("updating stock - ", stock.key_id);
@@ -98,8 +104,8 @@ export const [stocksSagaAction, stocksSagaWatcher] =
 
       console.log("\n\n\n\n");
 
-      console.log("after mutation Current Stock Array : ", newStockList);
-      console.log("after mutation Current Stock Object : ", newStockListObj);
+      console.log("after mutation Current Stock Array :: ", newStockList);
+      console.log("after mutation Current Stock Object :: ", newStockListObj);
 
       store.dispatch(setStocks(newStockList));
       //TODO add new stockList to localStorage

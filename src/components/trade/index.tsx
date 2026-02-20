@@ -3,6 +3,7 @@ import Block from "./block";
 import { AddSymbol } from "./addSymbol";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux";
+import ClientStatus from "./clientStatus";
 
 export default function TradeComponent() {
   const stocksState = useSelector((state: RootState) => state.stocks);
@@ -17,15 +18,15 @@ export default function TradeComponent() {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          height: 70,
         }}
       >
         <h1>Dashboard</h1>
         <AddSymbol />
       </div>
+      <ClientStatus />
       <div style={{}}>
         {stocksState.stocksList.map((stock, stockIndex) => (
-          <Block key={stockIndex} stock={stock} />
+          <Block key={stock.key_id} stock={stock} />
         ))}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { storeLocalData } from "../../util/localStorage";
 import { reduxConstant_e } from "../baseAction";
 import { _getWorker } from "./baseSaga";
 
@@ -12,5 +13,8 @@ export const [stocksSagaSideEffectAction, stocksSagaSideEffectWatcher] =
         "Stocks Saga SideEffect Called with stocksList : ",
         stocksList,
       );
+      (async () => {
+        storeLocalData("stocksList", stocksList);
+      })();
     },
   });

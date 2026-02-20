@@ -1,9 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
+import store from "../../redux";
+import { stocksSagaAction } from "../../redux/saga/stocksSaga";
+import { useOnLtp } from "../../api";
+import { getStockKeyId } from "../../util/helper";
 
 const Block = (props: { stock: Stock_i }) => {
+  const [keyID, setKeyID] = useState(props.stock.key_id);
+  const [ltp, setLtp] = useState(0);
+
+  useOnLtp(keyID, (data) => {
+    if (props.stock.key_id == getStockKeyId(data)) {
+      setLtp(data.ltp);
+    }
+  });
+
   return (
     <div
       className="container"
@@ -39,7 +52,7 @@ const Block = (props: { stock: Stock_i }) => {
                 alignItems: "flex-end",
               }}
             >
-              <h5 style={{ margin: 0, padding: 0 }}>RELIANCE</h5>
+              <h5 style={{ margin: 0, padding: 0 }}>{props.stock.symbol}</h5>
               <p
                 style={{
                   fontSize: 12,
@@ -49,7 +62,7 @@ const Block = (props: { stock: Stock_i }) => {
                   padding: "0px 5px",
                 }}
               >
-                BSE
+                {props.stock.exchange}
               </p>
             </div>
           </div>
@@ -59,7 +72,7 @@ const Block = (props: { stock: Stock_i }) => {
           </div>
           <div style={{ minWidth: 100 }}>
             <p style={{ margin: 0, padding: 0, fontSize: 12 }}>LTP</p>
-            <h5>274</h5>
+            <h5>{ltp}</h5>
           </div>
         </div>
         <Button>Enter Trade</Button>
@@ -90,7 +103,6 @@ const Block = (props: { stock: Stock_i }) => {
         <Row key2="Net PnL" value2="2301" />
       </div>
       <div
-        className="container"
         style={{
           //backgroundColor: "red",
           display: "flex",
@@ -99,45 +111,81 @@ const Block = (props: { stock: Stock_i }) => {
           marginTop: 10,
         }}
       >
-        <Button
+        <div // left side buttons
           style={{
-            backgroundColor: "#03fca5",
-            border: 0,
-            opacity: 1,
+            //backgroundColor: "red",
+            display: "flex",
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
           }}
         >
-          Update Order
-        </Button>
-        <Button
+          <Button
+            style={{
+              backgroundColor: "#03fca5",
+              border: 0,
+              opacity: 1,
+            }}
+          >
+            Update Order
+          </Button>
+          <Button
+            style={{
+              backgroundColor: "#f27474",
+              marginLeft: 20,
+              border: 0,
+              opacity: 1,
+            }}
+          >
+            Exit Trade
+          </Button>
+          <Button
+            style={{
+              backgroundColor: "#f27474",
+              marginLeft: 20,
+              border: 0,
+              opacity: 0.2,
+            }}
+          >
+            Exit Sell
+          </Button>
+          <Button
+            style={{
+              backgroundColor: "#f27474",
+              marginLeft: 20,
+              border: 0,
+              opacity: 1,
+            }}
+          >
+            Exit Buy
+          </Button>
+        </div>
+        <div // right side buttons
           style={{
-            backgroundColor: "#f27474",
-            marginLeft: 20,
-            border: 0,
-            opacity: 1,
+            //backgroundColor: "red",
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
           }}
         >
-          Exit Trade
-        </Button>
-        <Button
-          style={{
-            backgroundColor: "#f27474",
-            marginLeft: 20,
-            border: 0,
-            opacity: 0.2,
-          }}
-        >
-          Exit Sell
-        </Button>
-        <Button
-          style={{
-            backgroundColor: "#f27474",
-            marginLeft: 20,
-            border: 0,
-            opacity: 1,
-          }}
-        >
-          Exit Buy
-        </Button>
+          <Button
+            style={{
+              backgroundColor: "#f27474",
+              border: 0,
+              opacity: 1,
+              marginLeft: 20,
+            }}
+            onClick={() => {
+              store.dispatch(
+                stocksSagaAction({
+                  removeStocks: [props.stock],
+                }),
+              );
+            }}
+          >
+            Remove Symbol
+          </Button>
+        </div>
       </div>
     </div>
   );

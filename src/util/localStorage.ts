@@ -3,7 +3,7 @@ type keys_t = "user" | "stocksList";
 /**
  *
  * @param {* key_<String> >> dataKey} key
- * @param {* value_<Object> >> dataSet} value
+ * @param {* value_<JSON Object> >> dataSet} value
  */
 export const storeLocalData = async (
   key: keys_t,

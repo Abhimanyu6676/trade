@@ -8,8 +8,10 @@ import { IoSearch } from "react-icons/io5";
 import store from "../../redux";
 import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import openAlgoClient from "../../api";
+import { getStockKeyId } from "../../util/helper";
 
 export const AddSymbol = () => {
+  const [symbol, setSymbol] = useState<string>("");
   const [selectedStock, setSelectedStock] = useState<StockListSearchResult_i>();
   const [symbolExchange, setSymbolExchange] = useState<"NSE" | "BSE">("BSE");
   const [symbolsList, setSymbolsList] = useState<StockListSearchResult_i[]>([]);
@@ -56,29 +58,32 @@ export const AddSymbol = () => {
           />
           <Form.Control
             placeholder="Add Symbol"
-            value={selectedStock?.symbol}
-            onChange={(e) => setSelectedStock(selectedStock)}
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
             style={{ width: 200, height: 40, fontSize: 15 }}
           />
           <Button
             variant="outline-secondary"
             id="button-addon2"
-            onClick={() => {
-              if (selectedStock) {
+            onClick={async () => {
+              if (symbol) {
                 console.log(
                   "Searching Symbol: ",
-                  selectedStock,
+                  symbol,
                   " on ",
                   symbolExchange,
                 );
-                const searchResult = openAlgoClient.getClient().search({
-                  query: selectedStock,
+                const searchResult = await openAlgoClient.getClient().search({
+                  query: symbol,
                   exchange: symbolExchange,
                 });
-                console.log("Search Result = ", searchResult);
-                if (searchResult.status == "success") {
+                console.log(
+                  "Search Result = ",
+                  JSON.stringify(searchResult.data),
+                );
+                if (searchResult?.status == "success" && searchResult?.data) {
                   console.log("Setting Search Selector List as per results");
-                  setSymbolsList(searchResult);
+                  setSymbolsList(searchResult.data);
                 } else {
                   console.log("Search result error");
                 }
@@ -102,7 +107,7 @@ export const AddSymbol = () => {
                 stocksSagaAction({
                   addStocks: [
                     {
-                      key_id: `${selectedStock.symbol}:${selectedStock.brexchange}`,
+                      key_id: getStockKeyId(selectedStock),
                       name: selectedStock.name,
                       brSymbol: selectedStock.brsymbol,
                       symbol: selectedStock.symbol,
@@ -111,6 +116,9 @@ export const AddSymbol = () => {
                   ],
                 }),
               );
+              setSymbol("");
+              setSelectedStock(undefined);
+              setSymbolsList([]);
             } else {
               console.log("Symbol and Exchange cannot be empty");
             }
