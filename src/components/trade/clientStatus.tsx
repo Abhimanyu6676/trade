@@ -1,14 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../redux";
+import store, { RootState } from "../../redux";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
+import openAlgoClient from "../../api";
+import { updateClientState } from "../../redux/clientReducer";
 
 const ClientStatus = () => {
   const clientState = useSelector((state: RootState) => state.client);
+
   const [showClientStatus, setShowClientStatus] = useState(true);
+  const [showClientAnalyzerStatus, setShowClientAnalyzerStatus] =
+    useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const response1 = await openAlgoClient.getClient1().analyzerstatus();
+      console.log("analyzer status client 1 :: ", response1);
+      if (
+        response1.status == "success" &&
+        response1.data.analyze_mode != undefined
+      ) {
+        store.dispatch(
+          updateClientState({
+            client1AnalyzerMode: response1.data.analyze_mode,
+          }),
+        );
+      }
+    })();
+
+    (async () => {
+      const response2 = await openAlgoClient.getClient2().analyzerstatus();
+      console.log("analyzer status client 2 :: ", response2);
+      if (
+        response2.status == "success" &&
+        response2.data.analyze_mode != undefined
+      ) {
+        store.dispatch(
+          updateClientState({
+            client2AnalyzerMode: response2.data.analyze_mode,
+          }),
+        );
+      }
+    })();
+    setTimeout(() => {
+      setShowClientAnalyzerStatus(true);
+    }, 1000);
+    return () => {};
+  }, []);
 
   return (
     <div
@@ -19,18 +60,27 @@ const ClientStatus = () => {
         justifyContent: "space-between",
       }}
     >
-      <Form>
-        <Form.Check // prettier-ignore
-          reverse
-          type="switch"
-          id="custom-switch"
-          label="Show Client Status"
-          defaultChecked={showClientStatus}
-          onChange={(e) => {
-            setShowClientStatus(e.target.checked);
-          }}
-        />
-      </Form>
+      <div>
+        <Form>
+          <Form.Check
+            reverse
+            type="switch"
+            id="custom-switch"
+            label="Show Client Status"
+            defaultChecked={showClientStatus}
+            onChange={(e) => {
+              setShowClientStatus(e.target.checked);
+            }}
+          />
+          {showClientAnalyzerStatus && (
+            <ClientAnalyzerStatus
+              client1AnalyzerStatus={clientState.client1AnalyzerMode}
+              client2AnalyzerStatus={clientState.client2AnalyzerMode}
+            />
+          )}
+        </Form>
+      </div>
+
       {showClientStatus && (
         <div
           style={{
@@ -113,6 +163,42 @@ const StatusRow = (props: {
         />
       </div>
     </div>
+  );
+};
+
+const ClientAnalyzerStatus = (props: {
+  client1AnalyzerStatus?: boolean;
+  client2AnalyzerStatus?: boolean;
+}) => {
+  return (
+    <>
+      <Form.Check
+        reverse
+        type="switch"
+        id="custom-switch"
+        label="Client 1 Analyzer"
+        defaultChecked={props.client1AnalyzerStatus}
+        onChange={async (e) => {
+          const response = await openAlgoClient
+            .getClient1()
+            .analyzertoggle({ mode: e.target.checked });
+          console.log(response);
+        }}
+      />
+      <Form.Check
+        reverse
+        type="switch"
+        id="custom-switch"
+        label="Client 2 Analyzer"
+        defaultChecked={props.client2AnalyzerStatus}
+        onChange={async (e) => {
+          const response = await openAlgoClient
+            .getClient2()
+            .analyzertoggle({ mode: e.target.checked });
+          console.log(response);
+        }}
+      />
+    </>
   );
 };
 

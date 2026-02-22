@@ -5,11 +5,13 @@ interface clientReducerInitialState_i {
   client1Authenticated?: boolean;
   client1WebSocketConnected?: boolean;
   client1WebSocketAuthenticated?: boolean;
+  client1AnalyzerMode?: boolean;
 
   client2Connected?: boolean;
   client2Authenticated?: boolean;
   client2WebSocketConnected?: boolean;
   client2WebSocketAuthenticated?: boolean;
+  client2AnalyzerMode?: boolean;
 }
 
 const initialState: clientReducerInitialState_i = {
@@ -17,11 +19,13 @@ const initialState: clientReducerInitialState_i = {
   client1Authenticated: false,
   client1WebSocketConnected: false,
   client1WebSocketAuthenticated: false,
+  client1AnalyzerMode: false,
 
   client2Connected: false,
   client2Authenticated: false,
   client2WebSocketConnected: false,
   client2WebSocketAuthenticated: false,
+  client2AnalyzerMode: false,
 };
 
 export const clientSlice = createSlice({
@@ -50,6 +54,11 @@ export const clientSlice = createSlice({
         newState.client1WebSocketAuthenticated =
           action.payload.client1WebSocketAuthenticated;
 
+      if (action.payload.client1AnalyzerMode != undefined)
+        newState.client1AnalyzerMode = action.payload.client1AnalyzerMode;
+
+      // client 2 update actions
+
       if (action.payload.client2Connected != undefined)
         newState.client2Connected = action.payload.client2Connected;
 
@@ -63,6 +72,9 @@ export const clientSlice = createSlice({
       if (action.payload.client2WebSocketAuthenticated != undefined)
         newState.client2WebSocketAuthenticated =
           action.payload.client2WebSocketAuthenticated;
+
+      if (action.payload.client2AnalyzerMode != undefined)
+        newState.client2AnalyzerMode = action.payload.client2AnalyzerMode;
 
       return newState;
     },

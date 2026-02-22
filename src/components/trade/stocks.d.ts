@@ -1,5 +1,13 @@
 type exchange_i = "NSE" | "BSE";
 
+type orderPriceType_i = "LIMIT" | "MARKET" | "SL" | "SL-M";
+
+type orderAction_i = "BUY" | "SELL";
+
+type orderProductType_i = "MIS" | "CNC" | "NRML";
+
+type orderStatus_i = "PENDING" | "ACTIVE" | "EXITED";
+
 interface StockListSearchResult_i {
   brexchange: exchange_i;
   brsymbol: string;
@@ -31,20 +39,23 @@ interface Stock_i {
 }
 
 interface order_i {
-  apikey: string;
-  strategy: string;
+  apiKey: string;
+  strategy?: string;
   id?: string;
   timestamp: number;
   symbol: string;
-  action: "BUY" | "SELL" | "SL" | "SL-M";
+  action: orderAction_i;
   exchange: exchange_i;
-  priceType: "LIMIT" | "MARKET";
-  product: "MIS" | "CNC" | "NRML";
+  priceType: orderPriceType_i;
+  product: orderProductType_i;
   quantity: number;
-  price?: number;
+  price: number;
+  exitPrice?: number;
   triggerPrice?: number;
   disclosedQuantity: number;
   threshold: number;
   risk: number;
-  orderStatus: "PENDING" | "ACTIVE" | "EXITED";
+  exitDrop: number;
+  orderStatus: orderStatus_i;
+  exitOrderID?: string;
 }

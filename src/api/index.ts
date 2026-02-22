@@ -27,6 +27,8 @@ const openAlgoClient = new (class openAlgoClass {
   public classID = uuidWithSpecifiedSize({ size: 12 });
 
   private client1: any = undefined;
+  private client2: any = undefined;
+
   private onLtpCallback_array: onLtpCallback_i[] = [];
 
   /**
@@ -42,9 +44,47 @@ const openAlgoClient = new (class openAlgoClass {
       "v1",
       "ws://127.0.0.1:8765",
     );
+    this.client2 = new OpenAlgo(
+      "3ebf6bcd2157c9d81105d3ef31221968078ac7d94df152737deb82e6019a28af",
+      "http://127.0.0.1:5002",
+      "v1",
+      "ws://127.0.0.1:8766",
+    );
+
     setTimeout(() => {
+      this.checkApiStatus();
       this.connectWebSocket();
     }, 500);
+  }
+
+  async checkApiStatus() {
+    const response1 = await this.client1.symbol({
+      symbol: "RELIANCE",
+      exchange: "NSE",
+    });
+    console.log("ping Result = ", JSON.stringify(response1));
+    if (response1?.status == "success") {
+      store.dispatch(
+        updateClientState({
+          client1Connected: true,
+          client1Authenticated: true,
+        }),
+      );
+    }
+
+    const response2 = await this.client2.symbol({
+      symbol: "SBIN",
+      exchange: "NSE",
+    });
+    console.log("ping Result = ", JSON.stringify(response2));
+    if (response2?.status == "success") {
+      store.dispatch(
+        updateClientState({
+          client2Connected: true,
+          client2Authenticated: true,
+        }),
+      );
+    }
   }
 
   async connectWebSocket() {
@@ -139,7 +179,7 @@ const openAlgoClient = new (class openAlgoClass {
     console.log(
       "adding LTP callbackID" +
         ` ${props.callback_ID} ` +
-        "in API Class : " +
+        "in LTP Class : " +
         this.classID,
     );
     let alreadyHasSameCallback = false;
@@ -182,8 +222,18 @@ const openAlgoClient = new (class openAlgoClass {
     this.onLtpCallback_array = newLtpCallbackArray;
   }
 
-  getClient() {
+  getClient(apiKey: string) {
+    if (apiKey === this.client1.apiKey) return this.client1;
+    else if (apiKey === this.client2.apiKey) return this.client2;
+    else return undefined;
+  }
+
+  getClient1() {
     return this.client1;
+  }
+
+  getClient2() {
+    return this.client2;
   }
 })();
 
@@ -196,22 +246,20 @@ export const useOnLtp = (
   callbackId: string,
   onLtp: (props: onLtpData_i) => void,
 ) => {
-  const [callbackIDState, setCallbackIDState] = useState(callbackId);
-
   useEffect(() => {
     console.log(
-      `adding onLtpCallback ${callbackIDState} to openAlgo Class : ${openAlgoClient.classID}`,
+      `adding onLtpCallback ${callbackId} to openAlgo Class : ${openAlgoClient.classID}`,
     );
     openAlgoClient.registerLtpCallback({
-      callback_ID: callbackIDState,
+      callback_ID: callbackId,
       callback: onLtp,
     });
     return () => {
       //TODO ERROR - while removing first element always last element is unregistered
       console.log(
-        `removing onLtpCallback ${callbackIDState} from openAlgo Class : ${openAlgoClient.classID}`,
+        `removing onLtpCallback ${callbackId} from openAlgo Class : ${openAlgoClient.classID}`,
       );
-      openAlgoClient.deRegisterLtpCallback(callbackIDState);
+      openAlgoClient.deRegisterLtpCallback(callbackId);
     };
   }, []);
 

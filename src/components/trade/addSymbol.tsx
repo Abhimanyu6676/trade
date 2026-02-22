@@ -14,7 +14,27 @@ export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
   const [selectedStock, setSelectedStock] = useState<StockListSearchResult_i>();
   const [symbolExchange, setSymbolExchange] = useState<"NSE" | "BSE">("BSE");
-  const [symbolsList, setSymbolsList] = useState<StockListSearchResult_i[]>([]);
+  const [searchList, setSearchList] = useState<StockListSearchResult_i[]>([]);
+
+  const searchSymbol = async () => {
+    if (symbol) {
+      console.log("Searching Symbol: ", symbol, " on ", symbolExchange);
+      const searchResult = await openAlgoClient.getClient1().search({
+        query: symbol,
+        exchange: symbolExchange,
+      });
+      console.log("Search Result = ", JSON.stringify(searchResult.data));
+      if (searchResult?.status == "success" && searchResult?.data) {
+        console.log("Setting Search Selector List as per results");
+        setSearchList(searchResult.data);
+      } else {
+        console.log("Search result error");
+      }
+      //TODO search symbol from selected exchange via api and update symbolsList
+    } else {
+      console.log("Search Symbol cannot be empty");
+    }
+  };
 
   return (
     <div
@@ -53,45 +73,23 @@ export const AddSymbol = () => {
             </Dropdown.Item>
           </DropdownButton>
           <SymbolSelector
-            symbolsList={symbolsList}
+            searchList={searchList}
+            setSymbol={setSymbol}
             setSelectedStock={setSelectedStock}
           />
           <Form.Control
             placeholder="Add Symbol"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") searchSymbol();
+            }}
             style={{ width: 200, height: 40, fontSize: 15 }}
           />
           <Button
             variant="outline-secondary"
             id="button-addon2"
-            onClick={async () => {
-              if (symbol) {
-                console.log(
-                  "Searching Symbol: ",
-                  symbol,
-                  " on ",
-                  symbolExchange,
-                );
-                const searchResult = await openAlgoClient.getClient().search({
-                  query: symbol,
-                  exchange: symbolExchange,
-                });
-                console.log(
-                  "Search Result = ",
-                  JSON.stringify(searchResult.data),
-                );
-                if (searchResult?.status == "success" && searchResult?.data) {
-                  console.log("Setting Search Selector List as per results");
-                  setSymbolsList(searchResult.data);
-                } else {
-                  console.log("Search result error");
-                }
-                //TODO search symbol from selected exchange via api and update symbolsList
-              } else {
-                console.log("Search Symbol cannot be empty");
-              }
-            }}
+            onClick={searchSymbol}
           >
             <IoSearch style={{ padding: 0, margin: 0 }} />
           </Button>
@@ -118,7 +116,7 @@ export const AddSymbol = () => {
               );
               setSymbol("");
               setSelectedStock(undefined);
-              setSymbolsList([]);
+              setSearchList([]);
             } else {
               console.log("Symbol and Exchange cannot be empty");
             }
@@ -131,21 +129,22 @@ export const AddSymbol = () => {
   );
 };
 const SymbolSelector = (props: {
-  symbolsList: StockListSearchResult_i[];
+  searchList: StockListSearchResult_i[];
   setSelectedStock: React.Dispatch<
     React.SetStateAction<StockListSearchResult_i | undefined>
   >;
+  setSymbol: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     //console.log("SymbolSelector Effect ran");
-    if (props.symbolsList?.length) {
+    if (props.searchList?.length) {
       setShowDropdown(true);
     }
 
     return () => {};
-  }, [props.symbolsList]);
+  }, [props.searchList]);
 
   return (
     <>
@@ -153,21 +152,22 @@ const SymbolSelector = (props: {
         variant="outline-secondary"
         id="input-group-dropdown-2"
         title={""}
-        disabled={props.symbolsList?.length === 0}
+        disabled={props.searchList?.length === 0}
         show={showDropdown}
         onToggle={() => {
           setShowDropdown(!showDropdown);
         }}
       >
-        {props.symbolsList?.map((symbol, index) => (
+        {props.searchList?.map((stock, index) => (
           <Dropdown.Item
             key={index}
             onClick={() => {
-              props.setSelectedStock(symbol);
+              props.setSelectedStock(stock);
+              props.setSymbol(stock.symbol);
               setShowDropdown(false);
             }}
           >
-            {symbol.symbol}
+            {stock.symbol}
           </Dropdown.Item>
         ))}
       </DropdownButton>

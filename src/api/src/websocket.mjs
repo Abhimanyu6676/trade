@@ -149,7 +149,19 @@ class OpenAlgoWebSocket {
       this._sendMessage(message);
     }
 
-    this.subscriptions.delete("ltp");
+    //this.subscriptions.delete("ltp");
+    /* instruments.map(async (stock, index) => {
+      const message = {
+        action: "unsubscribe",
+        mode: "LTP",
+        symbol: stock.symbol,
+        exchange: stock.exchange,
+      };
+      if (this.isConnected) {
+        this._sendMessage(message);
+      }
+      await setTimeout(() => {}, 500);
+    }); */
   }
 
   /**

@@ -22,6 +22,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.5",
     "bootstrap": "^5.3.8",
+    "decimal.js": "^10.6.0",
     "gatsby": "^5.14.6",
     "gatsby-plugin-image": "^3.16.0",
     "gatsby-plugin-manifest": "^5.16.0",

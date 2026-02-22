@@ -1,21 +1,227 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import store from "../../redux";
 import { stocksSagaAction } from "../../redux/saga/stocksSaga";
-import { useOnLtp } from "../../api";
+import openAlgoClient, { useOnLtp } from "../../api";
 import { getStockKeyId } from "../../util/helper";
+import { _priceList, useOnPriceChange } from "./price";
+import Decimal from "decimal.js";
+
+//TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
-  const [keyID, setKeyID] = useState(props.stock.key_id);
   const [ltp, setLtp] = useState(0);
+  const [orderPrice, setOrderPrice] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [priceType, setPriceType] = useState<orderPriceType_i>("MARKET");
+  const [productType, setProductType] = useState<orderProductType_i>("MIS");
+  const [threshold, setThreshold] = useState(
+    props.stock.buyOrder ? props.stock.buyOrder.threshold : 0.5,
+  );
+  const [exitDrop, setExitDrop] = useState(
+    props.stock.buyOrder ? props.stock.buyOrder.exitDrop : 0.25,
+  );
+  const [risk, setRisk] = useState(
+    props.stock.buyOrder ? props.stock.buyOrder.risk : 0.25,
+  );
+  const [isModified, setIsModified] = useState(false);
 
+  const isBuyOrderActive =
+    props.stock.buyOrder && props.stock.buyOrder?.orderStatus != "EXITED";
+  const isSellOrderActive =
+    props.stock.sellOrder && props.stock.sellOrder?.orderStatus != "EXITED";
+  const isOrderActive = isBuyOrderActive || isSellOrderActive;
+
+  const upperThreshold = (() => {
+    return props.stock.buyOrder
+      ? new Decimal(
+          props.stock.buyOrder.price +
+            (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
+        )
+          .toDecimalPlaces(2)
+          .toNumber()
+      : 0;
+  })();
+  const lowerThreshold = (() => {
+    return props.stock.buyOrder
+      ? new Decimal(
+          props.stock.buyOrder.price -
+            (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
+        )
+          .toDecimalPlaces(2)
+          .toNumber()
+      : 0;
+  })();
+  const buyPnl = (() => {
+    return new Decimal(
+      props.stock?.buyOrder?.orderStatus == "ACTIVE"
+        ? (ltp - props.stock.buyOrder.price) * props.stock.buyOrder.quantity
+        : props.stock?.buyOrder?.orderStatus == "EXITED"
+          ? //@ts-ignore
+            (props.stock.buyOrder.exitPrice - props.stock.buyOrder.price) *
+            props.stock.buyOrder.quantity
+          : 0,
+    )
+      .toDecimalPlaces(2)
+      .toNumber();
+  })();
+  const sellPnl = (() => {
+    return new Decimal(
+      props.stock?.sellOrder?.orderStatus == "ACTIVE"
+        ? (props.stock.sellOrder.price - ltp) * props.stock.sellOrder.quantity
+        : props.stock?.sellOrder?.orderStatus == "EXITED"
+          ? //@ts-ignore
+            (props.stock.sellOrder.price - props.stock.sellOrder.exitPrice) *
+            props.stock.sellOrder.quantity
+          : 0,
+    )
+      .toDecimalPlaces(2)
+      .toNumber();
+  })();
+  const pnl = buyPnl + sellPnl;
+
+  useEffect(() => {
+    //TODO if BUY or SELL order active update StopLoss and trigger as per new threshold and risk
+    if (isOrderActive) setIsModified(true);
+    return () => {};
+  }, [threshold, risk, setExitDrop]);
+
+  /* //TODO uncomment in production testing
   useOnLtp(keyID, (data) => {
     if (props.stock.key_id == getStockKeyId(data)) {
       setLtp(data.ltp);
     }
+  }); */
+
+  //TODO remove after testing
+  useOnPriceChange({
+    priceList: _priceList,
+    callback: (data) => {
+      setLtp(data.lp);
+    },
   });
+
+  const executeOrder = async (props: {
+    order: Omit<Omit<order_i, "timestamp">, "orderStatus">;
+  }) => {
+    const client = openAlgoClient.getClient(props.order.apiKey);
+
+    //TODO execute and update order object in the store
+    if (client) {
+      const { apiKey, threshold, risk, exitDrop, ...order } = props.order;
+      const response = await client
+        .placeOrder(order)
+        .then((res: any) => {
+          console.log("response ==:: ", res);
+          if (res.status == "success") {
+            console.log("order placed");
+            return res;
+          } else {
+            console.log("order ERROR");
+            throw res;
+          }
+        })
+        .catch((err: any) => {
+          console.log("err --:: ", err);
+          return err;
+        });
+      console.log(response);
+    }
+  };
+
+  const enterTrade = async () => {
+    console.log(
+      `Entering Trade for ${props.stock.symbol} at ${props.stock.exchange}`,
+    );
+
+    let orderTemplate: Omit<
+      Omit<Omit<Omit<order_i, "action">, "timestamp">, "apiKey">,
+      "orderStatus"
+    > = {
+      strategy: "nodeJS",
+      symbol: props.stock.symbol,
+      exchange: props.stock.exchange,
+      priceType: priceType,
+      product: productType,
+      quantity,
+      price: priceType == "LIMIT" ? orderPrice : 0,
+      triggerPrice: 0,
+      disclosedQuantity: 0,
+      threshold,
+      risk,
+      exitDrop,
+    };
+
+    executeOrder({
+      order: {
+        ...orderTemplate,
+        apiKey: openAlgoClient.getClient1().apiKey,
+        action: "BUY",
+      },
+    });
+    executeOrder({
+      order: {
+        ...orderTemplate,
+        apiKey: openAlgoClient.getClient2().apiKey,
+        action: "SELL",
+      },
+    });
+  };
+
+  const updateTrade = async () => {
+    //TODO update ACTIVE/PENDING trades `trigger_price` as per new threshold, risk and exitDrop
+    (async () => {
+      if (props.stock.buyOrder?.orderStatus != "EXITED") {
+        //TODO update BUY Order in openAlgoClient
+        store.dispatch(
+          stocksSagaAction({
+            updateStocks: [
+              {
+                ...props.stock,
+                buyOrder: props.stock.buyOrder
+                  ? {
+                      ...props.stock.buyOrder,
+                      threshold,
+                      risk,
+                      exitDrop,
+                    }
+                  : undefined,
+              },
+            ],
+          }),
+        );
+      }
+    })();
+
+    (async () => {
+      if (props.stock.sellOrder?.orderStatus != "EXITED") {
+        //TODO update SELL Order in openAlgoClient
+        store.dispatch(
+          stocksSagaAction({
+            updateStocks: [
+              {
+                ...props.stock,
+                sellOrder: props.stock.sellOrder
+                  ? {
+                      ...props.stock.sellOrder,
+                      threshold,
+                      risk,
+                      exitDrop,
+                    }
+                  : undefined,
+              },
+            ],
+          }),
+        );
+      }
+    })();
+  };
+
+  const exitTrade = async (order?: order_i) => {};
 
   return (
     <div
@@ -36,7 +242,7 @@ const Block = (props: { stock: Stock_i }) => {
           justifyContent: "space-between",
         }}
       >
-        <div
+        <div // Stock Name, Quantity and LTP Views
           style={{
             display: "flex",
             flexDirection: "row",
@@ -68,16 +274,93 @@ const Block = (props: { stock: Stock_i }) => {
           </div>
           <div style={{ minWidth: 100 }}>
             <p style={{ margin: 0, padding: 0, fontSize: 12 }}>Quantity</p>
-            <h5>100</h5>
+            <h5>{`${props.stock.buyOrder ? props.stock.buyOrder.quantity : "--"} : ${props.stock.sellOrder ? props.stock.sellOrder.quantity : "--"}`}</h5>
           </div>
           <div style={{ minWidth: 100 }}>
             <p style={{ margin: 0, padding: 0, fontSize: 12 }}>LTP</p>
             <h5>{ltp}</h5>
           </div>
         </div>
-        <Button>Enter Trade</Button>
+        <div // Enter trade & trade priceType Button
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+          <Button
+            style={{
+              marginRight: 10,
+            }}
+            onClick={enterTrade}
+            disabled={isOrderActive}
+          >
+            Enter Trade
+          </Button>
+          <DropdownButton
+            disabled={isOrderActive}
+            variant="outline-secondary"
+            title={priceType}
+          >
+            <Dropdown.Item
+              onClick={() => {
+                setPriceType("MARKET");
+              }}
+            >
+              MARKET
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setPriceType("LIMIT");
+              }}
+            >
+              LIMIT
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setPriceType("SL");
+              }}
+            >
+              SL
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setPriceType("SL-M");
+              }}
+            >
+              SL-M
+            </Dropdown.Item>
+          </DropdownButton>
+          <DropdownButton
+            disabled={isOrderActive}
+            variant="outline-secondary"
+            title={productType}
+          >
+            <Dropdown.Item
+              onClick={() => {
+                setProductType("MIS");
+              }}
+            >
+              MIS
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setProductType("CNC");
+              }}
+            >
+              CNC
+            </Dropdown.Item>
+            <Dropdown.Item
+              disabled
+              onClick={() => {
+                setProductType("NRML");
+              }}
+            >
+              NRML
+            </Dropdown.Item>
+          </DropdownButton>
+        </div>
       </div>
-      <div
+      <div // data rows
         style={{
           marginTop: 20,
           backgroundColor: "#ffffff",
@@ -85,24 +368,85 @@ const Block = (props: { stock: Stock_i }) => {
           padding: "10px 0px",
         }}
       >
-        <Row key1="Order Price" value1="276" key2="LTP" value2="276" />
-        <Row key1="Threshold" value1="0.5%" key2="Risk" value2="0.25%" />
+        <Row
+          key1="Buy Order Price"
+          value1Disabled={isBuyOrderActive}
+          value1={
+            props.stock.buyOrder ? props.stock.buyOrder.price : orderPrice
+          }
+          value1Setter={setOrderPrice}
+          key2="Sell Order Price"
+          value2Disabled={isSellOrderActive}
+          value2={
+            props.stock.sellOrder ? props.stock.sellOrder.price : orderPrice
+          }
+          value2Setter={setOrderPrice}
+        />
+        <Row
+          key1="Buy/Sell Order Quantity"
+          value1Disabled={isOrderActive}
+          value1={
+            props.stock.buyOrder ? props.stock.buyOrder.quantity : quantity
+          }
+          value1Setter={setQuantity}
+          key2="Exit on Drop %"
+          value2={exitDrop}
+          value2Setter={setExitDrop}
+        />
+        <Row
+          key1="Threshold %"
+          value1={threshold}
+          value1Setter={setThreshold}
+          key2="Risk %"
+          value2={risk}
+          value2Setter={setRisk}
+        />
         <Row
           key1="Upper Threshold"
-          value1="278"
+          value1Disabled
+          value1={upperThreshold}
+          value2Disabled
           key2="Lower Threshold"
-          value2="272"
+          value2={lowerThreshold}
         />
         <Row
           key1="Buy Position"
-          value1="Active"
+          value1Disabled
+          value1={
+            props.stock.buyOrder ? props.stock.buyOrder.orderStatus : "N/A"
+          }
           key2="Sell Position"
-          value2="Exited"
+          value2Disabled
+          value2={
+            props.stock.sellOrder ? props.stock.sellOrder.orderStatus : "N/A"
+          }
         />
-        <Row key1="Buy PnL" value1="4045" key2="Sell PnL" value2="-1456" />
-        <Row key2="Net PnL" value2="2301" />
+        <Row
+          key1="Buy PnL"
+          value1Disabled
+          value1={buyPnl}
+          key2="Sell PnL"
+          value2Disabled
+          value2={sellPnl}
+        />
+        <Row
+          Col1={
+            props.stock.buyOrder && props.stock.sellOrder ? (
+              ThresholdView({
+                ltp,
+                upperThreshold,
+                lowerThreshold,
+              })
+            ) : (
+              <></>
+            )
+          }
+          key2="Net PnL"
+          value2Disabled
+          value2={pnl}
+        />
       </div>
-      <div
+      <div // bottom Buttons
         style={{
           //backgroundColor: "red",
           display: "flex",
@@ -121,43 +465,53 @@ const Block = (props: { stock: Stock_i }) => {
           }}
         >
           <Button
-            style={{
-              backgroundColor: "#03fca5",
-              border: 0,
-              opacity: 1,
+            variant={isModified ? "success" : "outline-success"}
+            disabled={!isModified}
+            onClick={() => {
+              console.log("updating Order -- ", isOrderActive);
+              updateTrade();
             }}
           >
             Update Order
           </Button>
           <Button
+            variant={isOrderActive ? "danger" : "outline-danger"}
+            disabled={!isOrderActive}
             style={{
-              backgroundColor: "#f27474",
               marginLeft: 20,
-              border: 0,
-              opacity: 1,
+            }}
+            onClick={() => {
+              console.log("Exit Order");
+              exitTrade();
             }}
           >
             Exit Trade
           </Button>
           <Button
+            variant={isBuyOrderActive ? "danger" : "outline-danger"}
+            disabled={!isBuyOrderActive}
             style={{
-              backgroundColor: "#f27474",
               marginLeft: 20,
-              border: 0,
-              opacity: 0.2,
             }}
-          >
-            Exit Sell
-          </Button>
-          <Button
-            style={{
-              backgroundColor: "#f27474",
-              marginLeft: 20,
-              border: 0,
-              opacity: 1,
+            onClick={() => {
+              console.log("Exit Buy Order");
+              exitTrade(props.stock.buyOrder);
             }}
           >
             Exit Buy
+          </Button>
+          <Button
+            variant={isSellOrderActive ? "danger" : "outline-danger"}
+            disabled={!isSellOrderActive}
+            style={{
+              marginLeft: 20,
+            }}
+            onClick={() => {
+              console.log("Exit Sell Order");
+              exitTrade(props.stock.sellOrder);
+            }}
+          >
+            Exit Sell
           </Button>
         </div>
         <div // right side buttons
@@ -169,13 +523,13 @@ const Block = (props: { stock: Stock_i }) => {
           }}
         >
           <Button
+            variant="outline-danger"
+            disabled={isOrderActive}
             style={{
-              backgroundColor: "#f27474",
-              border: 0,
-              opacity: 1,
               marginLeft: 20,
             }}
             onClick={() => {
+              console.log("removing Symbol from List ", props.stock.key_id);
               store.dispatch(
                 stocksSagaAction({
                   removeStocks: [props.stock],
@@ -192,10 +546,16 @@ const Block = (props: { stock: Stock_i }) => {
 };
 
 const Row = (props: {
+  Col1?: React.JSX.Element;
   key1?: string;
-  value1?: string;
+  value1?: number | string;
+  value1Disabled?: boolean;
+  value1Setter?: React.Dispatch<React.SetStateAction<number>>;
+  col2?: React.JSX.Element;
   key2?: string;
-  value2?: string;
+  value2?: number | string;
+  value2Disabled?: boolean;
+  value2Setter?: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   return (
     <div
@@ -204,18 +564,42 @@ const Row = (props: {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
+        //marginTop: 10,
       }}
     >
-      <Coll keyword={props.key1} value={props.value1} />
-      <Coll keyword={props.key2} value={props.value2} />
+      <div style={{ flex: 1 }}>
+        {props.Col1 ? (
+          props.Col1
+        ) : (
+          <Coll
+            disabled={props.value1Disabled}
+            keyword={props.key1}
+            value={props.value1}
+            setValue={props.value1Setter}
+          />
+        )}
+      </div>
+      <div style={{ flex: 1 }}>
+        {props.col2 ? (
+          props.col2
+        ) : (
+          <Coll
+            disabled={props.value2Disabled}
+            keyword={props.key2}
+            value={props.value2}
+            setValue={props.value2Setter}
+          />
+        )}
+      </div>
     </div>
   );
 };
 
 const Coll = (props: {
   keyword?: string;
-  value?: string;
+  value?: number | string;
   disabled?: boolean;
+  setValue?: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   return (
     <div
@@ -233,17 +617,108 @@ const Coll = (props: {
       <p style={{ fontWeight: "normal", fontSize: 15, margin: 0, padding: 0 }}>
         {props.keyword}
       </p>
-      {props.value && (
+      {props.value != undefined && (
         <div>
           <InputGroup className="">
             <Form.Control
+              type={typeof props.value === "string" ? "string" : "number"}
               disabled={props.disabled}
-              placeholder={props.value}
+              placeholder={"-----"}
               style={{ width: 100, height: 30, fontSize: 15 }}
+              value={props.value}
+              onChange={(e) => {
+                props.setValue &&
+                  props.setValue(
+                    //@ts-ignore
+                    typeof props.value === "string"
+                      ? e.target.value
+                      : parseFloat(e.target.value),
+                  );
+              }}
             />
           </InputGroup>
         </div>
       )}
+    </div>
+  );
+};
+
+const ThresholdView = (props: {
+  ltp: number;
+  upperThreshold: number;
+  lowerThreshold: number;
+}) => {
+  /** keep this even number array automatically add a center stick */
+  const pointerPlace =
+    props.lowerThreshold <= props.ltp && props.ltp <= props.upperThreshold
+      ? ((props.ltp - props.lowerThreshold) /
+          (props.upperThreshold - props.lowerThreshold)) *
+        100
+      : 0;
+  const thresholdViewSticksCount = 14;
+  const thresholdViewHeight = 50;
+  const thresholdViewHeightDecline = 3;
+  return (
+    <div
+      className="container"
+      style={{
+        //backgroundColor: "#eeeeee",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <p style={{ fontSize: 12, color: "#777" }}>{props.lowerThreshold}</p>
+      <div // threshold bar container
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          //border: "1px solid #000000",
+          position: "relative",
+          margin: "0px 20px",
+        }}
+      >
+        <div // threshold pointer
+          style={{
+            backgroundColor: "#555",
+            height: 55,
+            width: 3,
+            borderRadius: 20,
+            position: "absolute",
+            left: `${pointerPlace}%`,
+            opacity: pointerPlace ? 1 : 0,
+          }}
+        />
+        {Array(thresholdViewSticksCount + 1)
+          .fill(0)
+          .map((i, index) => {
+            return (
+              <div
+                style={{
+                  /*  height:
+                    index > 7 ? 50 - 7 * 3 + (index - 7) * 3 : 50 - index * 3, */
+                  height:
+                    index > thresholdViewSticksCount / 2
+                      ? thresholdViewHeight -
+                        (thresholdViewSticksCount / 2) *
+                          thresholdViewHeightDecline +
+                        (index - thresholdViewSticksCount / 2) *
+                          thresholdViewHeightDecline
+                      : thresholdViewHeight -
+                        index * thresholdViewHeightDecline,
+                  width: 5,
+                  borderRadius: 20,
+                  marginRight: index == thresholdViewSticksCount ? 0 : 6,
+                  backgroundColor: `rgb(${255 - index * 15}, ${35 + index * 15}, 50)`,
+                }}
+              ></div>
+            );
+          })}
+      </div>
+      <p style={{ fontSize: 12, color: "#777" }}>{props.upperThreshold}</p>
     </div>
   );
 };

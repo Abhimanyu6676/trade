@@ -9,7 +9,7 @@ export default function TradeComponent() {
   const stocksState = useSelector((state: RootState) => state.stocks);
 
   return (
-    <div className="container">
+    <div className="container" style={{ position: "relative" }}>
       <div //header
         style={{
           //backgroundColor: "red",
