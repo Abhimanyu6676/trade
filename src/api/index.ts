@@ -146,8 +146,8 @@ const openAlgoClient = new (class openAlgoClass {
     });
     if (instrumentForLTP.length > 0) {
       this.client1.subscribe_ltp(instrumentForLTP, (data: any) => {
-        console.log("LTP Update Received:");
-        console.log(JSON.stringify(data, null, 2));
+        //console.log("LTP Update Received:");
+        //console.log(JSON.stringify(data, null, 2));
         this.onLtpCallback_array.forEach((cb) => {
           cb?.callback && cb?.callback(data);
         });

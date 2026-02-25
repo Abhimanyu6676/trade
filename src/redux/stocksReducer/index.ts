@@ -21,8 +21,8 @@ export const stocksSlice = createSlice({
         payload: Stock_i[];
       },
     ) => {
-      console.log("current State:", state);
-      console.log("Setting stocks:", action);
+      //console.log("current State:", state);
+      //console.log("Setting stocks:", action);
       let newStocksList: Stock_i[] = [];
       let newStocksListObj: StocksListObject_i = {};
 
@@ -43,18 +43,18 @@ export const stocksSlice = createSlice({
         type: string;
       },
     ) => {
-      console.log("Adding stocks:");
-      console.log("current State:", state);
-      console.log("Setting stocks:", action);
+      //console.log("Adding stocks:");
+      //console.log("current State:", state);
+      //console.log("Setting stocks:", action);
       let newStocksList = [...state.stocksList];
       let newStocksListObj = { ...state.stocksObj };
       action.payload.map((stock) => {
         if (stock.key_id in newStocksListObj) {
-          console.log("Stock already exists:", stock);
+          //console.log("Stock already exists:", stock);
         } else {
           newStocksList.push(stock);
           newStocksListObj[stock.key_id] = stock;
-          console.log("Adding new stock:", stock);
+          //console.log("Adding new stock:", stock);
         }
       });
       return {

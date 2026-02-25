@@ -10,18 +10,31 @@ import openAlgoClient, { useOnLtp } from "../../api";
 import { getStockKeyId } from "../../util/helper";
 import { _priceList, useOnPriceChange } from "./price";
 import Decimal from "decimal.js";
+import Alert from "../alert";
+import {
+  executeOrder,
+  executeOrderType_i,
+  exitTrade,
+  handleLtp,
+  updateTrade,
+} from "./order";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
+  const testingMode = true;
+  const autoEnter = true;
   const [ltp, setLtp] = useState(0);
   const [orderPrice, setOrderPrice] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [priceType, setPriceType] = useState<orderPriceType_i>("MARKET");
-  const [productType, setProductType] = useState<orderProductType_i>("MIS");
+  const [productType, setProductType] = useState<orderProductType_i>(
+    testingMode ? "CNC" : "MIS",
+  );
   const [threshold, setThreshold] = useState(
     props.stock.buyOrder ? props.stock.buyOrder.threshold : 0.5,
   );
+  const [thresholdCrossed, setThresholdCrossed] = useState(false);
   const [exitDrop, setExitDrop] = useState(
     props.stock.buyOrder ? props.stock.buyOrder.exitDrop : 0.25,
   );
@@ -31,31 +44,29 @@ const Block = (props: { stock: Stock_i }) => {
   const [isModified, setIsModified] = useState(false);
 
   const isBuyOrderActive =
-    props.stock.buyOrder && props.stock.buyOrder?.orderStatus != "EXITED";
+    props.stock.buyOrder && props.stock.buyOrder?.orderStatus == "ACTIVE";
   const isSellOrderActive =
-    props.stock.sellOrder && props.stock.sellOrder?.orderStatus != "EXITED";
+    props.stock.sellOrder && props.stock.sellOrder?.orderStatus == "ACTIVE";
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
 
-  const upperThreshold = (() => {
-    return props.stock.buyOrder
-      ? new Decimal(
-          props.stock.buyOrder.price +
-            (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
-        )
-          .toDecimalPlaces(2)
-          .toNumber()
-      : 0;
-  })();
-  const lowerThreshold = (() => {
-    return props.stock.buyOrder
-      ? new Decimal(
-          props.stock.buyOrder.price -
-            (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
-        )
-          .toDecimalPlaces(2)
-          .toNumber()
-      : 0;
-  })();
+  const upperThreshold = props.stock.buyOrder
+    ? new Decimal(
+        props.stock.buyOrder.price +
+          (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
+      )
+        .toDecimalPlaces(2)
+        .toNumber()
+    : 0;
+
+  const lowerThreshold = props.stock.buyOrder
+    ? new Decimal(
+        props.stock.buyOrder.price -
+          (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
+      )
+        .toDecimalPlaces(2)
+        .toNumber()
+    : 0;
+
   const buyPnl = (() => {
     return new Decimal(
       props.stock?.buyOrder?.orderStatus == "ACTIVE"
@@ -88,10 +99,39 @@ const Block = (props: { stock: Stock_i }) => {
     //TODO if BUY or SELL order active update StopLoss and trigger as per new threshold and risk
     if (isOrderActive) setIsModified(true);
     return () => {};
-  }, [threshold, risk, setExitDrop]);
+  }, [threshold, risk, exitDrop]);
 
-  /* //TODO uncomment in production testing
-  useOnLtp(keyID, (data) => {
+  useEffect(() => {
+    if (isOrderActive) {
+      if (!thresholdCrossed && upperThreshold && lowerThreshold) {
+        let _thresholdCrossed = ltp >= upperThreshold || ltp <= lowerThreshold;
+        if (_thresholdCrossed) {
+          Alert.notify({
+            heading: `Threshold crossed for ${props.stock.key_id}`,
+            variant: "warning",
+          });
+          setThresholdCrossed(true);
+          const exitSell = ltp >= upperThreshold;
+          const exitBuy = ltp <= lowerThreshold;
+          const _o: order_i | undefined = exitSell
+            ? props.stock.sellOrder
+            : exitBuy
+              ? props.stock.buyOrder
+              : undefined;
+          _o && exitTrade({ stock: props.stock, orders: [{ ..._o }] });
+        }
+      }
+      handleLtp({
+        stock: props.stock,
+        ltp,
+        thresholdCrossed,
+      });
+    }
+
+    return () => {};
+  }, [ltp]);
+
+  /*   useOnLtp(props.stock.key_id, (data) => {
     if (props.stock.key_id == getStockKeyId(data)) {
       setLtp(data.ltp);
     }
@@ -105,43 +145,12 @@ const Block = (props: { stock: Stock_i }) => {
     },
   });
 
-  const executeOrder = async (props: {
-    order: Omit<Omit<order_i, "timestamp">, "orderStatus">;
-  }) => {
-    const client = openAlgoClient.getClient(props.order.apiKey);
-
-    //TODO execute and update order object in the store
-    if (client) {
-      const { apiKey, threshold, risk, exitDrop, ...order } = props.order;
-      const response = await client
-        .placeOrder(order)
-        .then((res: any) => {
-          console.log("response ==:: ", res);
-          if (res.status == "success") {
-            console.log("order placed");
-            return res;
-          } else {
-            console.log("order ERROR");
-            throw res;
-          }
-        })
-        .catch((err: any) => {
-          console.log("err --:: ", err);
-          return err;
-        });
-      console.log(response);
-    }
-  };
-
   const enterTrade = async () => {
     console.log(
       `Entering Trade for ${props.stock.symbol} at ${props.stock.exchange}`,
     );
 
-    let orderTemplate: Omit<
-      Omit<Omit<Omit<order_i, "action">, "timestamp">, "apiKey">,
-      "orderStatus"
-    > = {
+    let orderTemplate: Omit<Omit<executeOrderType_i, "action">, "apiKey"> = {
       strategy: "nodeJS",
       symbol: props.stock.symbol,
       exchange: props.stock.exchange,
@@ -157,71 +166,29 @@ const Block = (props: { stock: Stock_i }) => {
     };
 
     executeOrder({
+      stock: props.stock,
       order: {
         ...orderTemplate,
         apiKey: openAlgoClient.getClient1().apiKey,
         action: "BUY",
       },
+      tempPrice: testingMode ? ltp : 0,
     });
     executeOrder({
+      stock: props.stock,
       order: {
         ...orderTemplate,
         apiKey: openAlgoClient.getClient2().apiKey,
         action: "SELL",
       },
+      tempPrice: testingMode ? ltp : 0,
     });
   };
 
-  const updateTrade = async () => {
-    //TODO update ACTIVE/PENDING trades `trigger_price` as per new threshold, risk and exitDrop
-    (async () => {
-      if (props.stock.buyOrder?.orderStatus != "EXITED") {
-        //TODO update BUY Order in openAlgoClient
-        store.dispatch(
-          stocksSagaAction({
-            updateStocks: [
-              {
-                ...props.stock,
-                buyOrder: props.stock.buyOrder
-                  ? {
-                      ...props.stock.buyOrder,
-                      threshold,
-                      risk,
-                      exitDrop,
-                    }
-                  : undefined,
-              },
-            ],
-          }),
-        );
-      }
-    })();
-
-    (async () => {
-      if (props.stock.sellOrder?.orderStatus != "EXITED") {
-        //TODO update SELL Order in openAlgoClient
-        store.dispatch(
-          stocksSagaAction({
-            updateStocks: [
-              {
-                ...props.stock,
-                sellOrder: props.stock.sellOrder
-                  ? {
-                      ...props.stock.sellOrder,
-                      threshold,
-                      risk,
-                      exitDrop,
-                    }
-                  : undefined,
-              },
-            ],
-          }),
-        );
-      }
-    })();
-  };
-
-  const exitTrade = async (order?: order_i) => {};
+  useEffect(() => {
+    autoEnter && enterTrade();
+    return () => {};
+  }, []);
 
   return (
     <div
@@ -309,6 +276,7 @@ const Block = (props: { stock: Stock_i }) => {
               MARKET
             </Dropdown.Item>
             <Dropdown.Item
+              disabled
               onClick={() => {
                 setPriceType("LIMIT");
               }}
@@ -316,6 +284,7 @@ const Block = (props: { stock: Stock_i }) => {
               LIMIT
             </Dropdown.Item>
             <Dropdown.Item
+              disabled
               onClick={() => {
                 setPriceType("SL");
               }}
@@ -323,6 +292,7 @@ const Block = (props: { stock: Stock_i }) => {
               SL
             </Dropdown.Item>
             <Dropdown.Item
+              disabled
               onClick={() => {
                 setPriceType("SL-M");
               }}
@@ -433,6 +403,7 @@ const Block = (props: { stock: Stock_i }) => {
           Col1={
             props.stock.buyOrder && props.stock.sellOrder ? (
               ThresholdView({
+                thresholdCrossed,
                 ltp,
                 upperThreshold,
                 lowerThreshold,
@@ -469,7 +440,9 @@ const Block = (props: { stock: Stock_i }) => {
             disabled={!isModified}
             onClick={() => {
               console.log("updating Order -- ", isOrderActive);
-              updateTrade();
+              console.log("props", threshold, risk, exitDrop);
+              updateTrade({ stock: props.stock, threshold, risk, exitDrop });
+              setIsModified(false);
             }}
           >
             Update Order
@@ -482,7 +455,16 @@ const Block = (props: { stock: Stock_i }) => {
             }}
             onClick={() => {
               console.log("Exit Order");
-              exitTrade();
+              props.stock.buyOrder &&
+                exitTrade({
+                  stock: props.stock,
+                  orders: [props.stock.buyOrder],
+                });
+              props.stock.sellOrder &&
+                exitTrade({
+                  stock: props.stock,
+                  orders: [props.stock.sellOrder],
+                });
             }}
           >
             Exit Trade
@@ -495,7 +477,11 @@ const Block = (props: { stock: Stock_i }) => {
             }}
             onClick={() => {
               console.log("Exit Buy Order");
-              exitTrade(props.stock.buyOrder);
+              props.stock.buyOrder &&
+                exitTrade({
+                  stock: props.stock,
+                  orders: [props.stock.buyOrder],
+                });
             }}
           >
             Exit Buy
@@ -508,7 +494,11 @@ const Block = (props: { stock: Stock_i }) => {
             }}
             onClick={() => {
               console.log("Exit Sell Order");
-              exitTrade(props.stock.sellOrder);
+              props.stock.sellOrder &&
+                exitTrade({
+                  stock: props.stock,
+                  orders: [props.stock.sellOrder],
+                });
             }}
           >
             Exit Sell
@@ -644,17 +634,17 @@ const Coll = (props: {
 };
 
 const ThresholdView = (props: {
+  thresholdCrossed: boolean;
   ltp: number;
   upperThreshold: number;
   lowerThreshold: number;
 }) => {
   /** keep this even number array automatically add a center stick */
-  const pointerPlace =
-    props.lowerThreshold <= props.ltp && props.ltp <= props.upperThreshold
-      ? ((props.ltp - props.lowerThreshold) /
-          (props.upperThreshold - props.lowerThreshold)) *
-        100
-      : 0;
+  const pointerPlace = props.thresholdCrossed
+    ? 0
+    : ((props.ltp - props.lowerThreshold) /
+        (props.upperThreshold - props.lowerThreshold)) *
+      100;
   const thresholdViewSticksCount = 14;
   const thresholdViewHeight = 50;
   const thresholdViewHeightDecline = 3;

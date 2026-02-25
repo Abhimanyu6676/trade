@@ -9,10 +9,7 @@ export const [stocksSagaSideEffectAction, stocksSagaSideEffectWatcher] =
     type: reduxConstant_e.SAGA_STOCKS_SIDE_EFFECT,
     //shouldTakeLatest: true,
     callable: function* containersWorker(stocksList) {
-      console.log(
-        "Stocks Saga SideEffect Called with stocksList : ",
-        stocksList,
-      );
+      //console.log( "Stocks Saga SideEffect Called with stocksList : ", stocksList,);
       (async () => {
         storeLocalData("stocksList", stocksList);
       })();

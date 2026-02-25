@@ -41,8 +41,8 @@ interface Stock_i {
 interface order_i {
   apiKey: string;
   strategy?: string;
-  id?: string;
-  timestamp: number;
+  id: string;
+  timestamp: string;
   symbol: string;
   action: orderAction_i;
   exchange: exchange_i;

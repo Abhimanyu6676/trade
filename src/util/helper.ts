@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import { onLtpData_i } from "../api";
 
 export const getStockKeyId = (

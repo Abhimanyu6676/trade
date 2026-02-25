@@ -4,6 +4,7 @@ import createSagaMiddleware from "redux-saga";
 import rootSaga from "./saga";
 import stocksReducer from "./stocksReducer";
 import clientReducer from "./clientReducer";
+import notificationReducer from "./notificationReducer";
 
 const sagaMiddleware = createSagaMiddleware();
 const middleware = [sagaMiddleware];
@@ -13,6 +14,7 @@ const store = configureStore({
     counter: countReducer,
     stocks: stocksReducer,
     client: clientReducer,
+    notification: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -9,6 +9,8 @@ import store from "../../redux";
 import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import openAlgoClient from "../../api";
 import { getStockKeyId } from "../../util/helper";
+import Notification from "../alert";
+import { uuidWithSpecifiedSize } from "../../util/uuid";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
@@ -86,11 +88,7 @@ export const AddSymbol = () => {
             }}
             style={{ width: 200, height: 40, fontSize: 15 }}
           />
-          <Button
-            variant="outline-secondary"
-            id="button-addon2"
-            onClick={searchSymbol}
-          >
+          <Button variant="outline-secondary" onClick={searchSymbol}>
             <IoSearch style={{ padding: 0, margin: 0 }} />
           </Button>
         </InputGroup>
@@ -99,7 +97,6 @@ export const AddSymbol = () => {
         <Button
           variant="primary"
           onClick={() => {
-            //TODO add symbol to redux and add to localStorage from saga
             if (selectedStock && symbolExchange) {
               store.dispatch(
                 stocksSagaAction({
