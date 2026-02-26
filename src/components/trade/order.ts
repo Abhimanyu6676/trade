@@ -258,7 +258,7 @@ export const handleLtp = (props: {
   ltp: number;
   thresholdCrossed: boolean;
 }) => {
-  console.log("handle LTP", props.stock);
+  //console.log("handle LTP", props.stock);
   const stocksList = store.getState().stocks.stocksList;
   const stockIndex = stocksList.findIndex(
     (item) => item.key_id === props.stock.key_id,
@@ -267,7 +267,7 @@ export const handleLtp = (props: {
   if (stockIndex > -1) {
     const stock = stocksList[stockIndex];
 
-    console.log("threshold status ", props.thresholdCrossed);
+    //console.log("threshold status ", props.thresholdCrossed);
     props.stock.buyOrder &&
       handleOrder({
         stock,
@@ -293,44 +293,65 @@ const handleOrder = async (props: {
   ltp: number;
   thresholdCrossed: boolean;
 }) => {
-  console.log("handling order :: ", props.order);
-  //TODO handle buy order
-  //TODO handle sell order
-  const ltp = props.ltp;
-  const enterPrice = props.order.price;
-  const thresholdCrossed = props.thresholdCrossed;
-  const stopLossPriceDifference = enterPrice * (props.order.risk / 100);
-  const stopLossPrice =
-    props.order.action == "SELL"
-      ? enterPrice + stopLossPriceDifference
-      : enterPrice - stopLossPriceDifference;
-  const pnl: number = (() => {
-    let t = ltp - enterPrice;
-    return props.order.action == "SELL" ? -t : t;
-  })();
-  const upperThreshold = settledDecimal(
-    enterPrice + (enterPrice / 100) * props.order.threshold,
-  );
-  const lowerThreshold = settledDecimal(
-    enterPrice - (enterPrice / 100) * props.order.threshold,
-  );
-  //TODO if pnl is greater then riskPrice then exit trade
+  if (props.ltp) {
+    //console.log("handling order :: ", props.order);
+    //TODO handle buy order
+    //TODO handle sell order
+    const ltp = props.ltp;
+    const enterPrice = props.order.price;
+    const thresholdCrossed = props.thresholdCrossed;
+    const upperThreshold = settledDecimal(
+      enterPrice + (enterPrice / 100) * props.order.threshold,
+    );
+    const lowerThreshold = settledDecimal(
+      enterPrice - (enterPrice / 100) * props.order.threshold,
+    );
+    const stopLossPriceDifference = enterPrice * (props.order.risk / 100);
 
-  let shouldExit = false;
+    const stopLossPrice = thresholdCrossed
+      ? props.order.action == "SELL"
+        ? enterPrice + stopLossPriceDifference
+        : enterPrice - stopLossPriceDifference
+      : props.order.action == "SELL"
+        ? upperThreshold
+        : lowerThreshold;
 
-  if (props.order.action == "SELL") {
-    if (ltp >= stopLossPrice) shouldExit = true;
-  } else if (props.order.action == "BUY") {
-    if (ltp <= stopLossPrice) shouldExit = true;
-  }
+    const pnl: number = (() => {
+      let t = ltp - enterPrice;
+      return props.order.action == "SELL" ? -t : t;
+    })();
 
-  if (props.order.orderStatus == "ACTIVE") {
-    console.log("Let's handle this order");
-    if (shouldExit) {
-      exitTrade({ stock: props.stock, orders: [props.order] });
+    console.log(`STOP LOSS PRICE FOR ${props.order.action} = ${stopLossPrice}`);
+    console.log(`PNL FOR ${props.order.action} = ${pnl}`);
+
+    //TODO if pnl is greater then riskPrice then exit trade
+
+    let shouldExit =
+      props.order.action == "SELL"
+        ? ltp > stopLossPrice
+          ? true
+          : false
+        : ltp < stopLossPrice
+          ? true
+          : false;
+
+    console.log("should exit ", shouldExit);
+
+    if (props.order.action == "SELL") {
+      if (ltp >= stopLossPrice) shouldExit = true;
+    } else if (props.order.action == "BUY") {
+      if (ltp <= stopLossPrice) shouldExit = true;
     }
-  } else {
-    console.log("order is not ACTIVE ");
+
+    if (props.order.orderStatus == "ACTIVE") {
+      console.log("Let's handle this order");
+      if (shouldExit) {
+        console.log("EXITING ORDER");
+        exitTrade({ stock: props.stock, orders: [props.order] });
+      }
+    } else {
+      console.log("order is not ACTIVE ");
+    }
   }
 };
 

@@ -22,8 +22,8 @@ import {
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
-  const testingMode = true;
-  const autoEnter = true;
+  const testingMode = false;
+  const autoEnter = false;
   const [ltp, setLtp] = useState(0);
   const [orderPrice, setOrderPrice] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -118,7 +118,7 @@ const Block = (props: { stock: Stock_i }) => {
             : exitBuy
               ? props.stock.buyOrder
               : undefined;
-          _o && exitTrade({ stock: props.stock, orders: [{ ..._o }] });
+          //_o && exitTrade({ stock: props.stock, orders: [{ ..._o }] });
         }
       }
       handleLtp({
@@ -131,19 +131,19 @@ const Block = (props: { stock: Stock_i }) => {
     return () => {};
   }, [ltp]);
 
-  /*   useOnLtp(props.stock.key_id, (data) => {
+  useOnLtp(props.stock.key_id, (data) => {
     if (props.stock.key_id == getStockKeyId(data)) {
       setLtp(data.ltp);
     }
-  }); */
+  });
 
   //TODO remove after testing
-  useOnPriceChange({
+  /*  useOnPriceChange({
     priceList: _priceList,
     callback: (data) => {
       setLtp(data.lp);
     },
-  });
+  }); */
 
   const enterTrade = async () => {
     console.log(
