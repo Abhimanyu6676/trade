@@ -131,19 +131,19 @@ const Block = (props: { stock: Stock_i }) => {
     return () => {};
   }, [ltp]);
 
-  useOnLtp(props.stock.key_id, (data) => {
+  /* useOnLtp(props.stock.key_id, (data) => {
     if (props.stock.key_id == getStockKeyId(data)) {
       setLtp(data.ltp);
     }
-  });
+  }); */
 
   //TODO remove after testing
-  /*  useOnPriceChange({
+  useOnPriceChange({
     priceList: _priceList,
     callback: (data) => {
       setLtp(data.lp);
     },
-  }); */
+  });
 
   const enterTrade = async () => {
     console.log(
@@ -165,24 +165,27 @@ const Block = (props: { stock: Stock_i }) => {
       exitDrop,
     };
 
-    executeOrder({
-      stock: props.stock,
-      order: {
-        ...orderTemplate,
-        apiKey: openAlgoClient.getClient1().apiKey,
-        action: "BUY",
-      },
-      tempPrice: testingMode ? ltp : 0,
-    });
-    executeOrder({
-      stock: props.stock,
-      order: {
-        ...orderTemplate,
-        apiKey: openAlgoClient.getClient2().apiKey,
-        action: "SELL",
-      },
-      tempPrice: testingMode ? ltp : 0,
-    });
+    if (testingMode) {
+    } else {
+      executeOrder({
+        stock: props.stock,
+        order: {
+          ...orderTemplate,
+          apiKey: openAlgoClient.getClient1().apiKey,
+          action: "BUY",
+        },
+        tempPrice: testingMode ? ltp : 0,
+      });
+      executeOrder({
+        stock: props.stock,
+        order: {
+          ...orderTemplate,
+          apiKey: openAlgoClient.getClient2().apiKey,
+          action: "SELL",
+        },
+        tempPrice: testingMode ? ltp : 0,
+      });
+    }
   };
 
   useEffect(() => {

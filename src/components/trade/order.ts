@@ -355,6 +355,6 @@ const handleOrder = async (props: {
   }
 };
 
-const settledDecimal = (value: number) => {
+export const settledDecimal = (value: number) => {
   return new Decimal(value).toDecimalPlaces(2).toNumber();
 };

@@ -17,11 +17,11 @@ const ClientStatus = () => {
 
   useEffect(() => {
     (async () => {
-      const response1 = await openAlgoClient.getClient1().analyzerstatus();
+      const response1 = await openAlgoClient?.getClient1()?.analyzerstatus();
       console.log("analyzer status client 1 :: ", response1);
       if (
-        response1.status == "success" &&
-        response1.data.analyze_mode != undefined
+        response1?.status == "success" &&
+        response1?.data?.analyze_mode != undefined
       ) {
         store.dispatch(
           updateClientState({
@@ -32,11 +32,11 @@ const ClientStatus = () => {
     })();
 
     (async () => {
-      const response2 = await openAlgoClient.getClient2().analyzerstatus();
+      const response2 = await openAlgoClient?.getClient2()?.analyzerstatus();
       console.log("analyzer status client 2 :: ", response2);
       if (
-        response2.status == "success" &&
-        response2.data.analyze_mode != undefined
+        response2?.status == "success" &&
+        response2?.data?.analyze_mode != undefined
       ) {
         store.dispatch(
           updateClientState({
