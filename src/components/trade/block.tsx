@@ -419,7 +419,7 @@ const Block = (props: { stock: Stock_i }) => {
           />
           <ChildRow
             heading="Sell Order (Buy::Sell)"
-            value={`${props.stock.sellOrder?.price ? props.stock.sellOrder?.price : "N/A"} :: ${props.stock.sellOrder?.exitPrice ? rops.stock.sellOrder?.exitPrice : "N/A"}`}
+            value={`${props.stock.sellOrder?.price ? props.stock.sellOrder?.price : "N/A"} :: ${props.stock.sellOrder?.exitPrice ? props.stock.sellOrder?.exitPrice : "N/A"}`}
           />
         </MasterRow>
 
