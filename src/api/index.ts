@@ -36,7 +36,7 @@ const openAlgoClient = new (class openAlgoClass {
    */
   private symbolsForLTP: string[] = [];
 
-  _constructor() {
+  constructor() {
     console.log("Open Algo Class Constructor");
     this.client1 = new OpenAlgo(
       "66a729fc8f34b86d82276c0e756e09adf3e015fca30085b3263e22be5dadf239",

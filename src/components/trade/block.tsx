@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
@@ -9,38 +8,36 @@ import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import openAlgoClient, { useOnLtp } from "../../api";
 import { getStockKeyId } from "../../util/helper";
 import { _priceList, useOnPriceChange } from "./price";
-import Decimal from "decimal.js";
 import Alert from "../alert";
 import {
   executeOrder,
   executeOrderType_i,
   exitTrade,
   handleLtp,
+  settledDecimal,
   updateTrade,
 } from "./order";
+import * as styles from "./block.module.css";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
-  const testingMode = false;
   const autoEnter = false;
   const [ltp, setLtp] = useState(0);
   const [orderPrice, setOrderPrice] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [priceType, setPriceType] = useState<orderPriceType_i>("MARKET");
-  const [productType, setProductType] = useState<orderProductType_i>(
-    testingMode ? "CNC" : "MIS",
-  );
+  const [productType, setProductType] = useState<orderProductType_i>("MIS");
   const [threshold, setThreshold] = useState(
     props.stock.buyOrder ? props.stock.buyOrder.threshold : 0.5,
   );
-  const [thresholdCrossed, setThresholdCrossed] = useState(false);
-  const [exitDrop, setExitDrop] = useState(
-    props.stock.buyOrder ? props.stock.buyOrder.exitDrop : 0.25,
-  );
   const [risk, setRisk] = useState(
-    props.stock.buyOrder ? props.stock.buyOrder.risk : 0.25,
+    props.stock.buyOrder ? props.stock.buyOrder.risk : 0.1,
   );
+  const [exitDrop, setExitDrop] = useState(
+    props.stock.buyOrder ? props.stock.buyOrder.exitDrop : 0.2,
+  );
+  const [thresholdCrossed, setThresholdCrossed] = useState(false);
   const [isModified, setIsModified] = useState(false);
 
   const isBuyOrderActive =
@@ -50,25 +47,20 @@ const Block = (props: { stock: Stock_i }) => {
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
 
   const upperThreshold = props.stock.buyOrder
-    ? new Decimal(
+    ? settledDecimal(
         props.stock.buyOrder.price +
           (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
       )
-        .toDecimalPlaces(2)
-        .toNumber()
     : 0;
-
   const lowerThreshold = props.stock.buyOrder
-    ? new Decimal(
+    ? settledDecimal(
         props.stock.buyOrder.price -
           (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
       )
-        .toDecimalPlaces(2)
-        .toNumber()
     : 0;
 
   const buyPnl = (() => {
-    return new Decimal(
+    return settledDecimal(
       props.stock?.buyOrder?.orderStatus == "ACTIVE"
         ? (ltp - props.stock.buyOrder.price) * props.stock.buyOrder.quantity
         : props.stock?.buyOrder?.orderStatus == "EXITED"
@@ -76,12 +68,10 @@ const Block = (props: { stock: Stock_i }) => {
             (props.stock.buyOrder.exitPrice - props.stock.buyOrder.price) *
             props.stock.buyOrder.quantity
           : 0,
-    )
-      .toDecimalPlaces(2)
-      .toNumber();
+    );
   })();
   const sellPnl = (() => {
-    return new Decimal(
+    return settledDecimal(
       props.stock?.sellOrder?.orderStatus == "ACTIVE"
         ? (props.stock.sellOrder.price - ltp) * props.stock.sellOrder.quantity
         : props.stock?.sellOrder?.orderStatus == "EXITED"
@@ -89,9 +79,7 @@ const Block = (props: { stock: Stock_i }) => {
             (props.stock.sellOrder.price - props.stock.sellOrder.exitPrice) *
             props.stock.sellOrder.quantity
           : 0,
-    )
-      .toDecimalPlaces(2)
-      .toNumber();
+    );
   })();
   const pnl = buyPnl + sellPnl;
 
@@ -131,19 +119,19 @@ const Block = (props: { stock: Stock_i }) => {
     return () => {};
   }, [ltp]);
 
-  /* useOnLtp(props.stock.key_id, (data) => {
+  useOnLtp(props.stock.key_id, (data) => {
     if (props.stock.key_id == getStockKeyId(data)) {
       setLtp(data.ltp);
     }
-  }); */
+  });
 
   //TODO remove after testing
-  useOnPriceChange({
+  /* useOnPriceChange({
     priceList: _priceList,
     callback: (data) => {
       setLtp(data.lp);
     },
-  });
+  }); */
 
   const enterTrade = async () => {
     console.log(
@@ -165,27 +153,22 @@ const Block = (props: { stock: Stock_i }) => {
       exitDrop,
     };
 
-    if (testingMode) {
-    } else {
-      executeOrder({
-        stock: props.stock,
-        order: {
-          ...orderTemplate,
-          apiKey: openAlgoClient.getClient1().apiKey,
-          action: "BUY",
-        },
-        tempPrice: testingMode ? ltp : 0,
-      });
-      executeOrder({
-        stock: props.stock,
-        order: {
-          ...orderTemplate,
-          apiKey: openAlgoClient.getClient2().apiKey,
-          action: "SELL",
-        },
-        tempPrice: testingMode ? ltp : 0,
-      });
-    }
+    executeOrder({
+      stock: props.stock,
+      order: {
+        ...orderTemplate,
+        apiKey: openAlgoClient.getClient1().apiKey,
+        action: "BUY",
+      },
+    });
+    executeOrder({
+      stock: props.stock,
+      order: {
+        ...orderTemplate,
+        apiKey: openAlgoClient.getClient2().apiKey,
+        action: "SELL",
+      },
+    });
   };
 
   useEffect(() => {
@@ -341,84 +324,130 @@ const Block = (props: { stock: Stock_i }) => {
           padding: "10px 0px",
         }}
       >
-        <Row
-          key1="Buy Order Price"
-          value1Disabled={isBuyOrderActive}
-          value1={
-            props.stock.buyOrder ? props.stock.buyOrder.price : orderPrice
-          }
-          value1Setter={setOrderPrice}
-          key2="Sell Order Price"
-          value2Disabled={isSellOrderActive}
-          value2={
-            props.stock.sellOrder ? props.stock.sellOrder.price : orderPrice
-          }
-          value2Setter={setOrderPrice}
-        />
-        <Row
-          key1="Buy/Sell Order Quantity"
-          value1Disabled={isOrderActive}
-          value1={
-            props.stock.buyOrder ? props.stock.buyOrder.quantity : quantity
-          }
-          value1Setter={setQuantity}
-          key2="Exit on Drop %"
-          value2={exitDrop}
-          value2Setter={setExitDrop}
-        />
-        <Row
-          key1="Threshold %"
-          value1={threshold}
-          value1Setter={setThreshold}
-          key2="Risk %"
-          value2={risk}
-          value2Setter={setRisk}
-        />
-        <Row
-          key1="Upper Threshold"
-          value1Disabled
-          value1={upperThreshold}
-          value2Disabled
-          key2="Lower Threshold"
-          value2={lowerThreshold}
-        />
-        <Row
-          key1="Buy Position"
-          value1Disabled
-          value1={
-            props.stock.buyOrder ? props.stock.buyOrder.orderStatus : "N/A"
-          }
-          key2="Sell Position"
-          value2Disabled
-          value2={
-            props.stock.sellOrder ? props.stock.sellOrder.orderStatus : "N/A"
-          }
-        />
-        <Row
-          key1="Buy PnL"
-          value1Disabled
-          value1={buyPnl}
-          key2="Sell PnL"
-          value2Disabled
-          value2={sellPnl}
-        />
-        <Row
-          Col1={
-            props.stock.buyOrder && props.stock.sellOrder ? (
+        <MasterRow // Buy/Sell order price
+        >
+          <ChildRow heading="Buy Order Price">
+            <Form.Control
+              className={styles.input}
+              type="number"
+              disabled={isBuyOrderActive}
+              value={
+                props.stock.buyOrder ? props.stock.buyOrder.price : orderPrice
+              }
+              onChange={(e) => {
+                setOrderPrice(parseFloat(e.target.value));
+              }}
+            />
+          </ChildRow>
+          <ChildRow heading="Sell Order Price">
+            <Form.Control
+              className={styles.input}
+              type="number"
+              disabled={isSellOrderActive}
+              value={
+                props.stock.sellOrder ? props.stock.sellOrder.price : orderPrice
+              }
+              onChange={(e) => {
+                setOrderPrice(parseFloat(e.target.value));
+              }}
+            />
+          </ChildRow>
+        </MasterRow>
+
+        <MasterRow // order quantity and threshold
+        >
+          <ChildRow heading="Buy/Sell Order Quantity">
+            <Form.Control
+              className={styles.input}
+              type="number"
+              disabled={isOrderActive}
+              value={
+                props.stock.buyOrder ? props.stock.buyOrder.quantity : quantity
+              }
+              onChange={(e) => {
+                setQuantity(parseInt(e.target.value));
+              }}
+            />
+          </ChildRow>
+          <ChildRow heading="Threshold %">
+            <Form.Control
+              className={styles.input}
+              type="number"
+              value={threshold}
+              onChange={(e) => {
+                setThreshold(parseFloat(e.target.value));
+              }}
+            />
+          </ChildRow>
+        </MasterRow>
+
+        <MasterRow // risk and dropDownExit fields
+        >
+          <ChildRow heading="Risk %">
+            <Form.Control
+              className={styles.input}
+              type="number"
+              value={risk}
+              onChange={(e) => {
+                setRisk(parseInt(e.target.value));
+              }}
+            />
+          </ChildRow>
+          <ChildRow heading="Exit on Drop %">
+            <Form.Control
+              className={styles.input}
+              type="number"
+              value={exitDrop}
+              onChange={(e) => {
+                setExitDrop(parseFloat(e.target.value));
+              }}
+            />
+          </ChildRow>
+        </MasterRow>
+
+        <MasterRow // upper/lower threshold
+        >
+          <ChildRow heading="Upper Threshold" value={upperThreshold} />
+          <ChildRow heading="Lower Threshold" value={lowerThreshold} />
+        </MasterRow>
+
+        <MasterRow // buy/sell prices for both orders
+        >
+          <ChildRow
+            heading="Buy Order (Buy::Sell)"
+            value={`${props.stock.buyOrder?.price ? props.stock.buyOrder?.price : "N/A"} :: ${props.stock.buyOrder?.exitPrice ? props.stock.buyOrder?.exitPrice : "N/A"}`}
+          />
+          <ChildRow
+            heading="Sell Order (Buy::Sell)"
+            value={`${props.stock.sellOrder?.price ? props.stock.sellOrder?.price : "N/A"} :: ${props.stock.sellOrder?.exitPrice ? rops.stock.sellOrder?.exitPrice : "N/A"}`}
+          />
+        </MasterRow>
+
+        <MasterRow // buy/sell PnL
+        >
+          <ChildRow heading="Buy PnL" value={buyPnl} />
+          <ChildRow heading="Sell PnL" value={sellPnl} />
+        </MasterRow>
+
+        <MasterRow // net PnL & %
+        >
+          <ChildRow heading="Net PnL" value={pnl} />
+          <ChildRow heading="PnL %" value={"to be set"} />
+        </MasterRow>
+
+        <MasterRow // threshold graph view
+        >
+          <ChildRow heading="Threshold View">
+            {(true || (props.stock.buyOrder && props.stock.sellOrder)) &&
               ThresholdView({
                 thresholdCrossed,
                 ltp,
                 upperThreshold,
                 lowerThreshold,
-              })
-            ) : (
-              <></>
-            )
-          }
-          key2="Net PnL"
-          value2Disabled
-          value2={pnl}
-        />
+              })}
+          </ChildRow>
+          <ChildRow heading="" />
+        </MasterRow>
       </div>
       <div // bottom Buttons
         style={{
@@ -538,100 +567,25 @@ const Block = (props: { stock: Stock_i }) => {
   );
 };
 
-const Row = (props: {
-  Col1?: React.JSX.Element;
-  key1?: string;
-  value1?: number | string;
-  value1Disabled?: boolean;
-  value1Setter?: React.Dispatch<React.SetStateAction<number>>;
-  col2?: React.JSX.Element;
-  key2?: string;
-  value2?: number | string;
-  value2Disabled?: boolean;
-  value2Setter?: React.Dispatch<React.SetStateAction<number>>;
-}) => {
-  return (
-    <div
-      style={{
-        //backgroundColor: "#ff0000",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        //marginTop: 10,
-      }}
-    >
-      <div style={{ flex: 1 }}>
-        {props.Col1 ? (
-          props.Col1
-        ) : (
-          <Coll
-            disabled={props.value1Disabled}
-            keyword={props.key1}
-            value={props.value1}
-            setValue={props.value1Setter}
-          />
-        )}
-      </div>
-      <div style={{ flex: 1 }}>
-        {props.col2 ? (
-          props.col2
-        ) : (
-          <Coll
-            disabled={props.value2Disabled}
-            keyword={props.key2}
-            value={props.value2}
-            setValue={props.value2Setter}
-          />
-        )}
-      </div>
-    </div>
-  );
+const MasterRow = (props: { children?: any }) => {
+  return <div className={styles.masterRow}>{props.children}</div>;
 };
 
-const Coll = (props: {
-  keyword?: string;
-  value?: number | string;
-  disabled?: boolean;
-  setValue?: React.Dispatch<React.SetStateAction<number>>;
+const ChildRow = (props: {
+  children?: React.JSX.Element;
+  heading: string;
+  value?: string | number;
 }) => {
   return (
-    <div
-      className="container"
-      style={{
-        //backgroundColor: "#0000ff",
-        flex: 1,
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 10,
-      }}
-    >
-      <p style={{ fontWeight: "normal", fontSize: 15, margin: 0, padding: 0 }}>
-        {props.keyword}
-      </p>
-      {props.value != undefined && (
-        <div>
-          <InputGroup className="">
-            <Form.Control
-              type={typeof props.value === "string" ? "string" : "number"}
-              disabled={props.disabled}
-              placeholder={"-----"}
-              style={{ width: 100, height: 30, fontSize: 15 }}
-              value={props.value}
-              onChange={(e) => {
-                props.setValue &&
-                  props.setValue(
-                    //@ts-ignore
-                    typeof props.value === "string"
-                      ? e.target.value
-                      : parseFloat(e.target.value),
-                  );
-              }}
-            />
-          </InputGroup>
-        </div>
-      )}
+    <div className={styles.childRow}>
+      <p className={styles.heading}>{props.heading}</p>
+      <div>
+        {props.value != undefined ? (
+          <p className={styles.value}>{props.value}</p>
+        ) : (
+          props.children
+        )}
+      </div>
     </div>
   );
 };
@@ -649,7 +603,7 @@ const ThresholdView = (props: {
         (props.upperThreshold - props.lowerThreshold)) *
       100;
   const thresholdViewSticksCount = 14;
-  const thresholdViewHeight = 50;
+  const thresholdViewHeight = 40;
   const thresholdViewHeightDecline = 3;
   return (
     <div
@@ -671,13 +625,13 @@ const ThresholdView = (props: {
           justifyContent: "center",
           //border: "1px solid #000000",
           position: "relative",
-          margin: "0px 20px",
+          margin: "0px 10px",
         }}
       >
         <div // threshold pointer
           style={{
             backgroundColor: "#555",
-            height: 55,
+            height: thresholdViewHeight + 5,
             width: 3,
             borderRadius: 20,
             position: "absolute",
