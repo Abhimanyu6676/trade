@@ -4,17 +4,32 @@ import store from "../../redux";
 import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import Alert from "../alert";
 import { useState } from "react";
-import { getStockKeyId } from "../../util/helper";
+import { getStockKeyId, sleep } from "../../util/helper";
 
 export type executeOrderType_i = Omit<
   Omit<Omit<order_i, "timestamp">, "orderStatus">,
   "id"
 >;
 
+export const updateOrderInStore = (props: {
+  stock: Stock_i;
+  order: order_i;
+}) => {
+  const updatedStock: Stock_i = { ...props.stock };
+
+  if (props.order.action == "BUY") updatedStock.buyOrder = props.order;
+  if (props.order.action == "SELL") updatedStock.sellOrder = props.order;
+
+  store.dispatch(
+    stocksSagaAction({
+      updateStocks: [updatedStock],
+    }),
+  );
+};
+
 export const executeOrder = async ({
   stock,
   order,
-  tempPrice = 0,
 }: {
   stock: Stock_i;
   order: executeOrderType_i;
@@ -38,8 +53,10 @@ export const executeOrder = async ({
             orderStatus: "PENDING",
             timestamp: Date.now().toString(),
           };
-          //TODO if priceType is `LIMIT/SL/SL-M` check order status if open or complete,
-          // for open order `orderStatus` is PENDING for complete order `orderStatus` is ACTIVE
+          updateOrderInStore({ stock, order: _order });
+
+          await sleep(200);
+
           await client
             .orderStatus({
               orderId: _order.id,
@@ -55,29 +72,18 @@ export const executeOrder = async ({
                 });
                 if (res?.data?.order_status == "complete") {
                   _order.orderStatus = "ACTIVE";
+                  updateOrderInStore({
+                    stock,
+                    order: {
+                      ..._order,
+                      orderStatus: "ACTIVE",
+                      price: res?.data?.average_price,
+                      timestamp: res?.data?.timestamp,
+                    },
+                  });
                 } else {
                   //TODO start a timer to check orderStatus every 1 second
                 }
-                const updatedStock: Stock_i = { ...stock };
-                if (_order.action == "BUY") {
-                  updatedStock.buyOrder = _order;
-                  updatedStock.buyOrder.price = tempPrice
-                    ? tempPrice
-                    : res?.data?.average_price;
-                  updatedStock.buyOrder.timestamp = res?.data?.timestamp;
-                }
-                if (_order.action == "SELL") {
-                  updatedStock.sellOrder = _order;
-                  updatedStock.sellOrder.price = tempPrice
-                    ? tempPrice
-                    : res?.data?.average_price;
-                  updatedStock.sellOrder.timestamp = res?.data?.timestamp;
-                }
-                store.dispatch(
-                  stocksSagaAction({
-                    updateStocks: [updatedStock],
-                  }),
-                );
               } else throw res;
             })
             .catch((err: any) => {
@@ -115,22 +121,18 @@ export const updateTrade = async ({
   // update BUY Order in openAlgoClient
   const _s: Stock_i = {
     ...stock,
-    buyOrder: stock.buyOrder
-      ? {
-          ...stock.buyOrder,
-          threshold,
-          risk,
-          exitDrop,
-        }
-      : undefined,
-    sellOrder: stock.sellOrder
-      ? {
-          ...stock.sellOrder,
-          threshold,
-          risk,
-          exitDrop,
-        }
-      : undefined,
+    buyOrder: {
+      ...stock.buyOrder,
+      threshold,
+      risk,
+      exitDrop,
+    },
+    sellOrder: {
+      ...stock.sellOrder,
+      threshold,
+      risk,
+      exitDrop,
+    },
   };
   console.log("updates stock state == ", _s);
   store.dispatch(
@@ -140,6 +142,7 @@ export const updateTrade = async ({
   );
 };
 
+//TODO exit trade via doing opposite action and then check status and update
 export const exitTrade = async ({
   stock,
   orders,
@@ -147,23 +150,6 @@ export const exitTrade = async ({
   stock: Stock_i;
   orders: order_i[];
 }) => {
-  const updateOrderInStoreAsClosed = (order: order_i) => {
-    const updatedStock: Stock_i = { ...stock };
-    if (order.action == "BUY") {
-      updatedStock.buyOrder = { ...order };
-      updatedStock.buyOrder.orderStatus = "EXITED";
-      //TODO fetch exitPrice an update
-    }
-    if (order.action == "SELL") {
-      updatedStock.sellOrder = { ...order };
-      updatedStock.sellOrder.orderStatus = "EXITED";
-    }
-    store.dispatch(
-      stocksSagaAction({
-        updateStocks: [updatedStock],
-      }),
-    );
-  };
   orders.map(async (item) => {
     //TODO fetch order status
     const client = openAlgoClient.getClient(item.apiKey);
@@ -196,12 +182,15 @@ export const exitTrade = async ({
                       `Position closed for ${item.symbol}:${item.exchange}`,
                       res,
                     );
-                    //TODO update stock status in redux store
+                    updateOrderInStore({
+                      stock,
+                      //TODO update stock exit price also get it from new orderID
+                      order: { ...item, orderStatus: "EXITED" },
+                    });
                     Alert.notify({
                       heading: `${item.action} Position closed : ${item.symbol}:${item.exchange}`,
                       variant: "success",
                     });
-                    updateOrderInStoreAsClosed(item);
                   } else throw res;
                 })
                 .catch((err: any) => {
@@ -228,7 +217,10 @@ export const exitTrade = async ({
                       heading: `Order cancelled : ${item.symbol}:${item.exchange}`,
                       variant: "success",
                     });
-                    updateOrderInStoreAsClosed(item);
+                    updateOrderInStore({
+                      stock,
+                      order: { ...item, orderStatus: "EXITED" },
+                    });
                   } else throw res;
                 })
                 .catch((err: any) => {

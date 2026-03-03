@@ -98,6 +98,24 @@ export const AddSymbol = () => {
           variant="primary"
           onClick={() => {
             if (selectedStock && symbolExchange) {
+              let _o: Omit<order_i, "action"> = {
+                apiKey: "",
+                strategy: "nodeJS",
+                id: "",
+                timestamp: "0",
+                symbol: selectedStock.symbol,
+                exchange: symbolExchange,
+                priceType: "LIMIT",
+                product: "CNC",
+                quantity: 0,
+                price: 0,
+                triggerPrice: 0,
+                disclosedQuantity: 0,
+                threshold: 0.5,
+                risk: 0.1,
+                exitDrop: 0.2,
+                orderStatus: "EXITED",
+              };
               store.dispatch(
                 stocksSagaAction({
                   addStocks: [
@@ -107,6 +125,8 @@ export const AddSymbol = () => {
                       brSymbol: selectedStock.brsymbol,
                       symbol: selectedStock.symbol,
                       exchange: symbolExchange,
+                      buyOrder: { ..._o, action: "BUY" },
+                      sellOrder: { ..._o, action: "SELL" },
                     },
                   ],
                 }),

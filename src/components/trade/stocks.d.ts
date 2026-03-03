@@ -34,8 +34,8 @@ interface Stock_i {
   brSymbol: string;
   exchange: exchange_i;
   ltp?: number;
-  buyOrder?: order_i;
-  sellOrder?: order_i;
+  buyOrder: order_i;
+  sellOrder: order_i;
 }
 
 interface order_i {
@@ -44,12 +44,12 @@ interface order_i {
   id: string;
   timestamp: string;
   symbol: string;
-  action: orderAction_i;
   exchange: exchange_i;
   priceType: orderPriceType_i;
   product: orderProductType_i;
   quantity: number;
   price: number;
+  action: orderAction_i;
   exitPrice?: number;
   triggerPrice?: number;
   disclosedQuantity: number;

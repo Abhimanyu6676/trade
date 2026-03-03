@@ -6,3 +6,9 @@ export const getStockKeyId = (
 ) => {
   return `${stock.symbol}:${stock.exchange}`;
 };
+
+export const sleep = (
+  timeout: number /** @param timeout [number] in milliseconds */,
+) => {
+  return new Promise((resolve) => setTimeout(resolve));
+};

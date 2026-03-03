@@ -13,8 +13,8 @@ import {
   executeOrder,
   executeOrderType_i,
   exitTrade,
-  handleLtp,
   settledDecimal,
+  updateOrderInStore,
   updateTrade,
 } from "./order";
 import * as styles from "./block.module.css";
@@ -22,66 +22,57 @@ import * as styles from "./block.module.css";
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
+  const testing = false;
   const autoEnter = false;
   const [ltp, setLtp] = useState(0);
+  const [peakLtp, setPeakLtp] = useState(0);
+  const [bottomLtp, setBottomLtp] = useState(0);
   const [orderPrice, setOrderPrice] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [priceType, setPriceType] = useState<orderPriceType_i>("MARKET");
   const [productType, setProductType] = useState<orderProductType_i>("MIS");
-  const [threshold, setThreshold] = useState(
-    props.stock.buyOrder ? props.stock.buyOrder.threshold : 0.5,
-  );
-  const [risk, setRisk] = useState(
-    props.stock.buyOrder ? props.stock.buyOrder.risk : 0.1,
-  );
-  const [exitDrop, setExitDrop] = useState(
-    props.stock.buyOrder ? props.stock.buyOrder.exitDrop : 0.2,
-  );
-  const [thresholdCrossed, setThresholdCrossed] = useState(false);
   const [isModified, setIsModified] = useState(false);
+  const [threshold, setThreshold] = useState(props.stock.buyOrder.threshold);
+  const [risk, setRisk] = useState(props.stock.buyOrder.risk);
+  const [exitDrop, setExitDrop] = useState(props.stock.buyOrder.exitDrop);
+  const [thresholdCrossed, setThresholdCrossed] = useState(false);
 
-  const isBuyOrderActive =
-    props.stock.buyOrder && props.stock.buyOrder?.orderStatus == "ACTIVE";
-  const isSellOrderActive =
-    props.stock.sellOrder && props.stock.sellOrder?.orderStatus == "ACTIVE";
+  const isBuyOrderActive = props.stock.buyOrder.orderStatus == "ACTIVE";
+  const isSellOrderActive = props.stock.sellOrder.orderStatus == "ACTIVE";
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
 
-  const upperThreshold = props.stock.buyOrder
-    ? settledDecimal(
-        props.stock.buyOrder.price +
-          (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
-      )
-    : 0;
-  const lowerThreshold = props.stock.buyOrder
-    ? settledDecimal(
-        props.stock.buyOrder.price -
-          (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
-      )
-    : 0;
+  const upperThreshold = settledDecimal(
+    props.stock.buyOrder.price +
+      (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
+  );
+  const lowerThreshold = settledDecimal(
+    props.stock.buyOrder.price -
+      (props.stock.buyOrder.price / 100) * props.stock.buyOrder.threshold,
+  );
 
-  const buyPnl = (() => {
+  const _____buyPnl = (() => {
     return settledDecimal(
       props.stock?.buyOrder?.orderStatus == "ACTIVE"
         ? (ltp - props.stock.buyOrder.price) * props.stock.buyOrder.quantity
-        : props.stock?.buyOrder?.orderStatus == "EXITED"
-          ? //@ts-ignore
-            (props.stock.buyOrder.exitPrice - props.stock.buyOrder.price) *
+        : props.stock.buyOrder.orderStatus == "EXITED" &&
+            props.stock.buyOrder.exitPrice
+          ? (props.stock.buyOrder.exitPrice - props.stock.buyOrder.price) *
             props.stock.buyOrder.quantity
           : 0,
     );
   })();
-  const sellPnl = (() => {
+  const _____sellPnl = (() => {
     return settledDecimal(
       props.stock?.sellOrder?.orderStatus == "ACTIVE"
         ? (props.stock.sellOrder.price - ltp) * props.stock.sellOrder.quantity
-        : props.stock?.sellOrder?.orderStatus == "EXITED"
-          ? //@ts-ignore
-            (props.stock.sellOrder.price - props.stock.sellOrder.exitPrice) *
+        : props.stock.sellOrder.orderStatus == "EXITED" &&
+            props.stock.sellOrder.exitPrice
+          ? (props.stock.sellOrder.price - props.stock.sellOrder.exitPrice) *
             props.stock.sellOrder.quantity
           : 0,
     );
   })();
-  const pnl = buyPnl + sellPnl;
+  const _____pnl = _____buyPnl + _____sellPnl;
 
   useEffect(() => {
     //TODO if BUY or SELL order active update StopLoss and trigger as per new threshold and risk
@@ -90,7 +81,7 @@ const Block = (props: { stock: Stock_i }) => {
   }, [threshold, risk, exitDrop]);
 
   useEffect(() => {
-    if (isOrderActive) {
+    if (isOrderActive && false) {
       if (!thresholdCrossed && upperThreshold && lowerThreshold) {
         let _thresholdCrossed = ltp >= upperThreshold || ltp <= lowerThreshold;
         if (_thresholdCrossed) {
@@ -112,7 +103,6 @@ const Block = (props: { stock: Stock_i }) => {
       handleLtp({
         stock: props.stock,
         ltp,
-        thresholdCrossed,
       });
     }
 
@@ -121,6 +111,7 @@ const Block = (props: { stock: Stock_i }) => {
 
   useOnLtp(props.stock.key_id, (data) => {
     if (props.stock.key_id == getStockKeyId(data)) {
+      console.log("LTP Update Received: ", data);
       setLtp(data.ltp);
     }
   });
@@ -137,38 +128,137 @@ const Block = (props: { stock: Stock_i }) => {
     console.log(
       `Entering Trade for ${props.stock.symbol} at ${props.stock.exchange}`,
     );
+    setPeakLtp(ltp);
+    setBottomLtp(ltp);
 
-    let orderTemplate: Omit<Omit<executeOrderType_i, "action">, "apiKey"> = {
-      strategy: "nodeJS",
-      symbol: props.stock.symbol,
-      exchange: props.stock.exchange,
-      priceType: priceType,
-      product: productType,
-      quantity,
-      price: priceType == "LIMIT" ? orderPrice : 0,
-      triggerPrice: 0,
-      disclosedQuantity: 0,
-      threshold,
-      risk,
-      exitDrop,
-    };
+    if (testing) {
+      //TODO set order as started in store
+    } else {
+      let orderTemplate: Omit<Omit<executeOrderType_i, "action">, "apiKey"> = {
+        strategy: "nodeJS",
+        symbol: props.stock.symbol,
+        exchange: props.stock.exchange,
+        priceType: priceType,
+        product: productType,
+        quantity,
+        price: priceType == "LIMIT" ? orderPrice : ltp,
+        triggerPrice: 0,
+        disclosedQuantity: 0,
+        threshold,
+        risk,
+        exitDrop,
+      };
 
-    executeOrder({
-      stock: props.stock,
-      order: {
-        ...orderTemplate,
-        apiKey: openAlgoClient.getClient1().apiKey,
-        action: "BUY",
-      },
-    });
-    executeOrder({
-      stock: props.stock,
-      order: {
-        ...orderTemplate,
-        apiKey: openAlgoClient.getClient2().apiKey,
-        action: "SELL",
-      },
-    });
+      executeOrder({
+        stock: props.stock,
+        order: {
+          ...orderTemplate,
+          apiKey: openAlgoClient.getClient1().apiKey,
+          action: "BUY",
+        },
+      });
+      executeOrder({
+        stock: props.stock,
+        order: {
+          ...orderTemplate,
+          apiKey: openAlgoClient.getClient2().apiKey,
+          action: "SELL",
+        },
+      });
+    }
+  };
+
+  const _exitTrade = async (props: { stock: Stock_i; orders: order_i[] }) => {
+    if (testing) {
+      //TODO set order as closed in store and exitPrice also
+      props.orders.map((i) => {
+        updateOrderInStore({
+          stock: props.stock,
+          order: { ...i, exitPrice: ltp },
+        });
+      });
+    } else {
+      exitTrade({ stock: props.stock, orders: props.orders });
+    }
+  };
+
+  const handleLtp = (props: { stock: Stock_i; ltp: number }) => {
+    console.log(`\n\n\n\nhandleLtp called ${props.ltp}`);
+    if (
+      !thresholdCrossed &&
+      (props.ltp <= lowerThreshold || props.ltp >= upperThreshold)
+    ) {
+      setThresholdCrossed(true);
+      if (props.ltp >= upperThreshold) {
+        console.log(
+          "Upper Threshold crossed, EXITING SELL ORDER at price ",
+          props.ltp,
+        );
+        _exitTrade({ stock: props.stock, orders: [props.stock.sellOrder] });
+      } else {
+        console.log(
+          "Lower Threshold crossed, EXITING BUY ORDER at price ",
+          props.ltp,
+        );
+        _exitTrade({ stock: props.stock, orders: [props.stock.buyOrder] });
+      }
+    } else if (
+      thresholdCrossed
+    ) // check for active order and handle pnl accordingly
+    {
+      console.log("Threshold is crossed");
+      // only one order should be active to handle at this stage, but still check for both if exiting position api failed
+      if (isBuyOrderActive) // handle buy order
+      {
+        console.log("Handling Buy order");
+        const enterPrice = props.stock.buyOrder.price;
+        const upperThresholdCrossed = peakLtp >= upperThreshold;
+        const riskThresholdPrice = upperThreshold - (enterPrice / 100) * risk;
+
+        const diffFromPeakLtp = ((ltp - peakLtp) / enterPrice) * 100;
+        const downfallRiskHit =
+          ltp != peakLtp && diffFromPeakLtp + exitDrop <= 0 ? true : false;
+
+        console.log(`upperThresholdCrossed : ${upperThresholdCrossed}`);
+        console.log(`riskThresholdPrice : ${riskThresholdPrice}`);
+        console.log(`diffFromPeakLtp : ${diffFromPeakLtp}`);
+        console.log(`downfallRiskHit : ${downfallRiskHit}`);
+
+        if (props.ltp <= riskThresholdPrice || downfallRiskHit) {
+          console.log(
+            `BUY risk/exitDrop threshold crossed, exiting order at price ${props.ltp}`,
+          );
+          _exitTrade({ stock: props.stock, orders: [props.stock.buyOrder] });
+        }
+      }
+      if (isSellOrderActive) // handle sell order
+      {
+        console.log("Handling Sell order");
+        const enterPrice = props.stock.sellOrder.price;
+        const lowerThresholdCrossed = bottomLtp <= lowerThreshold;
+        const riskThresholdPrice = lowerThreshold + (enterPrice / 100) * risk;
+
+        const diffFromPeakLtp = ((bottomLtp - ltp) / enterPrice) * 100;
+        const downfallRiskHit =
+          ltp != bottomLtp && diffFromPeakLtp + exitDrop <= 0 ? true : false;
+
+        console.log(`lowerThresholdCrossed : ${lowerThresholdCrossed}`);
+        console.log(`riskThresholdPrice : ${riskThresholdPrice}`);
+        console.log(`diffFromPeakLtp : ${diffFromPeakLtp}`);
+        console.log(`downfallRiskHit : ${downfallRiskHit}`);
+
+        if (props.ltp >= riskThresholdPrice || downfallRiskHit) {
+          console.log(
+            `SELL risk/exitDrop threshold crossed, exiting order at price ${props.ltp}`,
+          );
+          _exitTrade({ stock: props.stock, orders: [props.stock.sellOrder] });
+        }
+      }
+    } else {
+      console.log("Price within threshold limits");
+    }
+    if (ltp > peakLtp) setPeakLtp(ltp);
+    else if (ltp < bottomLtp) setBottomLtp(ltp);
   };
 
   useEffect(() => {
@@ -425,13 +515,13 @@ const Block = (props: { stock: Stock_i }) => {
 
         <MasterRow // buy/sell PnL
         >
-          <ChildRow heading="Buy PnL" value={buyPnl} />
-          <ChildRow heading="Sell PnL" value={sellPnl} />
+          <ChildRow heading="Buy PnL" value={_____buyPnl} />
+          <ChildRow heading="Sell PnL" value={_____sellPnl} />
         </MasterRow>
 
         <MasterRow // net PnL & %
         >
-          <ChildRow heading="Net PnL" value={pnl} />
+          <ChildRow heading="Net PnL" value={_____pnl} />
           <ChildRow heading="PnL %" value={"to be set"} />
         </MasterRow>
 
