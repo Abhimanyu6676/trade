@@ -12,3 +12,7 @@ export const sleep = (
 ) => {
   return new Promise((resolve) => setTimeout(resolve));
 };
+
+export const settledDecimal = (value: number) => {
+  return new Decimal(value).toDecimalPlaces(2).toNumber();
+};

@@ -1,9 +1,7 @@
-import React from "react";
 import { uuidWithSpecifiedSize } from "../../util/uuid";
 import {
-  addNotification,
-  notification_i,
-  removeNotification,
+  _addNotification,
+  _removeNotification,
 } from "../../redux/notificationReducer";
 import store from "../../redux";
 
@@ -16,11 +14,11 @@ const Alert = new (class _notificationClass {
       ...props,
       id: uuidWithSpecifiedSize({ size: 10 }),
     };
-    store.dispatch(addNotification(newNotification));
+    store.dispatch(_addNotification(newNotification));
   }
 
-  removeNotification(props: notification_i) {
-    store.dispatch(removeNotification(props.id));
+  close(id: string) {
+    store.dispatch(_removeNotification(id));
   }
 })();
 

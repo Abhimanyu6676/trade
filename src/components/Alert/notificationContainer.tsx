@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux";
-import { notification_i } from "../../redux/notificationReducer";
 import Alert from ".";
 
 export const NotificationContainer = () => {
@@ -24,10 +23,11 @@ export const NotificationContainer = () => {
       {notifications.map((notification) => {
         return (
           <Notification
+            key={notification.id}
             id={notification.id}
             heading={notification.heading}
-            variant={notification.variant}
             text={notification.text}
+            variant={notification.variant}
             timeout={notification.timeout}
           />
         );
@@ -38,19 +38,20 @@ export const NotificationContainer = () => {
 
 const Notification = ({
   variant = "notify",
-  timeout = 5,
+  timeout,
   ...props
 }: notification_i) => {
   const removeNotification = () => {
-    Alert.removeNotification(props);
+    Alert.close(props.id);
   };
 
+  if (timeout === undefined) timeout = 5000;
   useEffect(() => {
     let timer = undefined;
     if (timeout)
       timer = setTimeout(() => {
-        //removeNotification();
-      }, timeout * 1000);
+        removeNotification();
+      }, timeout);
     return () => {};
   }, []);
 

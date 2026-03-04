@@ -1,22 +1,23 @@
-import React, { useEffect } from "react";
+import React from "react";
 import ReduxWrapper from "../redux/reduxWrapper";
 import { NotificationContainer } from "./alert/notificationContainer";
-//import socketService from "../services/socketService";
+import socketService from "../services/socketService";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/global.css";
+import { log } from "console";
 
 export const GlobalRootComp = ({ element }: any) => {
-  useEffect(() => {
-    /** //NOTE this line is important to initialize socketService */
-    //console.log("Socket.io class id = ", socketService.classID);
-    return () => {};
-  }, []);
-
   return (
     <div style={{ position: "relative" }}>
-      <h1>hhh</h1>
-      {/*  <ReduxWrapper>
+      {(() => {
+        // NOTE this file is necessary to initialize socketService class
+        console.log("Socket.io classID = ", socketService.classID);
+        return null;
+      })()}
+      <ReduxWrapper>
         <NotificationContainer />
         {element}
-      </ReduxWrapper> */}
+      </ReduxWrapper>
     </div>
   );
 };

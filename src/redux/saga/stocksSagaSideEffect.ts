@@ -11,7 +11,7 @@ export const [stocksSagaSideEffectAction, stocksSagaSideEffectWatcher] =
     callable: function* containersWorker(stocksList) {
       //console.log( "Stocks Saga SideEffect Called with stocksList : ", stocksList,);
       (async () => {
-        storeLocalData("stocksList", stocksList);
+        //storeLocalData("stocksList", stocksList);
       })();
     },
   });

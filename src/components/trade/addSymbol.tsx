@@ -5,12 +5,7 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import Form from "react-bootstrap/esm/Form";
 import InputGroup from "react-bootstrap/esm/InputGroup";
 import { IoSearch } from "react-icons/io5";
-import store from "../../redux";
-import { stocksSagaAction } from "../../redux/saga/stocksSaga";
-import openAlgoClient from "../../api";
-import { getStockKeyId } from "../../util/helper";
-import Notification from "../alert";
-import { uuidWithSpecifiedSize } from "../../util/uuid";
+import socketService from "../../services/socketService";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
@@ -97,40 +92,9 @@ export const AddSymbol = () => {
         <Button
           variant="primary"
           onClick={() => {
+            console.log("socket.io serviceID = ", socketService.classID);
             if (selectedStock && symbolExchange) {
-              let _o: Omit<order_i, "action"> = {
-                apiKey: "",
-                strategy: "nodeJS",
-                id: "",
-                timestamp: "0",
-                symbol: selectedStock.symbol,
-                exchange: symbolExchange,
-                priceType: "LIMIT",
-                product: "CNC",
-                quantity: 0,
-                price: 0,
-                triggerPrice: 0,
-                disclosedQuantity: 0,
-                threshold: 0.5,
-                risk: 0.1,
-                exitDrop: 0.2,
-                orderStatus: "EXITED",
-              };
-              store.dispatch(
-                stocksSagaAction({
-                  addStocks: [
-                    {
-                      key_id: getStockKeyId(selectedStock),
-                      name: selectedStock.name,
-                      brSymbol: selectedStock.brsymbol,
-                      symbol: selectedStock.symbol,
-                      exchange: symbolExchange,
-                      buyOrder: { ..._o, action: "BUY" },
-                      sellOrder: { ..._o, action: "SELL" },
-                    },
-                  ],
-                }),
-              );
+              //TODO send data to socket event on server to add new symbol to list and subscribe to it via socket for live data
               setSymbol("");
               setSelectedStock(undefined);
               setSearchList([]);

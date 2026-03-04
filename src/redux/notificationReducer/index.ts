@@ -1,24 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-/**
- * @param timeout in seconds
- */
-export interface notification_i {
-  id: string;
-  heading: string;
-  variant?: "notify" | "success" | "warning" | "error";
-  text?: string;
-  /** timeout in seconds [could be 0.25]*/
-  timeout?: number;
-}
-
 const initialState: notification_i[] = [];
 
 export const notificationSlice = createSlice({
   name: "counter",
   initialState,
   reducers: {
-    addNotification: (
+    _addNotification: (
       state,
       action: {
         type: string;
@@ -29,7 +17,8 @@ export const notificationSlice = createSlice({
       newState.push(action.payload);
       return newState;
     },
-    removeNotification: (
+    /** @param id [string] notification to remove */
+    _removeNotification: (
       state,
       action: {
         type: string;
@@ -44,7 +33,7 @@ export const notificationSlice = createSlice({
   },
 });
 
-export const { addNotification, removeNotification } =
+export const { _addNotification, _removeNotification } =
   notificationSlice.actions;
 
 export default notificationSlice.reducer;

@@ -5,7 +5,6 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
-import openAlgoClient from "../../api";
 import { updateClientState } from "../../redux/clientReducer";
 
 const ClientStatus = () => {
@@ -15,41 +14,7 @@ const ClientStatus = () => {
   const [showClientAnalyzerStatus, setShowClientAnalyzerStatus] =
     useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const response1 = await openAlgoClient?.getClient1()?.analyzerstatus();
-      console.log("analyzer status client 1 :: ", response1);
-      if (
-        response1?.status == "success" &&
-        response1?.data?.analyze_mode != undefined
-      ) {
-        store.dispatch(
-          updateClientState({
-            client1AnalyzerMode: response1.data.analyze_mode,
-          }),
-        );
-      }
-    })();
-
-    (async () => {
-      const response2 = await openAlgoClient?.getClient2()?.analyzerstatus();
-      console.log("analyzer status client 2 :: ", response2);
-      if (
-        response2?.status == "success" &&
-        response2?.data?.analyze_mode != undefined
-      ) {
-        store.dispatch(
-          updateClientState({
-            client2AnalyzerMode: response2.data.analyze_mode,
-          }),
-        );
-      }
-    })();
-    setTimeout(() => {
-      setShowClientAnalyzerStatus(true);
-    }, 1000);
-    return () => {};
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <div

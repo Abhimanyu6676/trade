@@ -26,7 +26,7 @@ export default function TradeComponent() {
       <ClientStatus />
       <div style={{}}>
         {stocksState.stocksList.map((stock, stockIndex) => (
-          <Block key={stock.key_id} stock={stock} />
+          <Block key={stockIndex + stock.key_id} stock={stock} />
         ))}
       </div>
     </div>
