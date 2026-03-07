@@ -6,32 +6,44 @@ import Form from "react-bootstrap/esm/Form";
 import InputGroup from "react-bootstrap/esm/InputGroup";
 import { IoSearch } from "react-icons/io5";
 import socketService from "../../services/socketService";
+import { getStockKeyId } from "../../util/helper";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
-  const [selectedStock, setSelectedStock] = useState<StockListSearchResult_i>();
+  const [selectedStock, setSelectedStock] =
+    useState<searchSymbolResponseData_i>();
   const [symbolExchange, setSymbolExchange] = useState<"NSE" | "BSE">("BSE");
-  const [searchList, setSearchList] = useState<StockListSearchResult_i[]>([]);
+  const [searchList, setSearchList] = useState<searchSymbolResponseData_i[]>(
+    [],
+  );
 
   const searchSymbol = async () => {
     if (symbol) {
       console.log("Searching Symbol: ", symbol, " on ", symbolExchange);
-      const searchResult = await openAlgoClient.getClient1().search({
-        query: symbol,
-        exchange: symbolExchange,
+      socketService.sendOrderCmd({
+        cmd: "searchSymbol",
+        data: { symbol, exchange: symbolExchange },
       });
-      console.log("Search Result = ", JSON.stringify(searchResult.data));
-      if (searchResult?.status == "success" && searchResult?.data) {
-        console.log("Setting Search Selector List as per results");
-        setSearchList(searchResult.data);
-      } else {
-        console.log("Search result error");
-      }
-      //TODO search symbol from selected exchange via api and update symbolsList
     } else {
       console.log("Search Symbol cannot be empty");
     }
   };
+
+  useEffect(() => {
+    socketService.socketMessageSubscriberList.subscribe({
+      id: "searchSymbolComp",
+      callback: (data) => {
+        console.log("message in searchSymbolComp inside subscribed callback");
+        console.log(data);
+        if (data.type == "searchSymbolResults") {
+          setSearchList(data.symbols);
+        }
+      },
+    });
+    return () => {
+      socketService.socketMessageSubscriberList.unSubscribe("searchSymbolComp");
+    };
+  }, []);
 
   return (
     <div
@@ -94,7 +106,17 @@ export const AddSymbol = () => {
           onClick={() => {
             console.log("socket.io serviceID = ", socketService.classID);
             if (selectedStock && symbolExchange) {
-              //TODO send data to socket event on server to add new symbol to list and subscribe to it via socket for live data
+              socketService.sendOrderCmd({
+                cmd: "addSymbol",
+                data: {
+                  key_id: getStockKeyId(selectedStock),
+                  name: selectedStock.name,
+                  symbol: selectedStock.symbol,
+                  brSymbol: selectedStock.brsymbol,
+                  exchange: selectedStock.exchange,
+                },
+              });
+
               setSymbol("");
               setSelectedStock(undefined);
               setSearchList([]);
@@ -110,9 +132,9 @@ export const AddSymbol = () => {
   );
 };
 const SymbolSelector = (props: {
-  searchList: StockListSearchResult_i[];
+  searchList: searchSymbolResponseData_i[];
   setSelectedStock: React.Dispatch<
-    React.SetStateAction<StockListSearchResult_i | undefined>
+    React.SetStateAction<searchSymbolResponseData_i | undefined>
   >;
   setSymbol: React.Dispatch<React.SetStateAction<string>>;
 }) => {

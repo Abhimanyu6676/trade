@@ -91,7 +91,7 @@ const Notification = ({
       }}
     >
       <h6>{props.heading}</h6>
-      <p style={{ fontSize: 12 }}>{props.text}</p>
+      <p style={{ fontSize: 12, overflow: "hidden" }}>{props.text}</p>
       <button // remove button
         style={{
           position: "absolute",

@@ -4,12 +4,15 @@ import store from "../redux";
 import { stocksSagaAction } from "../redux/saga/stocksSaga";
 import { ltpSubscriberList } from "../hooks/useLtpHook";
 import Alert from "../components/alert";
+import subscribeClass from "../util/subscribeClass";
 
 export default new (class SocketService {
   public classID = uuidv4();
   private socket: Socket | null = null;
 
-  constructor(url: string = "http://localhost:3000") {
+  public socketMessageSubscriberList = new subscribeClass<messageDataType_i>();
+
+  constructor(url: string = "http://10.32.61.178:3000") {
     console.log(
       "socket.io service container created with classID:",
       this.classID,
@@ -36,8 +39,9 @@ export default new (class SocketService {
       console.error("Socket error:", error);
     });
 
-    this.socket?.on("message", (msg: any) => {
+    this.socket?.on("message", (msg: messageDataType_i) => {
       console.log("message from socket.io onMessage ", msg);
+      this.socketMessageSubscriberList.notify(msg);
     });
 
     this.socket?.on("ltp", (data: ltpData_i) => {
@@ -78,7 +82,10 @@ export default new (class SocketService {
     cmd: any;
   }): void {
     if (this.socket) {
+      console.log("sending command ", event);
       this.socket.emit(event, cmd);
+    } else {
+      console.log("no socket available");
     }
   }
 

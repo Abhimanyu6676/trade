@@ -28,6 +28,7 @@ export default function TradeComponent() {
         {stocksState.stocksList.map((stock, stockIndex) => (
           <Block key={stockIndex + stock.key_id} stock={stock} />
         ))}
+        <div style={{ height: 100 }} />
       </div>
     </div>
   );
