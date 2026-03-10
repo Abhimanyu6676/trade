@@ -4,7 +4,6 @@ import { NotificationContainer } from "./alert/notificationContainer";
 import socketService from "../services/socketService";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/global.css";
-import { log } from "console";
 
 export const GlobalRootComp = ({ element }: any) => {
   return (

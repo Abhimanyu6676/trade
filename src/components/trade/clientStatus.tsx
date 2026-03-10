@@ -1,169 +1,189 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import store, { RootState } from "../../redux";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
-import { updateClientState } from "../../redux/clientReducer";
+import { FaNetworkWired } from "react-icons/fa";
+import { MdOutlineLink } from "react-icons/md";
+import { MdOutlineLinkOff } from "react-icons/md";
+import { FaServer } from "react-icons/fa";
+import { GrTest } from "react-icons/gr";
+import { CgMediaLive } from "react-icons/cg";
+import socketService from "../../services/socketService";
 
 const ClientStatus = () => {
-  const clientState = useSelector((state: RootState) => state.client);
-
-  const [showClientStatus, setShowClientStatus] = useState(true);
-  const [showClientAnalyzerStatus, setShowClientAnalyzerStatus] =
+  const [client1Connected, setClient1Connected] = useState(false);
+  const [client1WebSocketConnected, setClient1WebSocketConnected] =
     useState(false);
+  const [client1Analyzer, setClient1Analyzer] = useState(true);
 
-  useEffect(() => {}, []);
+  const [client2Connected, setClient2Connected] = useState(false);
+  const [client2WebSocketConnected, setClient2WebSocketConnected] =
+    useState(false);
+  const [client2Analyzer, setClient2Analyzer] = useState(true);
+  const [serverSocketStatus, setServerSocketStatus] = useState(false);
+
+  const interval = setInterval(() => {
+    if (socketService.socketConnected != serverSocketStatus)
+      setServerSocketStatus(socketService.socketConnected);
+  }, 2000);
+
+  useEffect(() => {
+    socketService.socketMessageSubscriberList.subscribe({
+      id: "clientStatus",
+      callback: (msg) => {
+        console.log("message in clientStatus inside subscribed callback", msg);
+        if (msg.type == "clientStatus" && msg.data.status) {
+          msg.data.status.client1Connected != undefined &&
+            setClient1Connected(msg.data.status.client1Connected);
+          msg.data.status.client1WebSocketConnected != undefined &&
+            setClient1WebSocketConnected(
+              msg.data.status.client1WebSocketConnected,
+            );
+          msg.data.status.client1Analyzer != undefined &&
+            setClient1Analyzer(msg.data.status.client1Analyzer);
+          msg.data.status.client2Connected != undefined &&
+            setClient2Connected(msg.data.status.client2Connected);
+          msg.data.status.client2WebSocketConnected != undefined &&
+            setClient2WebSocketConnected(
+              msg.data.status.client2WebSocketConnected,
+            );
+          msg.data.status.client2Analyzer != undefined &&
+            setClient2Analyzer(msg.data.status.client2Analyzer);
+        }
+      },
+    });
+    setTimeout(() => {
+      console.log("sending getClientStatus msg to server");
+      socketService.sendMsg({ type: "getClientStatus", data: {} });
+    }, 2000);
+    return () => {
+      clearInterval(interval);
+      socketService.socketMessageSubscriberList.unSubscribe("clientStatus");
+    };
+  }, [socketService.socketConnected]);
 
   return (
     <div
       style={{
-        marginTop: 20,
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
+        marginTop: 10,
+        //border: "1px solid #000",
       }}
     >
-      <div>
-        <Form>
-          <Form.Check
-            reverse
-            type="switch"
-            id="custom-switch"
-            label="Show Client Status"
-            defaultChecked={showClientStatus}
-            onChange={(e) => {
-              setShowClientStatus(e.target.checked);
-            }}
-          />
-          {showClientAnalyzerStatus && (
-            <ClientAnalyzerStatus
-              client1AnalyzerStatus={clientState.client1AnalyzerMode}
-              client2AnalyzerStatus={clientState.client2AnalyzerMode}
-            />
-          )}
-        </Form>
+      <div // client status container
+        style={{
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Status
+          clientName="Client 1 (Abhimanyu)"
+          clientConnected={client1Connected}
+          webSocketConnected={client1WebSocketConnected}
+          clientAnalyzer={client1Analyzer}
+          clientApiKey={
+            process.env.client1ApiKey ? process.env.client1ApiKey : ""
+          }
+        />
+        <div style={{ height: 10 }} />
+        <Status
+          clientName="Client 2 (Shiva)"
+          clientConnected={client2Connected}
+          webSocketConnected={client2WebSocketConnected}
+          clientAnalyzer={client2Analyzer}
+          clientApiKey={
+            process.env.client2ApiKey ? process.env.client2ApiKey : ""
+          }
+        />
       </div>
-
-      {showClientStatus && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-          }}
-        >
-          <Status
-            clientName="Client 1 (Abhimanyu)"
-            API_Auth={clientState.client1Connected}
-            API_Connected={clientState.client1Authenticated}
-            Websocket={clientState.client1WebSocketConnected}
-            WS_Auth={clientState.client1WebSocketAuthenticated}
-          />
-
-          <Status
-            clientName="Client 2 (Shiva)"
-            API_Auth={clientState.client2Connected}
-            API_Connected={clientState.client2Authenticated}
-            Websocket={clientState.client2WebSocketConnected}
-            WS_Auth={clientState.client2WebSocketAuthenticated}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-const Status = (props: {
-  clientName: string;
-  API_Connected?: boolean;
-  API_Auth?: boolean;
-  Websocket?: boolean;
-  WS_Auth?: boolean;
-}) => {
-  return (
-    <div
-      style={{
-        border: "1px solid #aaaaaa",
-        minWidth: 200,
-        padding: 10,
-        marginLeft: 30,
-      }}
-    >
-      <h6 style={{ marginBottom: 10 }}>{props.clientName}</h6>
-      <StatusRow
-        propertyLabel="API Connected"
-        propertyStatus={props.API_Connected}
-      />
-      <StatusRow propertyLabel="API Auth" propertyStatus={props.API_Auth} />
-      <StatusRow propertyLabel="Websocket" propertyStatus={props.Websocket} />
-      <StatusRow propertyLabel="WS Auth" propertyStatus={props.WS_Auth} />
-    </div>
-  );
-};
-
-const StatusRow = (props: {
-  propertyLabel: string;
-  propertyStatus?: boolean;
-}) => {
-  return (
-    <div style={{}}>
-      <div
+      <div //server status
         style={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
           alignItems: "center",
-          margin: "3px 0px",
         }}
       >
-        <p style={{ fontSize: 10 }}>{props.propertyLabel}</p>
-        <div
-          style={{
-            borderRadius: 50,
-            width: 10,
-            height: 10,
-            backgroundColor: props.propertyStatus ? "green" : "red",
-          }}
+        <h6 style={{ marginRight: 15 }}>Backend Status</h6>
+        <FaServer
+          size={18}
+          color={serverSocketStatus ? "#27F598" : "#F55427"}
         />
       </div>
     </div>
   );
 };
 
-const ClientAnalyzerStatus = (props: {
-  client1AnalyzerStatus?: boolean;
-  client2AnalyzerStatus?: boolean;
+const Status = (props: {
+  clientName: string;
+  clientConnected?: boolean;
+  webSocketConnected?: boolean;
+  clientAnalyzer: boolean;
+  clientApiKey: string;
 }) => {
   return (
-    <>
-      <Form.Check
-        reverse
-        type="switch"
-        id="custom-switch"
-        label="Client 1 Analyzer"
-        defaultChecked={props.client1AnalyzerStatus}
-        onChange={async (e) => {
-          const response = await openAlgoClient
-            .getClient1()
-            .analyzertoggle({ mode: e.target.checked });
-          console.log(response);
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        //border: "1px solid #000",
+      }}
+    >
+      <h6 style={{ width: 180 }}>{props.clientName}</h6>
+      <button
+        title="Refresh Status"
+        style={{
+          all: "unset",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          //border: "1px solid #000",
+          padding: "0px 10px",
         }}
-      />
-      <Form.Check
-        reverse
-        type="switch"
-        id="custom-switch"
-        label="Client 2 Analyzer"
-        defaultChecked={props.client2AnalyzerStatus}
-        onChange={async (e) => {
-          const response = await openAlgoClient
-            .getClient2()
-            .analyzertoggle({ mode: e.target.checked });
-          console.log(response);
+        onClick={() => {
+          socketService.sendMsg({ type: "getClientStatus", data: {} });
         }}
-      />
-    </>
+      >
+        <FaNetworkWired
+          size={18}
+          color={props.clientConnected ? "#27F598" : "#F55427"}
+          style={{ marginRight: 15 }}
+        />
+        <div style={{}}>
+          {props.webSocketConnected ? (
+            <MdOutlineLink color="#27F598" size={20} />
+          ) : (
+            <MdOutlineLinkOff color="#F55427" size={20} />
+          )}
+        </div>
+      </button>
+      <button
+        title="Toggle Analyzer Mode"
+        style={{
+          all: "unset",
+          cursor: "pointer",
+          //border: "1px solid #000",
+          padding: "0px 10px",
+        }}
+        onClick={() => {
+          socketService.sendMsg({
+            type: "toggleAnalyzer",
+            data: {
+              clientApiKey: props.clientApiKey,
+              analyzerOn: !props.clientAnalyzer,
+            },
+          });
+        }}
+      >
+        {props.clientAnalyzer ? (
+          <GrTest color="#27F598" size={16} />
+        ) : (
+          <CgMediaLive color="#F55427" size={16} />
+        )}
+      </button>
+    </div>
   );
 };
 

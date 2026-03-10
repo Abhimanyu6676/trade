@@ -7,7 +7,7 @@ interface subscribeArray_i<T> {
 
 class subscribeClass<CallbackProps> {
   public classID = uuidv4();
-  public subscribeArray: subscribeArray_i<CallbackProps>[] = [];
+  private subscribeArray: subscribeArray_i<CallbackProps>[] = [];
 
   constructor() {}
 

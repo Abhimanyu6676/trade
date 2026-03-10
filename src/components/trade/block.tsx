@@ -3,14 +3,12 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
-import store from "../../redux";
-import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import * as styles from "./block.module.css";
-import { getStockKeyId, settledDecimal } from "../../util/helper";
-import { useOnLtp } from "../../hooks/useLtpHook";
+import { getStockKeyId, decimal } from "../../util/helper";
 import socketService from "../../services/socketService";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
+import { FaCaretUp } from "react-icons/fa6";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -21,7 +19,12 @@ const Block = (props: { stock: Stock_i }) => {
   const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
   const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
 
-  const [orderPrice, setOrderPrice] = useState(buyOrder?.price || 0);
+  //Take average of both prices, sell and buy
+  const [orderPrice, setOrderPrice] = useState(
+    buyOrder?.price && sellOrder?.price
+      ? decimal((buyOrder.price + sellOrder.price) / 2)
+      : 1,
+  );
   const [quantity, setQuantity] = useState(buyOrder?.quantity || 1);
   const [priceType, setPriceType] = useState<orderPriceType_i>(
     buyOrder?.priceType || "MARKET",
@@ -38,46 +41,43 @@ const Block = (props: { stock: Stock_i }) => {
   const isSellOrderActive = sellOrder && sellOrder?.orderStatus != "EXITED";
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
 
-  const upperThreshold = settledDecimal(
-    buyOrder
-      ? buyOrder?.price + (buyOrder?.price / 100) * buyOrder?.threshold
-      : 0,
-  );
-  const lowerThreshold = settledDecimal(
-    buyOrder
-      ? buyOrder?.price - (buyOrder?.price / 100) * buyOrder?.threshold
-      : 0,
-  );
+  const upperThreshold = decimal(orderPrice + (orderPrice / 100) * threshold);
+  const lowerThreshold = decimal(orderPrice - (orderPrice / 100) * threshold);
 
-  const buyPnl = settledDecimal(
+  const buyPnl = decimal(
     buyOrder?.orderStatus == "ACTIVE"
       ? (ltp - buyOrder.price) * buyOrder.quantity
       : buyOrder?.orderStatus == "EXITED" && buyOrder?.exitPrice
         ? (buyOrder.exitPrice - buyOrder.price) * buyOrder.quantity
         : 0,
   );
-  const sellPnl = settledDecimal(
+  const sellPnl = decimal(
     sellOrder?.orderStatus == "ACTIVE"
       ? (sellOrder.price - ltp) * sellOrder.quantity
       : sellOrder?.orderStatus == "EXITED" && sellOrder?.exitPrice
         ? (sellOrder.price - sellOrder.exitPrice) * sellOrder.quantity
         : 0,
   );
-  const pnl = buyPnl + sellPnl;
+  const pnl = decimal(buyPnl + sellPnl);
 
+  // subscribe to LTP
   useEffect(() => {
-    if (isOrderActive) setIsModified(true);
-    return () => {};
-  }, [threshold, risk, exitDrop]);
+    socketService.ltpSubscriberList.subscribe({
+      id: props.stock.key_id,
+      callback: (data) => {
+        console.log(
+          `ltp data in stock block via new subscriberList ${props.stock.key_id}`,
+          data,
+        );
+        const dataKeyId = getStockKeyId(data);
+        if (props.stock.key_id == dataKeyId) setLtp(data.ltp);
+      },
+    });
 
-  useOnLtp({
-    id: props.stock.key_id,
-    callback: (data) => {
-      //console.log(`ltpdata in stock block ${props.stock.key_id}`, data);
-      const dataKeyId = getStockKeyId(data);
-      if (props.stock.key_id == dataKeyId) setLtp(parseFloat(data.ltp));
-    },
-  });
+    return () => {
+      socketService.ltpSubscriberList.unSubscribe(props.stock.key_id);
+    };
+  }, []);
 
   const enterTrade = async () => {
     console.log("Entering trade");
@@ -93,20 +93,18 @@ const Block = (props: { stock: Stock_i }) => {
       triggerPrice: 0,
       disclosedQuantity: 0,
       threshold,
-      risk,
+      risk: risk,
       exitDrop,
     };
 
     const order1: enterTradeOrder_i = {
       ...orderTemplate,
-      apiKey:
-        "3a98bae399310b98dfd3d30e05c7edb6de97f049e5caa4c872c9a3351bb4d7ca",
+      apiKey: process.env.client1ApiKey ? process.env.client1ApiKey : "",
       action: "BUY",
     };
     const order2: enterTradeOrder_i = {
       ...orderTemplate,
-      apiKey:
-        "851914d49fae648c7b878f36e40be28cada4df6b46511487d3a9d5c9c1631f84",
+      apiKey: process.env.client2ApiKey ? process.env.client2ApiKey : "",
       action: "SELL",
     };
 
@@ -122,10 +120,29 @@ const Block = (props: { stock: Stock_i }) => {
     risk: number;
     exitDrop: number;
   }) => {
-    //TODO update order with new threshold, risk and exitDrop values
+    if (isModified) {
+      console.log("order is modified send new values to backend");
+      socketService.sendOrderCmd({
+        cmd: "modifyTrade",
+        data: {
+          key_id: props.stock.key_id,
+          threshold: props.threshold,
+          risk: props.risk,
+          exitDrop: props.exitDrop,
+        },
+      });
+    }
   };
 
-  const exitTrade = async (props: { stock: Stock_i; orders: order_i[] }) => {};
+  const exitTrade = async (props: { stock: Stock_i; orders: order_i[] }) => {
+    socketService.sendOrderCmd({
+      cmd: "exitTrade",
+      data: {
+        key_id: props.stock.key_id,
+        id: props.orders.map((o) => o.orderId),
+      },
+    });
+  };
 
   return (
     <div
@@ -138,7 +155,7 @@ const Block = (props: { stock: Stock_i }) => {
         marginTop: 20,
       }}
     >
-      <div //block
+      <div // top buttons
         style={{
           display: "flex",
           flexDirection: "row",
@@ -152,7 +169,12 @@ const Block = (props: { stock: Stock_i }) => {
             flexDirection: "row",
           }}
         >
-          <div style={{ minWidth: 200 }}>
+          <div // stock name
+            style={{
+              //backgroundColor: "red"
+              minWidth: 200,
+            }}
+          >
             <p style={{ margin: 0, padding: 0, fontSize: 12 }}>Symbol Name</p>
             <div
               style={{
@@ -176,13 +198,62 @@ const Block = (props: { stock: Stock_i }) => {
               </p>
             </div>
           </div>
-          <div style={{ minWidth: 100 }}>
+          <div // buy sell quantity
+            style={{ minWidth: 100 }}
+          >
             <p style={{ margin: 0, padding: 0, fontSize: 12 }}>Quantity</p>
             <h5>{`${buyOrder ? buyOrder.quantity : "--"} : ${sellOrder ? sellOrder.quantity : "--"}`}</h5>
           </div>
-          <div style={{ minWidth: 100 }}>
+          <div // LTP
+            style={{ minWidth: 100 }}
+          >
             <p style={{ margin: 0, padding: 0, fontSize: 12 }}>LTP</p>
             <h5>{ltp}</h5>
+          </div>
+          <div // buy/sell status
+            style={{
+              //backgroundColor: "red",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                backgroundColor:
+                  buyOrder?.orderStatus == "ACTIVE"
+                    ? "#33EB45"
+                    : buyOrder?.orderStatus == "EXITED"
+                      ? "#F83725"
+                      : "#82829B",
+                padding: "0px 5px",
+                borderRadius: 3,
+                boxShadow: "2px 2px 5px rgba(0,0,0,0.3)",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+            >
+              B
+            </div>
+            <div
+              style={{
+                backgroundColor:
+                  sellOrder?.orderStatus == "ACTIVE"
+                    ? "#33EB45"
+                    : sellOrder?.orderStatus == "EXITED"
+                      ? "#F83725"
+                      : "#82829B",
+                padding: "0px 5px",
+                borderRadius: 3,
+                boxShadow: "2px 2px 5px rgba(0,0,0,0.3)",
+                color: "#fff",
+                fontWeight: "bold",
+                marginLeft: 5,
+              }}
+            >
+              S
+            </div>
           </div>
         </div>
         <div // Enter trade & trade priceType Button
@@ -225,7 +296,7 @@ const Block = (props: { stock: Stock_i }) => {
               MARKET
             </Dropdown.Item>
             <Dropdown.Item
-              //disabled
+              disabled
               onClick={() => {
                 setPriceType("LIMIT");
               }}
@@ -321,7 +392,7 @@ const Block = (props: { stock: Stock_i }) => {
                 <Form.Control
                   className={styles.input}
                   type="number"
-                  disabled={isBuyOrderActive}
+                  disabled={buyOrder != undefined}
                   value={buyOrder ? buyOrder.price : orderPrice}
                   onChange={(e) => {
                     setOrderPrice(parseFloat(e.target.value));
@@ -332,7 +403,7 @@ const Block = (props: { stock: Stock_i }) => {
                 <Form.Control
                   className={styles.input}
                   type="number"
-                  disabled={isSellOrderActive}
+                  disabled={sellOrder != undefined}
                   value={sellOrder ? sellOrder.price : orderPrice}
                   onChange={(e) => {
                     setOrderPrice(parseFloat(e.target.value));
@@ -347,7 +418,7 @@ const Block = (props: { stock: Stock_i }) => {
                 <Form.Control
                   className={styles.input}
                   type="number"
-                  disabled={isOrderActive}
+                  disabled={buyOrder != undefined || sellOrder != undefined}
                   value={buyOrder ? buyOrder.quantity : quantity}
                   onChange={(e) => {
                     setQuantity(parseInt(e.target.value));
@@ -361,12 +432,13 @@ const Block = (props: { stock: Stock_i }) => {
                   value={threshold}
                   onChange={(e) => {
                     setThreshold(parseFloat(e.target.value));
+                    setIsModified(true);
                   }}
                 />
               </ChildRow>
             </MasterRow>
 
-            <MasterRow // risk and dropDownExit fields
+            <MasterRow // risk and exitDrop fields
             >
               <ChildRow heading="Risk %">
                 <Form.Control
@@ -374,7 +446,8 @@ const Block = (props: { stock: Stock_i }) => {
                   type="number"
                   value={risk}
                   onChange={(e) => {
-                    setRisk(parseInt(e.target.value));
+                    setRisk(parseFloat(e.target.value));
+                    setIsModified(true);
                   }}
                 />
               </ChildRow>
@@ -385,6 +458,7 @@ const Block = (props: { stock: Stock_i }) => {
                   value={exitDrop}
                   onChange={(e) => {
                     setExitDrop(parseFloat(e.target.value));
+                    setIsModified(true);
                   }}
                 />
               </ChildRow>
@@ -417,19 +491,34 @@ const Block = (props: { stock: Stock_i }) => {
             <MasterRow // net PnL & %
             >
               <ChildRow heading="Net PnL" value={pnl} />
-              <ChildRow heading="PnL %" value={"to be set"} />
+              <ChildRow
+                heading="PnL %"
+                value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"}
+              />
             </MasterRow>
 
             <MasterRow // threshold graph view
             >
-              <ChildRow heading="Threshold View">
+              <div
+                style={{
+                  display: "flex",
+                  flex: 1,
+                  padding: "5px 20px",
+                }}
+              >
                 {(true || buyOrder || sellOrder) &&
                   ThresholdView({
                     ltp,
                     upperThreshold,
+                    upperOuterBound: decimal(
+                      orderPrice + (orderPrice / 100) * (threshold * 3),
+                    ),
                     lowerThreshold,
+                    lowerOuterBound: decimal(
+                      orderPrice - (orderPrice / 100) * (threshold * 3),
+                    ),
                   })}
-              </ChildRow>
+              </div>
               <ChildRow heading="" />
             </MasterRow>
           </div>
@@ -452,28 +541,9 @@ const Block = (props: { stock: Stock_i }) => {
               }}
             >
               <Button
-                variant={isModified ? "success" : "outline-success"}
-                disabled={!isModified}
-                onClick={() => {
-                  console.log("updating Order -- ", isOrderActive);
-                  console.log("props", threshold, risk, exitDrop);
-                  updateTrade({
-                    stock: props.stock,
-                    threshold,
-                    risk,
-                    exitDrop,
-                  });
-                  setIsModified(false);
-                }}
-              >
-                Update Order
-              </Button>
-              <Button
                 variant={isOrderActive ? "danger" : "outline-danger"}
                 disabled={!isOrderActive}
-                style={{
-                  marginLeft: 20,
-                }}
+                style={{}}
                 onClick={() => {
                   console.log("Exit Order");
                   buyOrder &&
@@ -534,21 +604,21 @@ const Block = (props: { stock: Stock_i }) => {
               }}
             >
               <Button
-                variant="outline-danger"
-                disabled={isOrderActive}
-                style={{
-                  marginLeft: 20,
-                }}
+                variant={isModified ? "success" : "outline-success"}
+                disabled={!isModified}
                 onClick={() => {
-                  console.log("removing Symbol from List ", props.stock.key_id);
-                  store.dispatch(
-                    stocksSagaAction({
-                      removeStocks: [props.stock],
-                    }),
-                  );
+                  console.log("updating Order -- ", isOrderActive);
+                  console.log("props", threshold, risk, exitDrop);
+                  updateTrade({
+                    stock: props.stock,
+                    threshold,
+                    risk: risk,
+                    exitDrop,
+                  });
+                  setIsModified(false);
                 }}
               >
-                Remove Symbol
+                Update Order
               </Button>
             </div>
           </div>
@@ -584,33 +654,53 @@ const ChildRow = (props: {
 const ThresholdView = (props: {
   ltp: number;
   upperThreshold: number;
+  upperOuterBound: number;
+  lowerOuterBound: number;
   lowerThreshold: number;
 }) => {
   /** keep this even number array automatically add a center stick */
+  const pointerOffset = 4;
 
-  const thresholdCrossed =
-    props.ltp >= props.lowerThreshold && props.ltp <= props.upperThreshold;
+  const lowerThresholdLocation =
+    ((props.lowerThreshold - props.lowerOuterBound) /
+      (props.upperOuterBound - props.lowerOuterBound)) *
+      100 -
+    pointerOffset;
 
-  const pointerPlace = thresholdCrossed
-    ? 0
-    : ((props.ltp - props.lowerThreshold) /
-        (props.upperThreshold - props.lowerThreshold)) *
-      100;
-  const thresholdViewSticksCount = 14;
-  const thresholdViewHeight = 40;
-  const thresholdViewHeightDecline = 3;
+  const upperThresholdLocation =
+    ((props.upperThreshold - props.lowerOuterBound) /
+      (props.upperOuterBound - props.lowerOuterBound)) *
+      100 -
+    pointerOffset;
+
+  console.log("lowerthreshold location === ", lowerThresholdLocation);
+  console.log("upperthreshold location === ", upperThresholdLocation);
+
+  const outOfView =
+    props.ltp > props.upperOuterBound || props.ltp < props.lowerOuterBound;
+
+  const pointerLocation = !outOfView
+    ? ((props.ltp - props.lowerOuterBound) /
+        (props.upperOuterBound - props.lowerOuterBound)) *
+      100
+    : 0;
+  const thresholdViewSticksCount = 60;
+  const thresholdViewHeight = 15;
+  const thresholdViewHeightDecline = 0;
+
+  console.log("pointer place = ", pointerLocation);
   return (
     <div
       className="container"
       style={{
         //backgroundColor: "#eeeeee",
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <p style={{ fontSize: 12, color: "#777" }}>{props.lowerThreshold}</p>
+      <p style={{ fontSize: 12, color: "#777" }}>L</p>
       <div // threshold bar container
         style={{
           display: "flex",
@@ -625,12 +715,12 @@ const ThresholdView = (props: {
         <div // threshold pointer
           style={{
             backgroundColor: "#555",
-            height: thresholdViewHeight + 5,
-            width: 3,
+            height: thresholdViewHeight + 10,
+            width: 2,
             borderRadius: 20,
             position: "absolute",
-            left: `${pointerPlace}%`,
-            opacity: pointerPlace ? 1 : 0,
+            left: `${pointerLocation - 0.25}%`,
+            opacity: pointerLocation ? 1 : 0,
           }}
         />
         {Array(thresholdViewSticksCount + 1)
@@ -650,16 +740,81 @@ const ThresholdView = (props: {
                           thresholdViewHeightDecline
                       : thresholdViewHeight -
                         index * thresholdViewHeightDecline,
-                  width: 5,
+                  width: 1.5,
                   borderRadius: 20,
                   marginRight: index == thresholdViewSticksCount ? 0 : 6,
-                  backgroundColor: `rgb(${255 - index * 15}, ${35 + index * 15}, 50)`,
+                  backgroundColor: `rgb(${255 - index * 6}, ${35 + index * 6}, 50)`,
                 }}
               ></div>
             );
           })}
+
+        <div // lower bound
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            left: `-${pointerOffset}%`,
+            top: 15,
+            fontSize: 9,
+            color: "#888",
+          }}
+        >
+          <FaCaretUp />
+          {props.lowerOuterBound}
+        </div>
+        <div // lower threshold
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            left: `${lowerThresholdLocation}%`,
+            top: 15,
+            fontSize: 10,
+            color: "#888",
+          }}
+        >
+          <FaCaretUp />
+          {props.lowerThreshold}
+        </div>
+        <div // upper threshold
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            left: `${upperThresholdLocation}%`,
+            top: 15,
+            fontSize: 10,
+            color: "#888",
+          }}
+        >
+          <FaCaretUp />
+          {props.upperThreshold}
+        </div>
+        <div // upper bound
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            right: `-${pointerOffset}%`,
+            top: 15,
+            fontSize: 9,
+            color: "#888",
+          }}
+        >
+          <FaCaretUp />
+          {props.upperOuterBound}
+        </div>
       </div>
-      <p style={{ fontSize: 12, color: "#777" }}>{props.upperThreshold}</p>
+      <p style={{ fontSize: 12, color: "#777" }}>U</p>
     </div>
   );
 };

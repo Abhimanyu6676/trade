@@ -36,7 +36,7 @@ export const AddSymbol = () => {
         console.log("message in searchSymbolComp inside subscribed callback");
         console.log(data);
         if (data.type == "searchSymbolResults") {
-          setSearchList(data.symbols);
+          setSearchList(data.data.symbols);
         }
       },
     });

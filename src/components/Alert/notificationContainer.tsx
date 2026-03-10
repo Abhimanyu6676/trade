@@ -45,7 +45,7 @@ const Notification = ({
     Alert.close(props.id);
   };
 
-  if (timeout === undefined) timeout = 5000;
+  if (timeout === undefined && variant !== "error") timeout = 5000;
   useEffect(() => {
     let timer = undefined;
     if (timeout)
