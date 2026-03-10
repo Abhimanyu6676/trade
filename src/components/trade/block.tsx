@@ -9,10 +9,15 @@ import socketService from "../../services/socketService";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
 import { FaCaretUp } from "react-icons/fa6";
+import { darkTheme, lightTheme } from ".";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
-const Block = (props: { stock: Stock_i }) => {
+const Block = (props: {
+  stock: Stock_i;
+  theme: typeof lightTheme | typeof darkTheme;
+}) => {
+  const { theme } = props;
   const [showFields, setShowFields] = useState(props.stock.orders.length > 0);
   const [ltp, setLtp] = useState(0);
 
@@ -147,9 +152,10 @@ const Block = (props: { stock: Stock_i }) => {
   return (
     <div
       className="container"
+      data-bs-theme={theme}
       style={{
-        backgroundColor: "#f1f1f1",
-        border: "1px solid #eeeeee",
+        backgroundColor: theme.background,
+        border: `1px solid ${theme.border}`,
         borderRadius: 10,
         padding: 15,
         marginTop: 20,
@@ -175,7 +181,16 @@ const Block = (props: { stock: Stock_i }) => {
               minWidth: 200,
             }}
           >
-            <p style={{ margin: 0, padding: 0, fontSize: 12 }}>Symbol Name</p>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: 12,
+                color: theme.subtleText,
+              }}
+            >
+              Symbol Name
+            </p>
             <div
               style={{
                 //backgroundColor: "red",
@@ -184,14 +199,17 @@ const Block = (props: { stock: Stock_i }) => {
                 alignItems: "flex-end",
               }}
             >
-              <h5 style={{ margin: 0, padding: 0 }}>{props.stock.symbol}</h5>
+              <h5 style={{ margin: 0, padding: 0, color: theme.text }}>
+                {props.stock.symbol}
+              </h5>
               <p
                 style={{
                   fontSize: 12,
                   margin: 0,
                   marginLeft: 5,
-                  border: "1px solid #000000",
+                  border: `1px solid ${theme.stockExchangeBorder}`,
                   padding: "0px 5px",
+                  color: theme.text,
                 }}
               >
                 {props.stock.exchange}
@@ -201,14 +219,36 @@ const Block = (props: { stock: Stock_i }) => {
           <div // buy sell quantity
             style={{ minWidth: 100 }}
           >
-            <p style={{ margin: 0, padding: 0, fontSize: 12 }}>Quantity</p>
-            <h5>{`${buyOrder ? buyOrder.quantity : "--"} : ${sellOrder ? sellOrder.quantity : "--"}`}</h5>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: 12,
+                color: theme.subtleText,
+              }}
+            >
+              Quantity
+            </p>
+            <h5
+              style={{ color: theme.text }}
+            >{`${buyOrder ? buyOrder.quantity : "--"} : ${
+              sellOrder ? sellOrder.quantity : "--"
+            }`}</h5>
           </div>
           <div // LTP
             style={{ minWidth: 100 }}
           >
-            <p style={{ margin: 0, padding: 0, fontSize: 12 }}>LTP</p>
-            <h5>{ltp}</h5>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: 12,
+                color: theme.subtleText,
+              }}
+            >
+              LTP
+            </p>
+            <h5 style={{ color: theme.text }}>{ltp}</h5>
           </div>
           <div // buy/sell status
             style={{
@@ -262,7 +302,7 @@ const Block = (props: { stock: Stock_i }) => {
             flexDirection: "row",
           }}
         >
-          <button
+          <button // show hide field button
             style={{
               all: "unset",
               cursor: "pointer",
@@ -278,9 +318,9 @@ const Block = (props: { stock: Stock_i }) => {
             }}
           >
             {showFields ? (
-              <IoEyeOff size={22} color="#aaaaaa" />
+              <IoEyeOff size={22} color={theme.iconMuted} />
             ) : (
-              <IoEye size={22} color="#888888" />
+              <IoEye size={22} color={theme.icon} />
             )}
           </button>
           <DropdownButton //Product type selector
@@ -358,7 +398,7 @@ const Block = (props: { stock: Stock_i }) => {
           >
             Enter Trade
           </Button>
-          <DropdownButton //Product type selector
+          <DropdownButton //delete symbol selector button
             disabled={isOrderActive}
             variant="outline-secondary"
             title={""}
@@ -381,14 +421,14 @@ const Block = (props: { stock: Stock_i }) => {
           <div // data rows
             style={{
               marginTop: 20,
-              backgroundColor: "#ffffff",
+              backgroundColor: theme.containerBackground,
               borderRadius: 5,
               padding: "10px 0px",
             }}
           >
             <MasterRow // Buy/Sell order price
             >
-              <ChildRow heading="Buy Order Price">
+              <ChildRow heading="Buy Order Price" theme={theme}>
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -399,7 +439,7 @@ const Block = (props: { stock: Stock_i }) => {
                   }}
                 />
               </ChildRow>
-              <ChildRow heading="Sell Order Price">
+              <ChildRow heading="Sell Order Price" theme={theme}>
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -414,7 +454,7 @@ const Block = (props: { stock: Stock_i }) => {
 
             <MasterRow // order quantity and threshold
             >
-              <ChildRow heading="Buy/Sell Order Quantity">
+              <ChildRow heading="Buy/Sell Order Quantity" theme={theme}>
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -425,7 +465,7 @@ const Block = (props: { stock: Stock_i }) => {
                   }}
                 />
               </ChildRow>
-              <ChildRow heading="Threshold %">
+              <ChildRow heading="Threshold %" theme={theme}>
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -440,7 +480,7 @@ const Block = (props: { stock: Stock_i }) => {
 
             <MasterRow // risk and exitDrop fields
             >
-              <ChildRow heading="Risk %">
+              <ChildRow heading="Risk %" theme={theme}>
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -451,7 +491,7 @@ const Block = (props: { stock: Stock_i }) => {
                   }}
                 />
               </ChildRow>
-              <ChildRow heading="Exit on Drop %">
+              <ChildRow heading="Exit on Drop %" theme={theme}>
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -466,8 +506,16 @@ const Block = (props: { stock: Stock_i }) => {
 
             <MasterRow // upper/lower threshold
             >
-              <ChildRow heading="Upper Threshold" value={upperThreshold} />
-              <ChildRow heading="Lower Threshold" value={lowerThreshold} />
+              <ChildRow
+                heading="Upper Threshold"
+                value={upperThreshold}
+                theme={theme}
+              />
+              <ChildRow
+                heading="Lower Threshold"
+                value={lowerThreshold}
+                theme={theme}
+              />
             </MasterRow>
 
             <MasterRow // buy/sell prices for both orders
@@ -475,25 +523,28 @@ const Block = (props: { stock: Stock_i }) => {
               <ChildRow
                 heading="Buy Order (Buy::Sell)"
                 value={`${buyOrder?.price ? buyOrder?.price : "N/A"} :: ${buyOrder?.exitPrice ? buyOrder?.exitPrice : "N/A"}`}
+                theme={theme}
               />
               <ChildRow
                 heading="Sell Order (Buy::Sell)"
                 value={`${sellOrder?.price ? sellOrder?.price : "N/A"} :: ${sellOrder?.exitPrice ? sellOrder?.exitPrice : "N/A"}`}
+                theme={theme}
               />
             </MasterRow>
 
             <MasterRow // buy/sell PnL
             >
-              <ChildRow heading="Buy PnL" value={buyPnl} />
-              <ChildRow heading="Sell PnL" value={sellPnl} />
+              <ChildRow heading="Buy PnL" value={buyPnl} theme={theme} />
+              <ChildRow heading="Sell PnL" value={sellPnl} theme={theme} />
             </MasterRow>
 
             <MasterRow // net PnL & %
             >
-              <ChildRow heading="Net PnL" value={pnl} />
+              <ChildRow heading="Net PnL" value={pnl} theme={theme} />
               <ChildRow
                 heading="PnL %"
                 value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"}
+                theme={theme}
               />
             </MasterRow>
 
@@ -517,9 +568,10 @@ const Block = (props: { stock: Stock_i }) => {
                     lowerOuterBound: decimal(
                       orderPrice - (orderPrice / 100) * (threshold * 3),
                     ),
+                    theme: theme,
                   })}
               </div>
-              <ChildRow heading="" />
+              <ChildRow heading="" theme={theme} />
             </MasterRow>
           </div>
           <div // bottom Buttons
@@ -636,13 +688,18 @@ const ChildRow = (props: {
   children?: React.JSX.Element;
   heading: string;
   value?: string | number;
+  theme: typeof lightTheme | typeof darkTheme;
 }) => {
   return (
     <div className={styles.childRow}>
-      <p className={styles.heading}>{props.heading}</p>
+      <p className={styles.heading} style={{ color: props.theme.headingText }}>
+        {props.heading}
+      </p>
       <div>
         {props.value != undefined ? (
-          <p className={styles.value}>{props.value}</p>
+          <p className={styles.value} style={{ color: props.theme.valueText }}>
+            {props.value}
+          </p>
         ) : (
           props.children
         )}
@@ -657,6 +714,7 @@ const ThresholdView = (props: {
   upperOuterBound: number;
   lowerOuterBound: number;
   lowerThreshold: number;
+  theme: typeof lightTheme | typeof darkTheme;
 }) => {
   /** keep this even number array automatically add a center stick */
   const pointerOffset = 4;
@@ -673,8 +731,8 @@ const ThresholdView = (props: {
       100 -
     pointerOffset;
 
-  console.log("lowerthreshold location === ", lowerThresholdLocation);
-  console.log("upperthreshold location === ", upperThresholdLocation);
+  console.log("lowerThreshold location === ", lowerThresholdLocation);
+  console.log("upperThreshold location === ", upperThresholdLocation);
 
   const outOfView =
     props.ltp > props.upperOuterBound || props.ltp < props.lowerOuterBound;
@@ -700,7 +758,6 @@ const ThresholdView = (props: {
         justifyContent: "center",
       }}
     >
-      <p style={{ fontSize: 12, color: "#777" }}>L</p>
       <div // threshold bar container
         style={{
           display: "flex",
@@ -709,12 +766,12 @@ const ThresholdView = (props: {
           justifyContent: "center",
           //border: "1px solid #000000",
           position: "relative",
-          margin: "0px 10px",
+          margin: "10px 10px 20px 10px",
         }}
       >
         <div // threshold pointer
           style={{
-            backgroundColor: "#555",
+            backgroundColor: props.theme.threshold.pointer,
             height: thresholdViewHeight + 10,
             width: 2,
             borderRadius: 20,
@@ -759,7 +816,7 @@ const ThresholdView = (props: {
             left: `-${pointerOffset}%`,
             top: 15,
             fontSize: 9,
-            color: "#888",
+            color: props.theme.threshold.text,
           }}
         >
           <FaCaretUp />
@@ -775,7 +832,7 @@ const ThresholdView = (props: {
             left: `${lowerThresholdLocation}%`,
             top: 15,
             fontSize: 10,
-            color: "#888",
+            color: props.theme.threshold.text,
           }}
         >
           <FaCaretUp />
@@ -791,7 +848,7 @@ const ThresholdView = (props: {
             left: `${upperThresholdLocation}%`,
             top: 15,
             fontSize: 10,
-            color: "#888",
+            color: props.theme.threshold.text,
           }}
         >
           <FaCaretUp />
@@ -807,14 +864,13 @@ const ThresholdView = (props: {
             right: `-${pointerOffset}%`,
             top: 15,
             fontSize: 9,
-            color: "#888",
+            color: props.theme.threshold.text,
           }}
         >
           <FaCaretUp />
           {props.upperOuterBound}
         </div>
       </div>
-      <p style={{ fontSize: 12, color: "#777" }}>U</p>
     </div>
   );
 };

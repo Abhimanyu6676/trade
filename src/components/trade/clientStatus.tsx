@@ -6,9 +6,13 @@ import { FaServer } from "react-icons/fa";
 import { GrTest } from "react-icons/gr";
 import { CgMediaLive } from "react-icons/cg";
 import socketService from "../../services/socketService";
+import { darkTheme, lightTheme } from ".";
 
-const ClientStatus = () => {
+const ClientStatus = (props: {
+  theme: typeof lightTheme | typeof darkTheme;
+}) => {
   const [client1Connected, setClient1Connected] = useState(false);
+  const { theme } = props;
   const [client1WebSocketConnected, setClient1WebSocketConnected] =
     useState(false);
   const [client1Analyzer, setClient1Analyzer] = useState(true);
@@ -61,12 +65,16 @@ const ClientStatus = () => {
 
   return (
     <div
+      className="container"
       style={{
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         marginTop: 10,
-        //border: "1px solid #000",
+        backgroundColor: theme.background,
+        border: `1px solid ${theme.border}`,
+        borderRadius: 10,
+        padding: 15,
       }}
     >
       <div // client status container
@@ -83,6 +91,7 @@ const ClientStatus = () => {
           clientApiKey={
             process.env.client1ApiKey ? process.env.client1ApiKey : ""
           }
+          theme={theme}
         />
         <div style={{ height: 10 }} />
         <Status
@@ -93,6 +102,7 @@ const ClientStatus = () => {
           clientApiKey={
             process.env.client2ApiKey ? process.env.client2ApiKey : ""
           }
+          theme={theme}
         />
       </div>
       <div //server status
@@ -102,7 +112,14 @@ const ClientStatus = () => {
           alignItems: "center",
         }}
       >
-        <h6 style={{ marginRight: 15 }}>Backend Status</h6>
+        <h6
+          style={{
+            marginRight: 15,
+            color: theme.text,
+          }}
+        >
+          Backend Status
+        </h6>
         <FaServer
           size={18}
           color={serverSocketStatus ? "#27F598" : "#F55427"}
@@ -118,7 +135,9 @@ const Status = (props: {
   webSocketConnected?: boolean;
   clientAnalyzer: boolean;
   clientApiKey: string;
+  theme: typeof lightTheme | typeof darkTheme;
 }) => {
+  const { theme } = props;
   return (
     <div
       style={{
@@ -129,7 +148,7 @@ const Status = (props: {
         //border: "1px solid #000",
       }}
     >
-      <h6 style={{ width: 180 }}>{props.clientName}</h6>
+      <h6 style={{ width: 180, color: theme.text }}>{props.clientName}</h6>
       <button
         title="Refresh Status"
         style={{
