@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux";
 import ClientStatus from "./clientStatus";
 import { Button } from "react-bootstrap";
+import { MdLightMode } from "react-icons/md";
+import { MdDarkMode } from "react-icons/md";
 
 export const lightTheme = {
   background: "#f1f1f1",
@@ -74,7 +76,7 @@ export default function TradeComponent() {
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             style={{ marginLeft: 10, height: 40 }}
           >
-            {theme === "light" ? "Dark" : "Light"}
+            {theme === "light" ? <MdDarkMode /> : <MdLightMode />}
           </Button>
         </div>
       </div>

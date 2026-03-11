@@ -14,10 +14,13 @@ export const NotificationContainer = () => {
         width: 350,
         minWidth: 200,
         overflow: "scroll",
+        maxHeight: 500,
         scrollbarWidth: "none",
         position: "absolute",
+        top: 0,
         right: 0,
         zIndex: 100,
+        padding: "0px 10px",
       }}
     >
       {notifications.map((notification) => {
@@ -59,11 +62,12 @@ const Notification = ({
     <div
       style={{
         position: "relative",
-        padding: "10px 20px",
-        margin: "0px 50px 20px 0px",
+        padding: "10px 10px",
+        marginTop: 10,
         borderWidth: 1,
         borderStyle: "solid",
         borderRadius: 5,
+        maxHeight: 150,
         backgroundColor:
           variant == "notify"
             ? "#e2e3e5"
@@ -91,7 +95,9 @@ const Notification = ({
       }}
     >
       <h6>{props.heading}</h6>
-      <p style={{ fontSize: 12, overflow: "hidden" }}>{props.text}</p>
+      <p style={{ fontSize: 12, overflow: "hidden", marginTop: 10 }}>
+        {props.text}
+      </p>
       <button // remove button
         style={{
           position: "absolute",

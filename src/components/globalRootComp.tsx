@@ -14,7 +14,16 @@ export const GlobalRootComp = ({ element }: any) => {
         return null;
       })()}
       <ReduxWrapper>
-        <NotificationContainer />
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            right: 0,
+            zIndex: 100,
+          }}
+        >
+          <NotificationContainer />
+        </div>
         {element}
       </ReduxWrapper>
     </div>

@@ -8,7 +8,7 @@ import { getStockKeyId, decimal } from "../../util/helper";
 import socketService from "../../services/socketService";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
-import { FaCaretUp } from "react-icons/fa6";
+import { FaCaretDown, FaCaretUp } from "react-icons/fa6";
 import { darkTheme, lightTheme } from ".";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
@@ -20,6 +20,7 @@ const Block = (props: {
   const { theme } = props;
   const [showFields, setShowFields] = useState(props.stock.orders.length > 0);
   const [ltp, setLtp] = useState(0);
+  const [ltpColor, setLtpColor] = useState(theme.text);
 
   const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
   const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
@@ -45,9 +46,16 @@ const Block = (props: {
   const isBuyOrderActive = buyOrder && buyOrder?.orderStatus != "EXITED";
   const isSellOrderActive = sellOrder && sellOrder?.orderStatus != "EXITED";
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
+  const isAnyOfOneOrderExited =
+    (buyOrder && buyOrder?.orderStatus == "EXITED") ||
+    (sellOrder && sellOrder?.orderStatus == "EXITED");
 
   const upperThreshold = decimal(orderPrice + (orderPrice / 100) * threshold);
+  const buyRiskPrice = decimal(upperThreshold - (orderPrice / 100) * risk);
+  const buyDropPrice = decimal(ltp - (orderPrice / 100) * exitDrop);
   const lowerThreshold = decimal(orderPrice - (orderPrice / 100) * threshold);
+  const sellRiskPrice = decimal(lowerThreshold + (orderPrice / 100) * risk);
+  const sellDropPrice = decimal(ltp + (orderPrice / 100) * exitDrop);
 
   const buyPnl = decimal(
     buyOrder?.orderStatus == "ACTIVE"
@@ -75,7 +83,13 @@ const Block = (props: {
           data,
         );
         const dataKeyId = getStockKeyId(data);
-        if (props.stock.key_id == dataKeyId) setLtp(data.ltp);
+        if (props.stock.key_id == dataKeyId) {
+          setLtp((prevLtp) => {
+            if (data.ltp < prevLtp) setLtpColor("#ff0000");
+            else if (data.ltp > prevLtp) setLtpColor("#27F565");
+            return data.ltp;
+          });
+        }
       },
     });
 
@@ -248,7 +262,7 @@ const Block = (props: {
             >
               LTP
             </p>
-            <h5 style={{ color: theme.text }}>{ltp}</h5>
+            <h5 style={{ color: ltpColor }}>{ltp}</h5>
           </div>
           <div // buy/sell status
             style={{
@@ -561,13 +575,19 @@ const Block = (props: {
                   ThresholdView({
                     ltp,
                     upperThreshold,
+                    buyRiskPrice,
+                    buyDropPrice,
                     upperOuterBound: decimal(
                       orderPrice + (orderPrice / 100) * (threshold * 3),
                     ),
                     lowerThreshold,
+                    sellRiskPrice,
+                    sellDropPrice,
                     lowerOuterBound: decimal(
                       orderPrice - (orderPrice / 100) * (threshold * 3),
                     ),
+                    isAnyOfOneOrderExited,
+                    exitDrop,
                     theme: theme,
                   })}
               </div>
@@ -714,6 +734,12 @@ const ThresholdView = (props: {
   upperOuterBound: number;
   lowerOuterBound: number;
   lowerThreshold: number;
+  buyRiskPrice: number;
+  buyDropPrice: number;
+  sellRiskPrice: number;
+  sellDropPrice: number;
+  exitDrop: number;
+  isAnyOfOneOrderExited: boolean | undefined;
   theme: typeof lightTheme | typeof darkTheme;
 }) => {
   /** keep this even number array automatically add a center stick */
@@ -724,9 +750,19 @@ const ThresholdView = (props: {
       (props.upperOuterBound - props.lowerOuterBound)) *
       100 -
     pointerOffset;
+  const sellRiskLocation =
+    ((props.sellRiskPrice - props.lowerOuterBound) /
+      (props.upperOuterBound - props.lowerOuterBound)) *
+      100 -
+    pointerOffset;
 
   const upperThresholdLocation =
     ((props.upperThreshold - props.lowerOuterBound) /
+      (props.upperOuterBound - props.lowerOuterBound)) *
+      100 -
+    pointerOffset;
+  const buyRiskLocation =
+    ((props.buyRiskPrice - props.lowerOuterBound) /
       (props.upperOuterBound - props.lowerOuterBound)) *
       100 -
     pointerOffset;
@@ -766,10 +802,10 @@ const ThresholdView = (props: {
           justifyContent: "center",
           //border: "1px solid #000000",
           position: "relative",
-          margin: "10px 10px 20px 10px",
+          margin: "20px 10px",
         }}
       >
-        <div // threshold pointer
+        <div // ltp pointer
           style={{
             backgroundColor: props.theme.threshold.pointer,
             height: thresholdViewHeight + 10,
@@ -780,6 +816,42 @@ const ThresholdView = (props: {
             opacity: pointerLocation ? 1 : 0,
           }}
         />
+        {props.isAnyOfOneOrderExited && ( // sell risk price
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${sellRiskLocation}%`,
+              top: -22,
+              fontSize: 9,
+              color: props.theme.threshold.text,
+            }}
+          >
+            {props.sellRiskPrice}
+            <FaCaretDown />
+          </div>
+        )}
+        {props.isAnyOfOneOrderExited && ( // buy risk price
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${buyRiskLocation}%`,
+              top: -22,
+              fontSize: 9,
+              color: props.theme.threshold.text,
+            }}
+          >
+            {props.buyRiskPrice}
+            <FaCaretDown />
+          </div>
+        )}
         {Array(thresholdViewSticksCount + 1)
           .fill(0)
           .map((i, index) => {
@@ -822,38 +894,42 @@ const ThresholdView = (props: {
           <FaCaretUp />
           {props.lowerOuterBound}
         </div>
-        <div // lower threshold
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `${lowerThresholdLocation}%`,
-            top: 15,
-            fontSize: 10,
-            color: props.theme.threshold.text,
-          }}
-        >
-          <FaCaretUp />
-          {props.lowerThreshold}
-        </div>
-        <div // upper threshold
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `${upperThresholdLocation}%`,
-            top: 15,
-            fontSize: 10,
-            color: props.theme.threshold.text,
-          }}
-        >
-          <FaCaretUp />
-          {props.upperThreshold}
-        </div>
+        {!props.isAnyOfOneOrderExited && ( // lower threshold
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${lowerThresholdLocation}%`,
+              top: 15,
+              fontSize: 10,
+              color: props.theme.threshold.text,
+            }}
+          >
+            <FaCaretUp />
+            {props.lowerThreshold}
+          </div>
+        )}
+        {!props.isAnyOfOneOrderExited && ( // upper threshold
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${upperThresholdLocation}%`,
+              top: 15,
+              fontSize: 10,
+              color: props.theme.threshold.text,
+            }}
+          >
+            <FaCaretUp />
+            {props.upperThreshold}
+          </div>
+        )}
         <div // upper bound
           style={{
             display: "flex",

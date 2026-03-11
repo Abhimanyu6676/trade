@@ -24,6 +24,7 @@ export default new (class SocketService {
     );
     console.log("socket url : ", process.env.SOCKET_URL);
     this.socket = io(url, {
+      path: process.env.SOCKET_PATH,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
