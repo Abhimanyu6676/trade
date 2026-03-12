@@ -9,18 +9,14 @@ import socketService from "../../services/socketService";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa6";
-import { darkTheme, lightTheme } from ".";
+import * as variables from "../../styles/themeVariables.module.scss";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
-const Block = (props: {
-  stock: Stock_i;
-  theme: typeof lightTheme | typeof darkTheme;
-}) => {
-  const { theme } = props;
+const Block = (props: { stock: Stock_i }) => {
   const [showFields, setShowFields] = useState(props.stock.orders.length > 0);
   const [ltp, setLtp] = useState(0);
-  const [ltpColor, setLtpColor] = useState(theme.text);
+  const [ltpColor, setLtpColor] = useState("");
 
   const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
   const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
@@ -29,7 +25,11 @@ const Block = (props: {
   const [orderPrice, setOrderPrice] = useState(
     buyOrder?.price && sellOrder?.price
       ? decimal((buyOrder.price + sellOrder.price) / 2)
-      : 1,
+      : buyOrder?.price
+        ? buyOrder.price
+        : sellOrder?.price
+          ? sellOrder.price
+          : 1,
   );
   const [quantity, setQuantity] = useState(buyOrder?.quantity || 1);
   const [priceType, setPriceType] = useState<orderPriceType_i>(
@@ -165,11 +165,8 @@ const Block = (props: {
 
   return (
     <div
-      className="container"
-      data-bs-theme={theme}
+      className="container foreground"
       style={{
-        backgroundColor: theme.background,
-        border: `1px solid ${theme.border}`,
         borderRadius: 10,
         padding: 15,
         marginTop: 20,
@@ -196,11 +193,11 @@ const Block = (props: {
             }}
           >
             <p
+              className="subtle-text"
               style={{
                 margin: 0,
                 padding: 0,
                 fontSize: 12,
-                color: theme.subtleText,
               }}
             >
               Symbol Name
@@ -213,17 +210,16 @@ const Block = (props: {
                 alignItems: "flex-end",
               }}
             >
-              <h5 style={{ margin: 0, padding: 0, color: theme.text }}>
-                {props.stock.symbol}
-              </h5>
+              <h5 style={{ margin: 0, padding: 0 }}>{props.stock.symbol}</h5>
               <p
+                //className="highlighted-border"
                 style={{
                   fontSize: 12,
                   margin: 0,
                   marginLeft: 5,
-                  border: `1px solid ${theme.stockExchangeBorder}`,
                   padding: "0px 5px",
-                  color: theme.text,
+                  //border: "1px solid var(--text-color)",
+                  border: `1px solid ${variables.highlightedBorder}`,
                 }}
               >
                 {props.stock.exchange}
@@ -238,14 +234,12 @@ const Block = (props: {
                 margin: 0,
                 padding: 0,
                 fontSize: 12,
-                color: theme.subtleText,
+                color: variables.subtleText,
               }}
             >
               Quantity
             </p>
-            <h5
-              style={{ color: theme.text }}
-            >{`${buyOrder ? buyOrder.quantity : "--"} : ${
+            <h5>{`${buyOrder ? buyOrder.quantity : "--"} : ${
               sellOrder ? sellOrder.quantity : "--"
             }`}</h5>
           </div>
@@ -257,7 +251,7 @@ const Block = (props: {
                 margin: 0,
                 padding: 0,
                 fontSize: 12,
-                color: theme.subtleText,
+                color: variables.subtleText,
               }}
             >
               LTP
@@ -332,9 +326,9 @@ const Block = (props: {
             }}
           >
             {showFields ? (
-              <IoEyeOff size={22} color={theme.iconMuted} />
+              <IoEyeOff size={22} color="#aaaaaa" />
             ) : (
-              <IoEye size={22} color={theme.icon} />
+              <IoEye size={22} color="#666666" />
             )}
           </button>
           <DropdownButton //Product type selector
@@ -435,14 +429,14 @@ const Block = (props: {
           <div // data rows
             style={{
               marginTop: 20,
-              backgroundColor: theme.containerBackground,
+              backgroundColor: variables.primaryColorDark,
               borderRadius: 5,
               padding: "10px 0px",
             }}
           >
             <MasterRow // Buy/Sell order price
             >
-              <ChildRow heading="Buy Order Price" theme={theme}>
+              <ChildRow heading="Buy Order Price">
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -453,7 +447,7 @@ const Block = (props: {
                   }}
                 />
               </ChildRow>
-              <ChildRow heading="Sell Order Price" theme={theme}>
+              <ChildRow heading="Sell Order Price">
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -468,7 +462,7 @@ const Block = (props: {
 
             <MasterRow // order quantity and threshold
             >
-              <ChildRow heading="Buy/Sell Order Quantity" theme={theme}>
+              <ChildRow heading="Buy/Sell Order Quantity">
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -479,7 +473,7 @@ const Block = (props: {
                   }}
                 />
               </ChildRow>
-              <ChildRow heading="Threshold %" theme={theme}>
+              <ChildRow heading="Threshold %">
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -494,7 +488,7 @@ const Block = (props: {
 
             <MasterRow // risk and exitDrop fields
             >
-              <ChildRow heading="Risk %" theme={theme}>
+              <ChildRow heading="Risk %">
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -505,7 +499,7 @@ const Block = (props: {
                   }}
                 />
               </ChildRow>
-              <ChildRow heading="Exit on Drop %" theme={theme}>
+              <ChildRow heading="Exit on Drop %">
                 <Form.Control
                   className={styles.input}
                   type="number"
@@ -520,16 +514,8 @@ const Block = (props: {
 
             <MasterRow // upper/lower threshold
             >
-              <ChildRow
-                heading="Upper Threshold"
-                value={upperThreshold}
-                theme={theme}
-              />
-              <ChildRow
-                heading="Lower Threshold"
-                value={lowerThreshold}
-                theme={theme}
-              />
+              <ChildRow heading="Upper Threshold" value={upperThreshold} />
+              <ChildRow heading="Lower Threshold" value={lowerThreshold} />
             </MasterRow>
 
             <MasterRow // buy/sell prices for both orders
@@ -537,28 +523,25 @@ const Block = (props: {
               <ChildRow
                 heading="Buy Order (Buy::Sell)"
                 value={`${buyOrder?.price ? buyOrder?.price : "N/A"} :: ${buyOrder?.exitPrice ? buyOrder?.exitPrice : "N/A"}`}
-                theme={theme}
               />
               <ChildRow
                 heading="Sell Order (Buy::Sell)"
                 value={`${sellOrder?.price ? sellOrder?.price : "N/A"} :: ${sellOrder?.exitPrice ? sellOrder?.exitPrice : "N/A"}`}
-                theme={theme}
               />
             </MasterRow>
 
             <MasterRow // buy/sell PnL
             >
-              <ChildRow heading="Buy PnL" value={buyPnl} theme={theme} />
-              <ChildRow heading="Sell PnL" value={sellPnl} theme={theme} />
+              <ChildRow heading="Buy PnL" value={buyPnl} />
+              <ChildRow heading="Sell PnL" value={sellPnl} />
             </MasterRow>
 
             <MasterRow // net PnL & %
             >
-              <ChildRow heading="Net PnL" value={pnl} theme={theme} />
+              <ChildRow heading="Net PnL" value={pnl} />
               <ChildRow
                 heading="PnL %"
                 value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"}
-                theme={theme}
               />
             </MasterRow>
 
@@ -588,10 +571,9 @@ const Block = (props: {
                     ),
                     isAnyOfOneOrderExited,
                     exitDrop,
-                    theme: theme,
                   })}
               </div>
-              <ChildRow heading="" theme={theme} />
+              <ChildRow heading="" />
             </MasterRow>
           </div>
           <div // bottom Buttons
@@ -708,18 +690,13 @@ const ChildRow = (props: {
   children?: React.JSX.Element;
   heading: string;
   value?: string | number;
-  theme: typeof lightTheme | typeof darkTheme;
 }) => {
   return (
     <div className={styles.childRow}>
-      <p className={styles.heading} style={{ color: props.theme.headingText }}>
-        {props.heading}
-      </p>
+      <p className={styles.heading}>{props.heading}</p>
       <div>
         {props.value != undefined ? (
-          <p className={styles.value} style={{ color: props.theme.valueText }}>
-            {props.value}
-          </p>
+          <p className={styles.value}>{props.value}</p>
         ) : (
           props.children
         )}
@@ -740,7 +717,6 @@ const ThresholdView = (props: {
   sellDropPrice: number;
   exitDrop: number;
   isAnyOfOneOrderExited: boolean | undefined;
-  theme: typeof lightTheme | typeof darkTheme;
 }) => {
   /** keep this even number array automatically add a center stick */
   const pointerOffset = 4;
@@ -767,8 +743,8 @@ const ThresholdView = (props: {
       100 -
     pointerOffset;
 
-  console.log("lowerThreshold location === ", lowerThresholdLocation);
-  console.log("upperThreshold location === ", upperThresholdLocation);
+  //console.log("lowerThreshold location === ", lowerThresholdLocation);
+  //console.log("upperThreshold location === ", upperThresholdLocation);
 
   const outOfView =
     props.ltp > props.upperOuterBound || props.ltp < props.lowerOuterBound;
@@ -806,8 +782,8 @@ const ThresholdView = (props: {
         }}
       >
         <div // ltp pointer
+          className={styles.threshold}
           style={{
-            backgroundColor: props.theme.threshold.pointer,
             height: thresholdViewHeight + 10,
             width: 2,
             borderRadius: 20,
@@ -818,6 +794,7 @@ const ThresholdView = (props: {
         />
         {props.isAnyOfOneOrderExited && ( // sell risk price
           <div
+            className={styles.thresholdText}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -827,7 +804,6 @@ const ThresholdView = (props: {
               left: `${sellRiskLocation}%`,
               top: -22,
               fontSize: 9,
-              color: props.theme.threshold.text,
             }}
           >
             {props.sellRiskPrice}
@@ -836,6 +812,7 @@ const ThresholdView = (props: {
         )}
         {props.isAnyOfOneOrderExited && ( // buy risk price
           <div
+            className={styles.thresholdText}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -845,7 +822,6 @@ const ThresholdView = (props: {
               left: `${buyRiskLocation}%`,
               top: -22,
               fontSize: 9,
-              color: props.theme.threshold.text,
             }}
           >
             {props.buyRiskPrice}
@@ -879,6 +855,7 @@ const ThresholdView = (props: {
           })}
 
         <div // lower bound
+          className={styles.thresholdText}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -888,7 +865,6 @@ const ThresholdView = (props: {
             left: `-${pointerOffset}%`,
             top: 15,
             fontSize: 9,
-            color: props.theme.threshold.text,
           }}
         >
           <FaCaretUp />
@@ -896,6 +872,7 @@ const ThresholdView = (props: {
         </div>
         {!props.isAnyOfOneOrderExited && ( // lower threshold
           <div
+            className={styles.thresholdText}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -905,7 +882,6 @@ const ThresholdView = (props: {
               left: `${lowerThresholdLocation}%`,
               top: 15,
               fontSize: 10,
-              color: props.theme.threshold.text,
             }}
           >
             <FaCaretUp />
@@ -914,6 +890,7 @@ const ThresholdView = (props: {
         )}
         {!props.isAnyOfOneOrderExited && ( // upper threshold
           <div
+            className={styles.thresholdText}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -923,7 +900,6 @@ const ThresholdView = (props: {
               left: `${upperThresholdLocation}%`,
               top: 15,
               fontSize: 10,
-              color: props.theme.threshold.text,
             }}
           >
             <FaCaretUp />
@@ -931,6 +907,7 @@ const ThresholdView = (props: {
           </div>
         )}
         <div // upper bound
+          className={styles.thresholdText}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -940,7 +917,6 @@ const ThresholdView = (props: {
             right: `-${pointerOffset}%`,
             top: 15,
             fontSize: 9,
-            color: props.theme.threshold.text,
           }}
         >
           <FaCaretUp />

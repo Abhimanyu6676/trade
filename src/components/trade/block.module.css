@@ -29,3 +29,17 @@
   height: 30px;
   font-size: 15px;
 }
+
+:global(.darkTheme) .thresholdPointer {
+  background-color: #d1d4dc;
+}
+:global(.lightTheme) .thresholdPointer {
+  background-color: #555555;
+}
+
+:global(.darkTheme) .thresholdText {
+  color: #848e9c;
+}
+:global(.lightTheme) .thresholdText {
+  color: #888888;
+}

@@ -1,3 +1,4 @@
+import * as styles from "./index.module.scss";
 import React, { useEffect, useState } from "react";
 import Block from "./block";
 import { AddSymbol } from "./addSymbol";
@@ -45,17 +46,19 @@ export const darkTheme = {
 export default function TradeComponent() {
   const stocksState = useSelector((state: RootState) => state.stocks);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const currentTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  useEffect(() => {
-    document.body.style.backgroundColor =
-      theme === "dark" ? "#161a21" : "#f8f9fa";
+  /*  useEffect(() => {
+    //document.body.style.backgroundColor = theme === "dark" ? "#161a21" : "#f8f9fa";
+    
     return () => {
-      document.body.style.backgroundColor = "";
+      //document.body.style.backgroundColor = "";
     };
-  }, [theme]);
+  }, [theme]); */
   return (
-    <div className="container" style={{ position: "relative" }}>
+    <div
+      className={`container ${theme === "dark" ? "darkTheme" : "lightTheme"}`}
+      style={{ position: "relative" }}
+    >
       <div //header
         style={{
           //backgroundColor: "red",
@@ -66,21 +69,29 @@ export default function TradeComponent() {
           justifyContent: "space-between",
         }}
       >
-        <h1 style={{ color: theme === "dark" ? "#d1d4dc" : "#000000" }}>
-          Dashboard
-        </h1>
+        <h1>Dashboard</h1>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <AddSymbol theme={theme} />
+          <AddSymbol />
           <Button
             variant="outline-secondary"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            onClick={() => {
+              const currentTheme =
+                document.documentElement.getAttribute("data-theme");
+              if (currentTheme === "dark") {
+                setTheme("light");
+                document.documentElement.setAttribute("data-theme", "light");
+              } else {
+                setTheme("dark");
+                document.documentElement.setAttribute("data-theme", "dark");
+              }
+            }}
             style={{ marginLeft: 10, height: 40 }}
           >
             {theme === "light" ? <MdDarkMode /> : <MdLightMode />}
           </Button>
         </div>
       </div>
-      <ClientStatus theme={theme === "dark" ? darkTheme : lightTheme} />
+      <ClientStatus />
       <div style={{}}>
         {stocksState.stocksList.map((stock, stockIndex) => (
           <Block

@@ -1,0 +1,122 @@
+@use "./theme.scss";
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0px;
+}
+
+.lightTheme {
+  border: 0px solid #000000;
+}
+
+.darkTheme {
+  border: 0px solid #000000;
+}
+
+body {
+  background-color: var(--body-bg);
+  color: var(--text-color);
+}
+
+.foreground {
+  background-color: var(--primary-color-light);
+  border: 1px solid var(--border-color);
+}
+
+.subtle-text {
+  color: var(--subtle-text);
+}
+
+.form-control,
+.form-control:focus,
+.form-control:hover,
+.form-control:active {
+  background-color: var(--primary-color-dark);
+  border-color: rgb(108, 117, 125);
+  outline: none;
+  color: var(--text-color);
+
+  &:disabled {
+    background-color: var(--primary-color-light);
+    opacity: 1;
+  }
+
+  &::placeholder {
+    color: var(--subtle-text);
+  }
+}
+
+.dropdown-menu {
+  border-color: rgb(108, 117, 125);
+  background-color: var(--primary-color-light);
+
+  .dropdown-item {
+    background-color: var(--primary-color-light);
+    color: var(--text-color);
+    opacity: 0.5;
+
+    &:focus,
+    &:active,
+    &:hover {
+      opacity: 1;
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid rgb(108, 117, 125);
+    }
+  }
+}
+
+$containers: (
+  row: row,
+  col: column,
+);
+
+$axis: (
+  v: vertical,
+  h: horizontal,
+);
+
+$alignments: (
+  s: flex-start,
+  c: center,
+  e: flex-end,
+);
+
+@each $c_key, $c_val in $containers {
+  .-#{$c_key} {
+    display: flex;
+    flex-direction: $c_val;
+    @each $a_key, $a_val in $axis {
+      .--#{$a_key},
+      &.--#{$a_key} {
+        display: flex;
+        flex-direction: $c_val;
+        @each $al_key, $al_val in $alignments {
+          &#{$al_key} {
+            display: flex;
+            flex-direction: $c_val;
+            @if $c_val == row {
+              @if $a_key == v {
+                align-items: $al_val;
+              } @else {
+                justify-content: $al_val;
+              }
+            } @else {
+              @if $a_key == v {
+                justify-content: $al_val;
+              } @else {
+                align-items: $al_val;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

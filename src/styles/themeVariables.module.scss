@@ -1,0 +1,27 @@
+//@use "./global.scss";
+@use "./theme.scss";
+//@use "./global.scss" as theme;
+
+/**
+ * ## Method to use SCSS variables in React .tsx/.jsx
+ * 
+ * To use these variables, import this file and access them like:
+ * `import * as variables from 'path/to/themeVariables.module.scss';`
+ * `const borderColor = variables.highlightedBorder;`
+ * `border: "1px solid var(--text-color)"`
+ * `border: `1px solid ${variables.highlightedBorder}``
+ * 
+ * ## NOTE 
+ * - every key has to be added to `themeVariables.d.ts` and `themeVariables.module.scss` to be used in React.
+ *
+ */
+
+:export {
+  bodyBg: var(--body-bg);
+  primaryColorDark: var(--primary-color-dark);
+  primaryColorLight: var(--primary-color-light);
+  textColor: var(--text-color);
+  borderColor: var(--border-color);
+  subtleText: var(--subtle-text);
+  highlightedBorder: var(--text-color);
+}

@@ -8,7 +8,7 @@ import { IoSearch } from "react-icons/io5";
 import socketService from "../../services/socketService";
 import { getStockKeyId } from "../../util/helper";
 
-export const AddSymbol = (props: { theme?: "light" | "dark" }) => {
+export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
   const [selectedStock, setSelectedStock] =
     useState<searchSymbolResponseData_i>();
@@ -47,7 +47,7 @@ export const AddSymbol = (props: { theme?: "light" | "dark" }) => {
 
   return (
     <div
-      data-bs-theme={props.theme}
+      //data-bs-theme={props.theme}
       style={{
         //backgroundColor: "red",
         display: "flex",

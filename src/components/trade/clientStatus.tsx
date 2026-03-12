@@ -6,13 +6,9 @@ import { FaServer } from "react-icons/fa";
 import { GrTest } from "react-icons/gr";
 import { CgMediaLive } from "react-icons/cg";
 import socketService from "../../services/socketService";
-import { darkTheme, lightTheme } from ".";
 
-const ClientStatus = (props: {
-  theme: typeof lightTheme | typeof darkTheme;
-}) => {
+const ClientStatus = (props: {}) => {
   const [client1Connected, setClient1Connected] = useState(false);
-  const { theme } = props;
   const [client1WebSocketConnected, setClient1WebSocketConnected] =
     useState(false);
   const [client1Analyzer, setClient1Analyzer] = useState(true);
@@ -65,14 +61,12 @@ const ClientStatus = (props: {
 
   return (
     <div
-      className="container"
+      className="container foreground"
       style={{
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         marginTop: 10,
-        backgroundColor: theme.background,
-        border: `1px solid ${theme.border}`,
         borderRadius: 10,
         padding: 15,
       }}
@@ -84,25 +78,25 @@ const ClientStatus = (props: {
         }}
       >
         <Status
-          clientName="Client 1 (Abhimanyu)"
+          clientId="Client 1"
+          clientName="(Abhimanyu)"
           clientConnected={client1Connected}
           webSocketConnected={client1WebSocketConnected}
           clientAnalyzer={client1Analyzer}
           clientApiKey={
             process.env.client1ApiKey ? process.env.client1ApiKey : ""
           }
-          theme={theme}
         />
         <div style={{ height: 10 }} />
         <Status
-          clientName="Client 2 (Shiva)"
+          clientId="Client 2"
+          clientName="(Shiva)"
           clientConnected={client2Connected}
           webSocketConnected={client2WebSocketConnected}
           clientAnalyzer={client2Analyzer}
           clientApiKey={
             process.env.client2ApiKey ? process.env.client2ApiKey : ""
           }
-          theme={theme}
         />
       </div>
       <div //server status
@@ -115,7 +109,6 @@ const ClientStatus = (props: {
         <h6
           style={{
             marginRight: 15,
-            color: theme.text,
           }}
         >
           Backend Status
@@ -130,14 +123,13 @@ const ClientStatus = (props: {
 };
 
 const Status = (props: {
+  clientId: string;
   clientName: string;
   clientConnected?: boolean;
   webSocketConnected?: boolean;
   clientAnalyzer: boolean;
   clientApiKey: string;
-  theme: typeof lightTheme | typeof darkTheme;
 }) => {
-  const { theme } = props;
   return (
     <div
       style={{
@@ -145,10 +137,20 @@ const Status = (props: {
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "center",
-        //border: "1px solid #000",
       }}
     >
-      <h6 style={{ width: 180, color: theme.text }}>{props.clientName}</h6>
+      <div className="-row --ve" style={{ width: 180 }}>
+        <h5 style={{}}>{props.clientId}</h5>
+        <p
+          className="subtle-text"
+          style={{
+            fontSize: 12,
+            marginLeft: 5,
+          }}
+        >
+          {props.clientName}
+        </p>
+      </div>
       <button
         title="Refresh Status"
         style={{
