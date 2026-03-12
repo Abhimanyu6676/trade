@@ -1,0 +1,115 @@
+.heading {
+  font-size: 15px;
+}
+
+.value {
+  font-size: 15px;
+}
+
+.masterRow {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 0px 0px;
+}
+
+.childRow {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 20px;
+}
+
+.input {
+  width: 100px;
+  height: 30px;
+  font-size: 15px;
+}
+
+:global(.darkTheme) .thresholdPointer {
+  background-color: #d1d4dc;
+}
+:global(.lightTheme) .thresholdPointer {
+  background-color: #555555;
+}
+
+:global(.darkTheme) .thresholdText {
+  color: #848e9c;
+}
+:global(.lightTheme) .thresholdText {
+  color: #888888;
+}
+
+/** threshold bar class */
+
+.threshold-bar-container {
+  display: flex;
+  justify-content: space-around;
+  /* Add other styling for children if needed */
+  > * {
+    padding: 10px;
+    text-align: center;
+  }
+}
+
+@mixin children-gradient($parent-selector, $start-color, $end-color) {
+  // Use a data attribute or class to count children via CSS custom properties
+  #{$parent-selector} {
+    // This example assumes a max of 10 children. You can adjust this range.
+    @for $i from 1 through 10 {
+      &:has(> *:nth-last-child(#{$i}):first-child) {
+        --child-count: #{$i};
+      }
+    }
+
+    // Apply dynamic color to immediate children
+    > * {
+      // Calculate a hue/saturation/lightness (HSL) color value based on index
+      // Using HSL allows for easy color interpolation
+      $start-hsl: (
+        hue($start-color),
+        saturation($start-color),
+        lightness($start-color)
+      );
+      $end-hsl: (
+        hue($end-color),
+        saturation($end-color),
+        lightness($end-color)
+      );
+
+      $child-index: 0;
+      @for $i from 1 through 10 {
+        &:nth-child(#{$i}) {
+          $child-index: $i;
+          // Interpolate the color dynamically using the CSS custom property (child-count)
+          background-color: hsl(
+            calc(
+              #{nth($start-hsl, 1)}deg +
+                (var(--child-count) - 1) *
+                (#{nth($end-hsl, 1)}deg - #{nth($start-hsl, 1)}deg) /
+                (var(--child-count) - 1)
+            ),
+            calc(
+              #{nth($start-hsl, 2)} +
+                (var(--child-count) - 1) *
+                (#{nth($end-hsl, 2)} - #{nth($start-hsl, 2)}) /
+                (var(--child-count) - 1)
+            ),
+            calc(
+              #{nth($start-hsl, 3)} +
+                (var(--child-count) - 1) *
+                (#{nth($end-hsl, 3)} - #{nth($start-hsl, 3)}) /
+                (var(--child-count) - 1)
+            )
+          );
+        }
+      }
+    }
+  }
+}
+
+//@include children-gradient(".row-container", #ff0000, #0000ff);

@@ -1,4 +1,4 @@
-import { uuidv4 } from "./uuid";
+import { uuid_v4 } from "./uuid";
 
 interface subscribeArray_i<T> {
   id: string;
@@ -6,7 +6,7 @@ interface subscribeArray_i<T> {
 }
 
 class subscribeClass<CallbackProps> {
-  public classID = uuidv4();
+  public classID = uuid_v4();
   private subscribeArray: subscribeArray_i<CallbackProps>[] = [];
 
   constructor() {}

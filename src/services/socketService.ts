@@ -1,12 +1,12 @@
 import { io, Socket } from "socket.io-client";
-import { uuidv4 } from "../util/uuid";
+import { uuid_v4 } from "../util/uuid";
 import store from "../redux";
 import { stocksSagaAction } from "../redux/saga/stocksSaga";
 import Alert from "../components/alert";
 import subscribeClass from "../util/subscribeClass";
 
 export default new (class SocketService {
-  public classID = uuidv4();
+  public classID = uuid_v4();
   private socket: Socket | null = null;
   public socketConnected = false;
 

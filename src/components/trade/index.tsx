@@ -94,11 +94,7 @@ export default function TradeComponent() {
       <ClientStatus />
       <div style={{}}>
         {stocksState.stocksList.map((stock, stockIndex) => (
-          <Block
-            key={stockIndex + stock.key_id}
-            stock={stock}
-            theme={theme === "dark" ? darkTheme : lightTheme}
-          />
+          <Block key={stockIndex + stock.key_id} stock={stock} />
         ))}
         <div style={{ height: 100 }} />
       </div>
