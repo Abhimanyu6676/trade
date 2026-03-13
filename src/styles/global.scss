@@ -93,7 +93,7 @@ $alignments: (
     display: flex;
     flex-direction: $c_val;
     @each $a_key, $a_val in $axis {
-      .--#{$a_key},
+      //.--#{$a_key},
       &.--#{$a_key} {
         display: flex;
         flex-direction: $c_val;

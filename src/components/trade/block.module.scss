@@ -49,12 +49,12 @@
 /** threshold bar class */
 
 .thresholdBarContainer {
-  display: flex;
-  justify-content: space-around;
+  position: relative;
+  height: 30px;
   //gap: 6px; // 1st way
   //margin-trim: inline-end; // 2nd way
   > * {
-    width: 1.5px;
+    width: 2px;
     border-radius: 20px;
   }
 
@@ -65,7 +65,8 @@
   // - 4. apply margin to all and then set :last-child margin to 0
   > *:not(:last-child) {
     // 3rd way
-    margin-right: 6px; /* or any desired spacing */
+    margin-right: 5px; /* or any desired spacing */
+    position: relative;
   }
 
   // 4th way

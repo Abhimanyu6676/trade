@@ -752,7 +752,6 @@ const ThresholdView = ({
 
   /** keep this even number array automatically add a center stick */
   const thresholdViewSticksCount = 60; // max 200 set as per `$max-children` in `thresholdView.module.scss`. increase this limit if more children to be added
-  const thresholdViewHeight = 15;
   const thresholdViewHeightDecline = 0;
 
   return (
@@ -769,10 +768,10 @@ const ThresholdView = ({
       }}
     >
       <div
-        className="-col --vh"
+        className="-col"
         style={{ backgroundColor: "#eeeeee", position: "relative" }}
       >
-        <div // risks points container
+        {/*   <div // risks points container
           style={{
             //backgroundColor: "green",
             position: "relative",
@@ -814,13 +813,9 @@ const ThresholdView = ({
             {buyRiskPrice}
             <FaCaretDown />
           </div>
-        </div>
+        </div> */}
         <div // threshold bar container
-          className={`-row --vh ${styles.thresholdBarContainer}`}
-          style={{
-            border: "1px solid #000000",
-            position: "relative",
-          }}
+          className={`-row --vc ${styles.thresholdBarContainer}`}
         >
           {/* <div // ltp pointer
             className={styles.threshold}
@@ -837,23 +832,7 @@ const ThresholdView = ({
           {Array(thresholdViewSticksCount + 1)
             .fill(0)
             .map((i, index) => {
-              return (
-                <div
-                  style={{
-                    height:
-                      index > thresholdViewSticksCount / 2
-                        ? thresholdViewHeight -
-                          (thresholdViewSticksCount / 2) *
-                            thresholdViewHeightDecline +
-                          (index - thresholdViewSticksCount / 2) *
-                            thresholdViewHeightDecline
-                        : thresholdViewHeight -
-                          index * thresholdViewHeightDecline,
-                    //border: "0.3px solid #000000",
-                    //backgroundColor: `rgb(${255 - index * 6}, ${35 + index * 6}, 50)`,
-                  }}
-                />
-              );
+              return <div />;
             })}
         </div>
         <div // threshold points container
