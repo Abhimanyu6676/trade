@@ -13,6 +13,8 @@
   @return $min-height + ($max-height - $min-height) * $factor;
 }
 
+// if height is used in percentage than parent height must be defined,
+// else flex row and align items center will reduce the height to `0` for parent and child both
 @mixin children-gradient($parent-selector, $start-color, $end-color) {
   $max-children: 200;
   $max-height: 100%;
@@ -20,6 +22,7 @@
 
   // Use a data attribute or class to count children via CSS custom properties
   #{$parent-selector} {
+    height: 30px;
     // This example assumes a max of 10 children. You can adjust this range.
     @for $i from 1 through $max-children {
       &:has(> *:nth-last-child(#{$i}):first-child) {
