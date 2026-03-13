@@ -8,11 +8,11 @@ const ReduxWrapper = ({ children }: any) => {
   const store = reduxStore;
 
   useEffect(() => {
-    setTimeout(async () => {
+    /* setTimeout(async () => {
       let localStoreData: any = await getLocalData("stocksList");
       console.log("localStoreData :: ", localStoreData);
       if (localStoreData) store.dispatch(setStocks(localStoreData));
-    }, 500);
+    }, 500); */
     return () => {};
   }, []);
 
