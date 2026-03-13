@@ -750,7 +750,6 @@ const ThresholdView = ({
   const pointerLocation = getPointLocation(ltp, -0.25);
   const outOfView = ltp > upperBound || ltp < lowerBound;
 
-  /** keep this even number array automatically add a center stick */
   const thresholdViewSticksCount = 60; // max 200 set as per `$max-children` in `thresholdView.module.scss`. increase this limit if more children to be added
   const thresholdViewHeightDecline = 0;
 
@@ -829,7 +828,7 @@ const ThresholdView = ({
             }}
           /> */}
 
-          {Array(thresholdViewSticksCount + 1)
+          {Array(thresholdViewSticksCount)
             .fill(0)
             .map((i, index) => {
               return <div />;

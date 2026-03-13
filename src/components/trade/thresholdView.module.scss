@@ -3,26 +3,32 @@
 @use "sass:math";
 
 // Function to calculate height based on position
-@function get-hourglass-height($i, $total, $middle) {
+@function get-hourglass-height(
+  $i,
+  $total-candles,
+  $middle-point,
+  $min-height,
+  $max-height
+) {
   // Calculate how far from the middle the candle is
-  $distance-from-middle: abs($i - $middle);
+  $distance-from-middle: abs($i - $middle-point);
   // Calculate percentage based on distance (0 at middle, 1 at ends)
-  $factor: $distance-from-middle / ($total - $middle);
+  $percentage: calc($distance-from-middle / ($total-candles - $middle-point));
 
   // Return height: min at middle, max at ends
-  @return $min-height + ($max-height - $min-height) * $factor;
+  @return calc($min-height + ($max-height - $min-height) * $percentage);
 }
 
-// if height is used in percentage than parent height must be defined,
+// if height is used in percentage than parent height must be defined in parent class `#{$parent-selector}`,
 // else flex row and align items center will reduce the height to `0` for parent and child both
 @mixin children-gradient($parent-selector, $start-color, $end-color) {
   $max-children: 200;
-  $max-height: 100%;
-  $min-height: 60%;
+  $max-height: 30px;
+  $min-height: 15px;
 
   // Use a data attribute or class to count children via CSS custom properties
   #{$parent-selector} {
-    height: 30px;
+    //height: 30px;
     // This example assumes a max of 10 children. You can adjust this range.
     @for $i from 1 through $max-children {
       &:has(> *:nth-last-child(#{$i}):first-child) {
@@ -30,7 +36,7 @@
       }
     }
     $total-candles: var(--child-count);
-    $middle: round(up, calc(var(--child-count) / 2), 1);
+    $middle-point: round(up, calc(var(--child-count) / 2), 1);
 
     // Apply dynamic color to immediate children
     > * {
@@ -52,15 +58,23 @@
         &:nth-child(#{$i}) {
           $child-index: $i;
 
+          /* NOTE another math to set height
           // Calculate how close the child is to the middle
-          $distance-from-middle: abs($i - $middle);
-          $percentage: calc($distance-from-middle / ($middle - 1));
+          $distance-from-middle: abs($i - $middle-point);
+          $percentage: calc($distance-from-middle / ($middle-point - 1)); // 1 is used as child array $i count loop starts from index `1`
 
           // Calculate height: taller at edges, shorter in middle
           $height: calc(
             $min-height + ($max-height - $min-height) * ($percentage)
           );
-          height: $height;
+          height: $height; */
+          height: get-hourglass-height(
+            $i,
+            $total-candles,
+            $middle-point,
+            $min-height,
+            $max-height
+          );
 
           // Interpolate the color dynamically using the CSS custom property (child-count)
           background-color: hsl(
