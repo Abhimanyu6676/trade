@@ -1,3 +1,5 @@
+@use "thresholdView.module.scss" as *;
+
 .heading {
   font-size: 15px;
 }
@@ -46,70 +48,34 @@
 
 /** threshold bar class */
 
-.threshold-bar-container {
+.thresholdBarContainer {
   display: flex;
   justify-content: space-around;
-  /* Add other styling for children if needed */
+  //gap: 6px; // 1st way
+  //margin-trim: inline-end; // 2nd way
   > * {
-    padding: 10px;
-    text-align: center;
+    width: 1.5px;
+    border-radius: 20px;
   }
+
+  // 2 ways to apply margin to child and not to last outline:
+  // - 1. use gap property with `gap: 6px;` in container styles
+  // - 2. use margin-trim property with `margin-trim: inline-end;` in container styles
+  // - 3. > *:not(:last-child) another style with not:last-child selector
+  // - 4. apply margin to all and then set :last-child margin to 0
+  > *:not(:last-child) {
+    // 3rd way
+    margin-right: 6px; /* or any desired spacing */
+  }
+
+  // 4th way
+  /* > * {
+    margin-right: 6px;
+  }
+
+  > *:last-child {
+    margin-right: 0;
+  } */
 }
 
-@mixin children-gradient($parent-selector, $start-color, $end-color) {
-  // Use a data attribute or class to count children via CSS custom properties
-  #{$parent-selector} {
-    // This example assumes a max of 10 children. You can adjust this range.
-    @for $i from 1 through 10 {
-      &:has(> *:nth-last-child(#{$i}):first-child) {
-        --child-count: #{$i};
-      }
-    }
-
-    // Apply dynamic color to immediate children
-    > * {
-      // Calculate a hue/saturation/lightness (HSL) color value based on index
-      // Using HSL allows for easy color interpolation
-      $start-hsl: (
-        hue($start-color),
-        saturation($start-color),
-        lightness($start-color)
-      );
-      $end-hsl: (
-        hue($end-color),
-        saturation($end-color),
-        lightness($end-color)
-      );
-
-      $child-index: 0;
-      @for $i from 1 through 10 {
-        &:nth-child(#{$i}) {
-          $child-index: $i;
-          // Interpolate the color dynamically using the CSS custom property (child-count)
-          background-color: hsl(
-            calc(
-              #{nth($start-hsl, 1)}deg +
-                (var(--child-count) - 1) *
-                (#{nth($end-hsl, 1)}deg - #{nth($start-hsl, 1)}deg) /
-                (var(--child-count) - 1)
-            ),
-            calc(
-              #{nth($start-hsl, 2)} +
-                (var(--child-count) - 1) *
-                (#{nth($end-hsl, 2)} - #{nth($start-hsl, 2)}) /
-                (var(--child-count) - 1)
-            ),
-            calc(
-              #{nth($start-hsl, 3)} +
-                (var(--child-count) - 1) *
-                (#{nth($end-hsl, 3)} - #{nth($start-hsl, 3)}) /
-                (var(--child-count) - 1)
-            )
-          );
-        }
-      }
-    }
-  }
-}
-
-//@include children-gradient(".row-container", #ff0000, #0000ff);
+@include children-gradient(".thresholdBarContainer", #ff0000, #00ff00);

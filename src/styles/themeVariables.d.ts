@@ -10,3 +10,10 @@ declare module "*/themeVariables.module.scss" {
   };
   export = content;
 }
+
+/* declare module "*.module.scss" {
+  const classes: { readonly [className: string]: string };
+  export default classes;
+} */
+
+declare module "*.module.scss";

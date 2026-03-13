@@ -3,14 +3,14 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
-import * as styles from "./block.module.css";
 import { getStockKeyId, decimal } from "../../util/helper";
 import socketService from "../../services/socketService";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa6";
-import * as variables from "../../styles/themeVariables.module.scss";
 import { uuid_v4 } from "../../util/uuid";
+import * as variables from "../../styles/themeVariables.module.scss";
+import * as styles from "./block.module.scss";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -730,7 +730,7 @@ const ThresholdView = ({
   exitProfit: number;
   isAnyOfOneOrderExited: boolean | undefined;
 }) => {
-  const pointerOffset = -4;
+  const pointerOffset = -16;
 
   const upperThreshold = decimal(orderPrice + (orderPrice / 100) * threshold);
   const lowerThreshold = decimal(orderPrice - (orderPrice / 100) * threshold);
@@ -751,7 +751,7 @@ const ThresholdView = ({
   const outOfView = ltp > upperBound || ltp < lowerBound;
 
   /** keep this even number array automatically add a center stick */
-  const thresholdViewSticksCount = 60;
+  const thresholdViewSticksCount = 60; // max 200 set as per `$max-children` in `thresholdView.module.scss`. increase this limit if more children to be added
   const thresholdViewHeight = 15;
   const thresholdViewHeightDecline = 0;
 
@@ -759,155 +759,175 @@ const ThresholdView = ({
     <div
       className="container"
       style={{
-        //backgroundColor: "#eeeeee",
+        backgroundColor: "#eeeeee",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        height: 80,
+        position: "relative",
       }}
     >
-      <div // threshold bar container
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          //border: "1px solid #000000",
-          position: "relative",
-          margin: "20px 10px",
-        }}
+      <div
+        className="-col --vh"
+        style={{ backgroundColor: "#eeeeee", position: "relative" }}
       >
-        <div // ltp pointer
-          className={styles.threshold}
+        <div // risks points container
           style={{
-            height: thresholdViewHeight + 10,
-            width: 2,
-            borderRadius: 20,
-            position: "absolute",
-            left: `${pointerLocation - 0.25}%`,
-            opacity: outOfView ? 0 : 1,
-          }}
-        />
-        <div // sell risk price
-          className={styles.thresholdText}
-          style={{
+            //backgroundColor: "green",
+            position: "relative",
+            flex: 1,
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `${getPointLocation(sellRiskPrice)}%`,
-            top: -22,
-            fontSize: 9,
+            flexDirection: "row",
           }}
         >
-          {sellRiskPrice}
-          <FaCaretDown />
+          <p>.</p>
+          <div // sell risk price
+            className={styles.thresholdText}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${getPointLocation(sellRiskPrice)}%`,
+              fontSize: 9,
+              bottom: 0,
+            }}
+          >
+            {sellRiskPrice}
+            <FaCaretDown />
+          </div>
+          <div // buy risk price
+            className={styles.thresholdText}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${getPointLocation(buyRiskPrice)}%`,
+              bottom: 0,
+              fontSize: 9,
+            }}
+          >
+            {buyRiskPrice}
+            <FaCaretDown />
+          </div>
         </div>
-        <div // buy risk price
-          className={styles.thresholdText}
+        <div // threshold bar container
+          className={`-row --vh ${styles.thresholdBarContainer}`}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `${getPointLocation(buyRiskPrice)}%`,
-            top: -22,
-            fontSize: 9,
+            border: "1px solid #000000",
+            position: "relative",
           }}
         >
-          {buyRiskPrice}
-          <FaCaretDown />
-        </div>
-        {Array(thresholdViewSticksCount + 1)
-          .fill(0)
-          .map((i, index) => {
-            return (
-              <div
-                style={{
-                  height:
-                    index > thresholdViewSticksCount / 2
-                      ? thresholdViewHeight -
-                        (thresholdViewSticksCount / 2) *
-                          thresholdViewHeightDecline +
-                        (index - thresholdViewSticksCount / 2) *
-                          thresholdViewHeightDecline
-                      : thresholdViewHeight -
-                        index * thresholdViewHeightDecline,
-                  width: 1.5,
-                  borderRadius: 20,
-                  marginRight: index == thresholdViewSticksCount ? 0 : 6,
-                  backgroundColor: `rgb(${255 - index * 6}, ${35 + index * 6}, 50)`,
-                }}
-              ></div>
-            );
-          })}
+          {/* <div // ltp pointer
+            className={styles.threshold}
+            style={{
+              height: thresholdViewHeight + 10,
+              width: 2,
+              borderRadius: 20,
+              position: "absolute",
+              left: `${pointerLocation - 0.25}%`,
+              opacity: outOfView ? 0 : 1,
+            }}
+          /> */}
 
-        <div // lower bound
-          className={styles.thresholdText}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `-${pointerOffset}%`,
-            top: 15,
-            fontSize: 9,
-          }}
-        >
-          <FaCaretUp />
-          {lowerBound}
+          {Array(thresholdViewSticksCount + 1)
+            .fill(0)
+            .map((i, index) => {
+              return (
+                <div
+                  style={{
+                    height:
+                      index > thresholdViewSticksCount / 2
+                        ? thresholdViewHeight -
+                          (thresholdViewSticksCount / 2) *
+                            thresholdViewHeightDecline +
+                          (index - thresholdViewSticksCount / 2) *
+                            thresholdViewHeightDecline
+                        : thresholdViewHeight -
+                          index * thresholdViewHeightDecline,
+                    //border: "0.3px solid #000000",
+                    //backgroundColor: `rgb(${255 - index * 6}, ${35 + index * 6}, 50)`,
+                  }}
+                />
+              );
+            })}
         </div>
-        <div // lower threshold
-          className={styles.thresholdText}
+        <div // threshold points container
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `${getPointLocation(lowerThreshold)}%`,
-            top: 15,
-            fontSize: 10,
+            //backgroundColor: "green",
+            position: "relative",
+            flex: 1,
           }}
         >
-          <FaCaretUp />
-          {lowerThreshold}
-        </div>
-
-        <div // upper threshold
-          className={styles.thresholdText}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            left: `${getPointLocation(upperThreshold)}%`,
-            top: 15,
-            fontSize: 10,
-          }}
-        >
-          <FaCaretUp />
-          {upperThreshold}
-        </div>
-        <div // upper bound
-          className={styles.thresholdText}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            right: `-${pointerOffset}%`,
-            top: 15,
-            fontSize: 9,
-          }}
-        >
-          <FaCaretUp />
-          {upperBound}
+          <p>.</p>
+          <div // lower bound
+            className={styles.thresholdText}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `-${pointerOffset}%`,
+              top: 0,
+              fontSize: 9,
+            }}
+          >
+            <FaCaretUp />
+            {lowerBound}
+          </div>
+          <div // lower threshold
+            className={styles.thresholdText}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${getPointLocation(lowerThreshold)}%`,
+              top: 0,
+              fontSize: 10,
+            }}
+          >
+            <FaCaretUp />
+            {lowerThreshold}
+          </div>
+          <div // upper threshold
+            className={styles.thresholdText}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              left: `${getPointLocation(upperThreshold)}%`,
+              top: 0,
+              fontSize: 10,
+            }}
+          >
+            <FaCaretUp />
+            {upperThreshold}
+          </div>
+          <div // upper bound
+            className={styles.thresholdText}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "absolute",
+              right: `-${pointerOffset}%`,
+              top: 0,
+              fontSize: 9,
+            }}
+          >
+            <FaCaretUp />
+            {upperBound}
+          </div>
         </div>
       </div>
     </div>

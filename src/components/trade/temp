@@ -1,0 +1,58 @@
+@use "sass:color";
+@use "sass:list";
+
+@mixin children-gradient($parent-selector, $start-color, $end-color) {
+  // Use a data attribute or class to count children via CSS custom properties
+  #{$parent-selector} {
+    // This example assumes a max of 10 children. You can adjust this range.
+    @for $i from 1 through 10 {
+      &:has(> *:nth-last-child(#{$i}):first-child) {
+        --child-count: #{$i};
+      }
+    }
+
+    // Apply dynamic color to immediate children
+    > * {
+      // Calculate a hue/saturation/lightness (HSL) color value based on index
+      // Using HSL allows for easy color interpolation
+      $start-hsl: (
+        color.channel($start-color, "hue", $space: hsl),
+        color.channel($start-color, "saturation", $space: hsl),
+        color.channel($start-color, "lightness", $space: hsl)
+      );
+      $end-hsl: (
+        color.channel($end-color, "hue", $space: hsl),
+        color.channel($end-color, "saturation", $space: hsl),
+        color.channel($end-color, "lightness", $space: hsl)
+      );
+
+      $child-index: 0;
+      @for $i from 1 through 10 {
+        &:nth-child(#{$i}) {
+          $child-index: $i;
+          // Interpolate the color dynamically using the CSS custom property (child-count)
+          background-color: hsl(
+            calc(
+              #{list.nth($start-hsl, 1)} +
+                (var(--child-count) - 1) *
+                (#{list.nth($end-hsl, 1)} - #{list.nth($start-hsl, 1)}) /
+                (var(--child-count) - 1)
+            ),
+            calc(
+              #{list.nth($start-hsl, 2)} +
+                (var(--child-count) - 1) *
+                (#{list.nth($end-hsl, 2)} - #{list.nth($start-hsl, 2)}) /
+                (var(--child-count) - 1)
+            ),
+            calc(
+              #{list.nth($start-hsl, 3)} +
+                (var(--child-count) - 1) *
+                (#{list.nth($end-hsl, 3)} - #{list.nth($start-hsl, 3)}) /
+                (var(--child-count) - 1)
+            )
+          );
+        }
+      }
+    }
+  }
+}
