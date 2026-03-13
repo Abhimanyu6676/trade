@@ -17,6 +17,7 @@
  */
 
 :export {
+  currentTheme: var(--current-theme);
   bodyBg: var(--body-bg);
   primaryColorDark: var(--primary-color-dark);
   primaryColorLight: var(--primary-color-light);

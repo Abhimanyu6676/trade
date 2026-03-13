@@ -7,7 +7,7 @@ import "../styles/global.scss";
 
 export const GlobalRootComp = ({ element }: any) => {
   return (
-    <div className="rootClass" style={{ position: "relative" }}>
+    <div>
       {(() => {
         // NOTE this file is necessary to initialize socketService class
         console.log("Socket.io classID = ", socketService.classID);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -7,14 +7,14 @@ import { getStockKeyId, decimal } from "../../util/helper";
 import socketService from "../../services/socketService";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
-import { FaCaretDown, FaCaretUp } from "react-icons/fa6";
-import { uuid_v4 } from "../../util/uuid";
 import * as variables from "../../styles/themeVariables.module.scss";
 import * as styles from "./block.module.scss";
+import { ThresholdView } from "./thresholdView";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
+  console.log(`${props.stock.key_id}-----------------------`);
   const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
   const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
 
@@ -39,12 +39,6 @@ const Block = (props: { stock: Stock_i }) => {
   const [productType, setProductType] = useState<orderProductType_i>(
     buyOrder?.product || "MIS",
   );
-
-  const quantityFieldId = uuid_v4();
-  const thresholdFieldId = uuid_v4();
-  const riskFieldId = uuid_v4();
-  const exitDropFieldId = uuid_v4();
-  const exitProfitFieldId = uuid_v4();
 
   const quantity = buyOrder?.quantity || 1;
   const threshold = buyOrder?.threshold || 0.5;
@@ -75,31 +69,6 @@ const Block = (props: { stock: Stock_i }) => {
         : 0,
   );
   const pnl = decimal(buyPnl + sellPnl);
-
-  // subscribe to LTP
-  useEffect(() => {
-    socketService.ltpSubscriberList.subscribe({
-      id: props.stock.key_id,
-      callback: (data) => {
-        console.log(
-          `ltp data in stock block via new subscriberList ${props.stock.key_id}`,
-          data,
-        );
-        const dataKeyId = getStockKeyId(data);
-        if (props.stock.key_id == dataKeyId) {
-          setLtp((prevLtp) => {
-            if (data.ltp < prevLtp) setLtpColor("#ff0000");
-            else if (data.ltp > prevLtp) setLtpColor("#27F565");
-            return data.ltp;
-          });
-        }
-      },
-    });
-
-    return () => {
-      socketService.ltpSubscriberList.unSubscribe(props.stock.key_id);
-    };
-  }, []);
 
   const enterTrade = async () => {
     console.log("Entering trade");
@@ -166,24 +135,59 @@ const Block = (props: { stock: Stock_i }) => {
     });
   };
 
-  const ModifyTrade = () => {
-    const thresholdInput = document?.getElementById(
-      thresholdFieldId,
-    ) as HTMLInputElement;
-    const riskInput = document?.getElementById(riskFieldId) as HTMLInputElement;
-    const exitDropInput = document?.getElementById(
-      exitDropFieldId,
-    ) as HTMLInputElement;
-    const exitProfitInput = document?.getElementById(
-      exitProfitFieldId,
-    ) as HTMLInputElement;
-    console.log("thresholdFieldId ", thresholdFieldId);
+  const ModifyTrade = () => {};
 
-    console.log("threshold ", thresholdInput?.value);
-    console.log("risk ", riskInput?.value);
-    console.log("exitDrop ", exitDropInput?.value);
-    console.log("exitProfit ", exitProfitInput?.value);
-  };
+  const quantityFieldRef = useRef<HTMLInputElement>(null);
+  const thresholdFieldRef = useRef<HTMLInputElement>(null);
+  const riskFieldRef = useRef<HTMLInputElement>(null);
+  const exitDropFieldRef = useRef<HTMLInputElement>(null);
+  const exitProfitFieldRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    console.log(
+      `${props.stock.key_id}-----------***************--------------`,
+    );
+
+    if (quantityFieldRef.current)
+      quantityFieldRef.current.value = quantity.toString();
+
+    if (thresholdFieldRef.current)
+      thresholdFieldRef.current.value = threshold.toString();
+
+    if (riskFieldRef.current) riskFieldRef.current.value = risk.toString();
+
+    if (exitDropFieldRef.current)
+      exitDropFieldRef.current.value = exitDrop.toString();
+
+    if (exitProfitFieldRef.current)
+      exitProfitFieldRef.current.value = exitProfit.toString();
+
+    return () => {};
+  }, [threshold, risk, exitDrop, exitProfit]);
+
+  // subscribe to LTP
+  useEffect(() => {
+    socketService.ltpSubscriberList.subscribe({
+      id: props.stock.key_id,
+      callback: (data) => {
+        /* console.log(
+          `ltp data in stock block via new subscriberList ${props.stock.key_id}`,
+          data,
+        ); */
+        const dataKeyId = getStockKeyId(data);
+        if (props.stock.key_id == dataKeyId) {
+          setLtp((prevLtp) => {
+            if (data.ltp < prevLtp) setLtpColor("#ff0000");
+            else if (data.ltp > prevLtp) setLtpColor("#27F565");
+            return data.ltp;
+          });
+        }
+      },
+    });
+
+    return () => {
+      socketService.ltpSubscriberList.unSubscribe(props.stock.key_id);
+    };
+  }, []);
 
   return (
     <div
@@ -489,19 +493,19 @@ const Block = (props: { stock: Stock_i }) => {
           >
             <ChildRow heading="Buy/Sell Order Quantity">
               <Form.Control
-                id={quantityFieldId}
+                ref={quantityFieldRef}
                 className={styles.input}
                 type="number"
                 disabled={isOrderActive}
-                value={quantity}
+                defaultValue={quantity}
               />
             </ChildRow>
             <ChildRow heading="Threshold %">
               <Form.Control
-                id={thresholdFieldId}
+                ref={thresholdFieldRef}
                 className={styles.input}
                 type="number"
-                value={threshold}
+                defaultValue={threshold}
                 onChange={ModifyTrade}
               />
             </ChildRow>
@@ -511,19 +515,19 @@ const Block = (props: { stock: Stock_i }) => {
           >
             <ChildRow heading="Risk %">
               <Form.Control
-                id={riskFieldId}
+                ref={riskFieldRef}
                 className={styles.input}
                 type="number"
-                value={risk}
+                defaultValue={risk}
                 onChange={ModifyTrade}
               />
             </ChildRow>
             <ChildRow heading="Exit on Drop %">
               <Form.Control
-                id={exitDropFieldId}
+                ref={exitDropFieldRef}
                 className={styles.input}
                 type="number"
-                value={exitDrop}
+                defaultValue={exitDrop}
                 onChange={ModifyTrade}
               />
             </ChildRow>
@@ -713,203 +717,4 @@ const ChildRow = (props: {
   );
 };
 
-const ThresholdView = ({
-  ltp,
-  orderPrice,
-  threshold,
-  risk,
-  exitDrop,
-  exitProfit,
-  isAnyOfOneOrderExited,
-}: {
-  ltp: number;
-  orderPrice: number;
-  threshold: number;
-  risk: number;
-  exitDrop: number;
-  exitProfit: number;
-  isAnyOfOneOrderExited: boolean | undefined;
-}) => {
-  const pointerOffset = -16;
-
-  const upperThreshold = decimal(orderPrice + (orderPrice / 100) * threshold);
-  const lowerThreshold = decimal(orderPrice - (orderPrice / 100) * threshold);
-  const buyRiskPrice = decimal(upperThreshold - (orderPrice / 100) * risk);
-  const sellRiskPrice = decimal(lowerThreshold + (orderPrice / 100) * risk);
-  const lowerBound = decimal(orderPrice - (orderPrice / 100) * (threshold * 3));
-  const upperBound = decimal(orderPrice + (orderPrice / 100) * (threshold * 3));
-
-  /** if offset manipulation is not required for some calculation than send `0` as offset */
-  const getPointLocation: (point: number, offset?: number) => number = (
-    point,
-    offset = pointerOffset,
-  ) => {
-    return ((point - lowerBound) / (upperBound - lowerBound)) * 100 - offset;
-  };
-
-  const pointerLocation = getPointLocation(ltp, -0.25);
-  const outOfView = ltp > upperBound || ltp < lowerBound;
-
-  const thresholdViewSticksCount = 60; // max 200 set as per `$max-children` in `thresholdView.module.scss`. increase this limit if more children to be added
-  const thresholdViewHeightDecline = 0;
-
-  return (
-    <div
-      className="container"
-      style={{
-        backgroundColor: "#eeeeee",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 80,
-        position: "relative",
-      }}
-    >
-      <div
-        className="-col"
-        style={{ backgroundColor: "#eeeeee", position: "relative" }}
-      >
-        {/*   <div // risks points container
-          style={{
-            //backgroundColor: "green",
-            position: "relative",
-            flex: 1,
-            display: "flex",
-            flexDirection: "row",
-          }}
-        >
-          <p>.</p>
-          <div // sell risk price
-            className={styles.thresholdText}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              left: `${getPointLocation(sellRiskPrice)}%`,
-              fontSize: 9,
-              bottom: 0,
-            }}
-          >
-            {sellRiskPrice}
-            <FaCaretDown />
-          </div>
-          <div // buy risk price
-            className={styles.thresholdText}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              left: `${getPointLocation(buyRiskPrice)}%`,
-              bottom: 0,
-              fontSize: 9,
-            }}
-          >
-            {buyRiskPrice}
-            <FaCaretDown />
-          </div>
-        </div> */}
-        <div // threshold bar container
-          className={`-row --vc ${styles.thresholdBarContainer}`}
-        >
-          {/* <div // ltp pointer
-            className={styles.threshold}
-            style={{
-              height: thresholdViewHeight + 10,
-              width: 2,
-              borderRadius: 20,
-              position: "absolute",
-              left: `${pointerLocation - 0.25}%`,
-              opacity: outOfView ? 0 : 1,
-            }}
-          /> */}
-
-          {Array(thresholdViewSticksCount)
-            .fill(0)
-            .map((i, index) => {
-              return <div />;
-            })}
-        </div>
-        <div // threshold points container
-          style={{
-            //backgroundColor: "green",
-            position: "relative",
-            flex: 1,
-          }}
-        >
-          <p>.</p>
-          <div // lower bound
-            className={styles.thresholdText}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              left: `-${pointerOffset}%`,
-              top: 0,
-              fontSize: 9,
-            }}
-          >
-            <FaCaretUp />
-            {lowerBound}
-          </div>
-          <div // lower threshold
-            className={styles.thresholdText}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              left: `${getPointLocation(lowerThreshold)}%`,
-              top: 0,
-              fontSize: 10,
-            }}
-          >
-            <FaCaretUp />
-            {lowerThreshold}
-          </div>
-          <div // upper threshold
-            className={styles.thresholdText}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              left: `${getPointLocation(upperThreshold)}%`,
-              top: 0,
-              fontSize: 10,
-            }}
-          >
-            <FaCaretUp />
-            {upperThreshold}
-          </div>
-          <div // upper bound
-            className={styles.thresholdText}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              right: `-${pointerOffset}%`,
-              top: 0,
-              fontSize: 9,
-            }}
-          >
-            <FaCaretUp />
-            {upperBound}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Block;
+export default React.memo(Block);

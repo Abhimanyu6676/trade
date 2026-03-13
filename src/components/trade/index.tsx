@@ -1,5 +1,5 @@
 import * as styles from "./index.module.scss";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Block from "./block";
 import { AddSymbol } from "./addSymbol";
 import { useSelector } from "react-redux";
@@ -8,8 +8,13 @@ import ClientStatus from "./clientStatus";
 import { Button } from "react-bootstrap";
 import { MdLightMode } from "react-icons/md";
 import { MdDarkMode } from "react-icons/md";
+import {
+  DefaultRootTheme,
+  RootThemes_e,
+  RootThemes_t,
+} from "../../styles/theme";
 
-export const lightTheme = {
+const lightTheme = {
   background: "#f1f1f1",
   border: "#eeeeee",
   containerBackground: "#ffffff",
@@ -26,7 +31,7 @@ export const lightTheme = {
   },
 };
 
-export const darkTheme = {
+const darkTheme = {
   background: "#222730",
   border: "#333942",
   containerBackground: "#161a21",
@@ -45,20 +50,26 @@ export const darkTheme = {
 
 export default function TradeComponent() {
   const stocksState = useSelector((state: RootState) => state.stocks);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme] = useState<RootThemes_t>(DefaultRootTheme); //NOTE don't change this value here, instead change `DefaultRootTheme` value in `styles/theme.ts`
 
-  /*  useEffect(() => {
-    //document.body.style.backgroundColor = theme === "dark" ? "#161a21" : "#f8f9fa";
-    
-    return () => {
-      //document.body.style.backgroundColor = "";
-    };
-  }, [theme]); */
+  const ToggleTheme = () => {
+    const currentThemeAttribute =
+      document.documentElement.getAttribute("data-theme");
+
+    if (currentThemeAttribute === RootThemes_e.dark) {
+      document.documentElement.setAttribute("data-theme", RootThemes_e.light);
+      document.documentElement.classList.add(RootThemes_e.light);
+      document.documentElement.classList.remove(RootThemes_e.dark);
+      setTheme(RootThemes_e.light);
+    } else {
+      document.documentElement.setAttribute("data-theme", RootThemes_e.dark);
+      document.documentElement.classList.add(RootThemes_e.dark);
+      document.documentElement.classList.remove(RootThemes_e.light);
+      setTheme(RootThemes_e.dark);
+    }
+  };
   return (
-    <div
-      className={`container ${theme === "dark" ? "darkTheme" : "lightTheme"}`}
-      style={{ position: "relative" }}
-    >
+    <div className="container" style={{ position: "relative" }}>
       <div //header
         style={{
           //backgroundColor: "red",
@@ -74,20 +85,10 @@ export default function TradeComponent() {
           <AddSymbol />
           <Button
             variant="outline-secondary"
-            onClick={() => {
-              const currentTheme =
-                document.documentElement.getAttribute("data-theme");
-              if (currentTheme === "dark") {
-                setTheme("light");
-                document.documentElement.setAttribute("data-theme", "light");
-              } else {
-                setTheme("dark");
-                document.documentElement.setAttribute("data-theme", "dark");
-              }
-            }}
+            onClick={ToggleTheme}
             style={{ marginLeft: 10, height: 40 }}
           >
-            {theme === "light" ? <MdDarkMode /> : <MdLightMode />}
+            {theme === RootThemes_e.light ? <MdDarkMode /> : <MdLightMode />}
           </Button>
         </div>
       </div>

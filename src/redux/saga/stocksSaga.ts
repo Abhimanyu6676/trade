@@ -1,5 +1,4 @@
 import store from "..";
-import openAlgoClient from "../../api";
 import { reduxConstant_e } from "../baseAction";
 import { setStocks } from "../stocksReducer";
 import { _getWorker } from "./baseSaga";

@@ -2,35 +2,31 @@
 @use "sass:list";
 @use "sass:math";
 
+$max-bars: 200;
+$bars-max-height: 20px;
+$bars-min-height: 8px;
+
 // Function to calculate height based on position
-@function get-hourglass-height(
-  $i,
-  $total-candles,
-  $middle-point,
-  $min-height,
-  $max-height
-) {
+@function get-hourglass-height($i, $total-candles, $middle-point) {
   // Calculate how far from the middle the candle is
   $distance-from-middle: abs($i - $middle-point);
   // Calculate percentage based on distance (0 at middle, 1 at ends)
   $percentage: calc($distance-from-middle / ($total-candles - $middle-point));
 
   // Return height: min at middle, max at ends
-  @return calc($min-height + ($max-height - $min-height) * $percentage);
+  @return calc(
+    $bars-min-height + ($bars-max-height - $bars-min-height) * $percentage
+  );
 }
 
 // if height is used in percentage than parent height must be defined in parent class `#{$parent-selector}`,
 // else flex row and align items center will reduce the height to `0` for parent and child both
 @mixin children-gradient($parent-selector, $start-color, $end-color) {
-  $max-children: 200;
-  $max-height: 30px;
-  $min-height: 15px;
-
   // Use a data attribute or class to count children via CSS custom properties
   #{$parent-selector} {
     //height: 30px;
     // This example assumes a max of 10 children. You can adjust this range.
-    @for $i from 1 through $max-children {
+    @for $i from 1 through $max-bars {
       &:has(> *:nth-last-child(#{$i}):first-child) {
         --child-count: #{$i};
       }
@@ -54,7 +50,7 @@
       );
 
       $child-index: 0;
-      @for $i from 1 through $max-children {
+      @for $i from 1 through $max-bars {
         &:nth-child(#{$i}) {
           $child-index: $i;
 
@@ -65,16 +61,10 @@
 
           // Calculate height: taller at edges, shorter in middle
           $height: calc(
-            $min-height + ($max-height - $min-height) * ($percentage)
+            $bars-min-height + ($bars-max-height - $bars-min-height) * ($percentage)
           );
           height: $height; */
-          height: get-hourglass-height(
-            $i,
-            $total-candles,
-            $middle-point,
-            $min-height,
-            $max-height
-          );
+          height: get-hourglass-height($i, $total-candles, $middle-point);
 
           // Interpolate the color dynamically using the CSS custom property (child-count)
           background-color: hsl(
@@ -101,4 +91,67 @@
       }
     }
   }
+}
+
+@include children-gradient(".thresholdBarContainer", #ff0000, #00ff00);
+
+/** threshold bar class */
+.thresholdBarContainer {
+  // multiple ways to apply margin to child and not to last outline:
+  // - 1. use gap property with `gap: 6px;` in container styles
+  // - 2. use margin-trim property with `margin-trim: inline-end;` in container styles
+  // - 3. > *:not(:last-child) another style with not:last-child selector
+  // - 4. apply margin to all and then set :last-child margin to 0
+  position: relative;
+  //gap: 6px; // 1st way
+  //margin-trim: inline-end; // 2nd way
+  > * {
+    width: 2px;
+    border-radius: 20px;
+  }
+  > *:not(:last-child) {
+    // 3rd way
+    margin-right: 5px; /* or any desired spacing */
+    position: relative;
+  }
+
+  // 4th way
+  /* > * {
+    margin-right: 6px;
+  }
+
+  > *:last-child {
+    margin-right: 0;
+  } */
+}
+
+.thresholdPoints {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 9px;
+  z-index: 100;
+}
+:global(.light) .thresholdPoints {
+  color: #848e9c;
+}
+:global(.dark) .thresholdPoints {
+  color: #888888;
+}
+
+.thresholdPointer {
+  background-color: #555;
+  height: $bars-max-height + 10;
+  width: 2px;
+  border-radius: 20px;
+  position: absolute;
+}
+:global(.dark) .thresholdPointer {
+  background-color: #d1d4dc;
+}
+:global(.light) .thresholdPointer {
+  background-color: #555555;
 }

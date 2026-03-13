@@ -1,49 +1,27 @@
-<p align="center">
-  <a href="https://www.gatsbyjs.com/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts">
-    <img alt="Gatsby" src="https://www.gatsbyjs.com/Gatsby-Monogram.svg" width="60" />
-  </a>
-</p>
-<h1 align="center">
-  Gatsby Minimal TypeScript Starter
-</h1>
+### 🚀 Theme guide
 
-## 🚀 Quick start
+#### Adding/Modifying new theme
 
-1.  **Create a Gatsby site.**
+- add theme variables and colors in `$themes` map in file `styles/theme.scss`
 
-    Use the Gatsby CLI to create a new site, specifying the minimal TypeScript starter.
+- `$themes` format
+  - `theme-name` ex: light, dark
+    - `styles` [key:value] pair (any style specific to this theme only)
+    - `colors` [key:value] pair _every theme should have all the variables._
+      ###### (current variables used in colors)
+      - body-bg
+      - primary-color-dark
+      - primary-color-light
+      - text-color
+      - border-color
+      - subtle-text
 
-    ```shell
-    # create a new Gatsby site using the minimal TypeScript starter
-    npm init gatsby -- -ts
-    ```
+- make sure you add new themeName in `styles/theme.d.ts` in RootThemes_t
 
-2.  **Start developing.**
+- if adding new variable in themes add the variable `styles/themeVariables.d.ts` type and export it from `styles/themeVariables.module.scss`
 
-    Navigate into your new site’s directory and start it up.
+#### Changing default theme
 
-    ```shell
-    cd my-gatsby-site/
-    npm run develop
-    ```
+> default theme is set during compile time, so every time this value changes, new build is required
 
-3.  **Open the code and start customizing!**
-
-    Your site is now running at http://localhost:8000!
-
-    Edit `src/pages/index.tsx` to see your site update in real-time!
-
-4.  **Learn more**
-
-    - [Documentation](https://www.gatsbyjs.com/docs/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts)
-    - [Tutorials](https://www.gatsbyjs.com/docs/tutorial/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts)
-    - [Guides](https://www.gatsbyjs.com/docs/how-to/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts)
-    - [API Reference](https://www.gatsbyjs.com/docs/api-reference/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts)
-    - [Plugin Library](https://www.gatsbyjs.com/plugins?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts)
-    - [Cheat Sheet](https://www.gatsbyjs.com/docs/cheat-sheet/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter-ts)
-
-## 🚀 Quick start (Netlify)
-
-Deploy this starter with one click on [Netlify](https://app.netlify.com/signup):
-
-[<img src="https://www.netlify.com/img/deploy/button.svg" alt="Deploy to Netlify" />](https://app.netlify.com/start/deploy?repository=https://github.com/gatsbyjs/gatsby-starter-minimal-ts)
+- change `DefaultRootTheme` in file `style/theme.ts` to new default, which should be one of the `RootThemes_e`

@@ -1,5 +1,6 @@
 declare module "*/themeVariables.module.scss" {
   const content: {
+    currentTheme: import("./theme").RootThemes_t;
     bodyBg: string;
     primaryColorDark: string;
     primaryColorLight: string;

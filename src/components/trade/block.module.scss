@@ -1,5 +1,3 @@
-@use "thresholdView.module.scss" as *;
-
 .heading {
   font-size: 15px;
 }
@@ -31,51 +29,3 @@
   height: 30px;
   font-size: 15px;
 }
-
-:global(.darkTheme) .thresholdPointer {
-  background-color: #d1d4dc;
-}
-:global(.lightTheme) .thresholdPointer {
-  background-color: #555555;
-}
-
-:global(.darkTheme) .thresholdText {
-  color: #848e9c;
-}
-:global(.lightTheme) .thresholdText {
-  color: #888888;
-}
-
-/** threshold bar class */
-
-.thresholdBarContainer {
-  position: relative;
-  //gap: 6px; // 1st way
-  //margin-trim: inline-end; // 2nd way
-  > * {
-    width: 2px;
-    border-radius: 20px;
-  }
-
-  // 2 ways to apply margin to child and not to last outline:
-  // - 1. use gap property with `gap: 6px;` in container styles
-  // - 2. use margin-trim property with `margin-trim: inline-end;` in container styles
-  // - 3. > *:not(:last-child) another style with not:last-child selector
-  // - 4. apply margin to all and then set :last-child margin to 0
-  > *:not(:last-child) {
-    // 3rd way
-    margin-right: 5px; /* or any desired spacing */
-    position: relative;
-  }
-
-  // 4th way
-  /* > * {
-    margin-right: 6px;
-  }
-
-  > *:last-child {
-    margin-right: 0;
-  } */
-}
-
-@include children-gradient(".thresholdBarContainer", #ff0000, #00ff00);

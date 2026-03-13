@@ -1,20 +1,66 @@
-/* default theme is dark 
- * NOTE every variable added in root theme should also be present in `themeVariables.module.scss` and `themeVariables.d.ts`
+@use "sass:map";
+/* default theme is set in file `styles/theme.ts`
+ * all the themes must have all colors options as every one else
+ * all these colors variables should be added to `themeVariables.module.scss`export and `themeVariables.d.ts` type
+ *
+ * while adding new theme make sure you add it to `RootThemes_e` in `theme.ts` file
  */
-:root {
-  --body-bg: #161a21;
-  --primary-color-dark: #161a21;
-  --primary-color-light: #222730;
-  --text-color: #d1d4dc;
-  --border-color: #333942;
-  --subtle-text: #777777;
-}
 
-[data-theme="light"] {
-  --body-bg: #f8f9fa;
-  --primary-color-dark: #ffffff;
-  --primary-color-light: #f1f1f1;
-  --text-color: #000000;
-  --border-color: #eeeeee;
-  --subtle-text: #848e9c;
+$themes: (
+  light: (
+    styles: (
+      "opacity": 1,
+    ),
+    colors: (
+      "body-bg": #f8f9fa,
+      "primary-color-dark": #ffffff,
+      "primary-color-light": #f1f1f1,
+      "text-color": #000000,
+      "border-color": #eeeeee,
+      "subtle-text": #848e9c,
+    ),
+  ),
+  dark: (
+    styles: (
+      "opacity": 1,
+    ),
+    colors: (
+      "body-bg": #161a21,
+      "primary-color-dark": #161a21,
+      "primary-color-light": #222730,
+      "text-color": #d1d4dc,
+      "border-color": #333942,
+      "subtle-text": #777777,
+    ),
+  ),
+);
+
+@each $theme-name, $theme in $themes {
+  $colors: map.get($theme, colors);
+  $styles: map.get($theme, styles);
+
+  /* Select the :root element when the data-theme attribute matches the theme name */
+  :root[data-theme="#{$theme-name}"] {
+    --current-theme: #{$theme-name};
+    @each $prop, $color in $colors {
+      /* Define the CSS custom properties (variables) */
+      --#{$prop}: #{$color};
+    }
+  }
+
+  /** use these as selectors to configure theme elements where attribute and css variables cannot apply 
+  * For example:
+  *  :global(.darkTheme) .some-class {
+  *    color: #848e9c;
+  *    }
+  *
+  *  :global(.lightTheme) .some-class {
+  *    color: #848e9c;
+  *    }
+  */
+  .#{$theme-name} {
+    @each $prop, $value in $styles {
+      #{$prop}: #{$value};
+    }
+  }
 }
