@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import reduxStore from ".";
-import { getLocalData } from "../util/localStorage";
-import { setStocks } from "./stocksReducer";
 
 const ReduxWrapper = ({ children }: any) => {
   const store = reduxStore;

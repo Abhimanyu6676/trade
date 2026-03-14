@@ -22,6 +22,8 @@
     "axios": "^1.13.5",
     "bootstrap": "^5.3.8",
     "decimal.js": "^10.6.0",
+    "dotenv-expand": "^12.0.3",
+    "framer-motion": "^12.36.0",
     "gatsby": "^5.14.6",
     "gatsby-plugin-image": "^3.16.0",
     "gatsby-plugin-manifest": "^5.16.0",
@@ -35,12 +37,14 @@
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.71.2",
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
     "redux-saga": "^1.4.2",
     "sass": "^1.98.0",
-    "socket.io-client": "^4.8.3"
+    "socket.io-client": "^4.8.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/css-modules": "^1.0.5",

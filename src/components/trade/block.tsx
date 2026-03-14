@@ -717,4 +717,4 @@ const ChildRow = (props: {
   );
 };
 
-export default React.memo(Block);
+export default Block;
