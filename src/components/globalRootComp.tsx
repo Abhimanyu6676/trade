@@ -1,29 +1,20 @@
-import React from "react";
-import ReduxWrapper from "../redux/reduxWrapper";
-import { NotificationContainer } from "./alert/notificationContainer";
-import socketService from "../services/socketService";
 import "bootstrap/dist/css/bootstrap.min.css";
+import React, { ReactNode } from "react";
+import ReduxWrapper from "../redux/reduxWrapper";
+import { SocketContainer } from "../services/socketContainer";
 import "../styles/global.scss";
+import { NotificationContainer } from "./alert/notificationContainer";
+import { TabSync } from "./auth/TabSync";
 
-export const GlobalRootComp = ({ element }: any) => {
+export const GlobalRootComp: React.FC<{ element: ReactNode }> = ({
+  element,
+}) => {
   return (
     <div>
-      {(() => {
-        // NOTE this file is necessary to initialize socketService class
-        console.log("Socket.io classID = ", socketService.classID);
-        return null;
-      })()}
       <ReduxWrapper>
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            right: 0,
-            zIndex: 100,
-          }}
-        >
-          <NotificationContainer />
-        </div>
+        <TabSync />
+        <SocketContainer />
+        <NotificationContainer />
         {element}
       </ReduxWrapper>
     </div>

@@ -4,6 +4,7 @@ import createSagaMiddleware from "redux-saga";
 import rootSaga from "./saga";
 import stocksReducer from "./stocksReducer";
 import clientReducer from "./clientReducer";
+import authReducer from "./authReducer";
 import notificationReducer from "./notificationReducer";
 
 const sagaMiddleware = createSagaMiddleware();
@@ -15,6 +16,7 @@ const store = configureStore({
     stocks: stocksReducer,
     client: clientReducer,
     notification: notificationReducer,
+    user: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

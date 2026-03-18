@@ -1,4 +1,3 @@
-import { storeLocalData } from "../../util/localStorage";
 import { reduxConstant_e } from "../baseAction";
 import { _getWorker } from "./baseSaga";
 

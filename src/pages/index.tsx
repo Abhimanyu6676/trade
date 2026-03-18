@@ -1,10 +1,21 @@
 import React from "react";
+import { ProtectedRoute } from "../components/ProtectedRoute";
 import TradeComponent from "../components/trade";
+import Header from "../components/header";
 
-export default function TradePage({ children }: { children: React.ReactNode }) {
+type DashboardProps = {
+  location?: { pathname?: string };
+};
+
+function Dashboard(): JSX.Element {
   return (
-    <div>
+    <main>
+      <Header />
       <TradeComponent />
-    </div>
+    </main>
   );
+}
+
+export default function DashboardPage(props: DashboardProps): JSX.Element {
+  return <ProtectedRoute component={Dashboard} {...props} />;
 }

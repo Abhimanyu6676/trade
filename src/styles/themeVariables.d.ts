@@ -4,8 +4,8 @@ declare module "*/themeVariables.module.scss" {
     bodyBg: string;
     primaryColorDark: string;
     primaryColorLight: string;
-    textColor: string;
     borderColor: string;
+    textColor: string;
     subtleText: string;
     highlightedBorder: string;
   };

@@ -1,4 +1,4 @@
-type keys_t = "user" | "stocksList";
+type keys_t = "user" | "stocksList" | "auth_event" | "accessToken";
 
 /**
  *

@@ -15,9 +15,10 @@ $themes: (
       "body-bg": #f8f9fa,
       "primary-color-dark": #ffffff,
       "primary-color-light": #f1f1f1,
-      "text-color": #000000,
       "border-color": #eeeeee,
+      "text-color": #000000,
       "subtle-text": #848e9c,
+      "highlighted-border": #000000,
     ),
   ),
   dark: (
@@ -28,9 +29,10 @@ $themes: (
       "body-bg": #161a21,
       "primary-color-dark": #161a21,
       "primary-color-light": #222730,
-      "text-color": #d1d4dc,
       "border-color": #333942,
+      "text-color": #d1d4dc,
       "subtle-text": #777777,
+      "highlighted-border": #d1d4dc,
     ),
   ),
 );

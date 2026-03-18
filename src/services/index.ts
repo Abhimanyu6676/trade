@@ -13,7 +13,7 @@ export default new (class SocketService {
   public socketMessageSubscriberList = new subscribeClass<messageDataType_i>();
   public ltpSubscriberList = new subscribeClass<ltpData_i>();
 
-  constructor(
+  _constructor(
     url = process.env.SOCKET_URL
       ? process.env.SOCKET_URL
       : "http://localhost:3000",
@@ -24,10 +24,14 @@ export default new (class SocketService {
     );
     console.log("socket url : ", process.env.SOCKET_URL);
     this.socket = io(url, {
+      auth: {
+        token: "Bearer accessToken",
+      },
       path: process.env.SOCKET_PATH,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      autoConnect: false,
     });
 
     this.setupListeners();
@@ -45,8 +49,34 @@ export default new (class SocketService {
     });
 
     this.socket?.on("error", (error) => {
-      console.error("Socket error:", error);
+      console.error("Socket error:");
       this.socketConnected = false;
+    });
+
+    // either by directly modifying the `auth` attribute
+    this?.socket?.on("connect_error", (error) => {
+      console.log("connect_error", error.message);
+      const isBrowser = typeof window !== "undefined";
+      if (isBrowser) {
+        console.log("socket status ", this.socket?.active);
+        if (error.message.includes("error")) {
+          if (!this.socket?.active) {
+            setTimeout(() => {
+              if (this.socket) {
+                const token = localStorage.getItem("accessToken");
+                if (token) this.socket.auth = { token: `Bearer ${token}` };
+              }
+              this.socket?.connect();
+            }, 5000);
+          }
+        } else {
+          console.log("Socket connected-------------------------");
+        }
+      }
+    });
+
+    this?.socket?.on("reconnect_attempt", () => {
+      console.log("reconnect_attempt");
     });
 
     this.socket?.on("message", (data: messageDataType_i) => {
@@ -81,6 +111,13 @@ export default new (class SocketService {
   public disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();
+      this.socket.auth = { token: "Bearer undefined" };
+    }
+  }
+
+  public connect(): void {
+    if (this.socket && !this.socket.active) {
+      this.socket.connect();
     }
   }
 
@@ -89,7 +126,7 @@ export default new (class SocketService {
     data,
   }: {
     event?: "order" | "message";
-    data: clientOrderCmd_i | messageDataType_i;
+    data: orderDataType_i | messageDataType_i;
   }): void {
     if (this.socket) {
       //console.log("sending command ", event);
@@ -99,7 +136,7 @@ export default new (class SocketService {
     }
   }
 
-  public sendOrderCmd(D: clientOrderCmd_i): void {
+  public sendOrderCmd(D: orderDataType_i): void {
     this.sendMessage({ event: "order", data: D });
   }
 

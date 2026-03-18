@@ -5,7 +5,7 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import Form from "react-bootstrap/esm/Form";
 import InputGroup from "react-bootstrap/esm/InputGroup";
 import { IoSearch } from "react-icons/io5";
-import socketService from "../../services/socketService";
+import socketService from "../../services";
 import { getStockKeyId } from "../../util/helper";
 
 export const AddSymbol = () => {

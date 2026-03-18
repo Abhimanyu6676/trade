@@ -5,7 +5,7 @@ import { MdOutlineLinkOff } from "react-icons/md";
 import { FaServer } from "react-icons/fa";
 import { GrTest } from "react-icons/gr";
 import { CgMediaLive } from "react-icons/cg";
-import socketService from "../../services/socketService";
+import socketService from "../../services";
 
 const ClientStatus = (props: {}) => {
   const [client1Connected, setClient1Connected] = useState(false);

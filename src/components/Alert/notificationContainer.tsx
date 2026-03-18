@@ -10,31 +10,40 @@ export const NotificationContainer = () => {
   return (
     <div
       style={{
-        //backgroundColor: "red",
-        width: 350,
-        minWidth: 200,
-        overflow: "scroll",
-        maxHeight: 500,
-        scrollbarWidth: "none",
-        position: "absolute",
+        position: "sticky",
         top: 0,
         right: 0,
         zIndex: 100,
-        padding: "0px 10px",
       }}
     >
-      {notifications.map((notification) => {
-        return (
-          <Notification
-            key={notification.id}
-            id={notification.id}
-            heading={notification.heading}
-            text={notification.text}
-            variant={notification.variant}
-            timeout={notification.timeout}
-          />
-        );
-      })}
+      <div
+        style={{
+          //backgroundColor: "red",
+          width: 350,
+          minWidth: 200,
+          overflow: "scroll",
+          maxHeight: 500,
+          scrollbarWidth: "none",
+          position: "absolute",
+          top: 0,
+          right: 0,
+          zIndex: 100,
+          padding: "0px 10px",
+        }}
+      >
+        {notifications.map((notification) => {
+          return (
+            <Notification
+              key={notification.id}
+              id={notification.id}
+              heading={notification.heading}
+              text={notification.text}
+              variant={notification.variant}
+              timeout={notification.timeout}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };

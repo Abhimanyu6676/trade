@@ -106,6 +106,7 @@
     "./gatsby-node.ts",
     "gatsby-config.ts",
     "./plugins/**/*",
-    "../tradeServer/types/**/*"
+    "../tradeServer/types/**/*",
+    "../tradeServer/src/extendedExpressServer/expressResponse.d.ts"
   ]
 }
