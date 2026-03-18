@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { getStockKeyId, decimal } from "../../util/helper";
-import socketService from "../../services";
+import socketService from "../../services/socket";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
 import * as variables from "../../styles/themeVariables.module.scss";

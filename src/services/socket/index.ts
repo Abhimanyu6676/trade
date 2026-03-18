@@ -1,9 +1,10 @@
 import { io, Socket } from "socket.io-client";
-import { uuid_v4 } from "../util/uuid";
-import store from "../redux";
-import { stocksSagaAction } from "../redux/saga/stocksSaga";
-import Alert from "../components/alert";
-import subscribeClass from "../util/subscribeClass";
+import { uuid_v4 } from "../../util/uuid";
+import store from "../../redux";
+import { stocksSagaAction } from "../../redux/saga/stocksSaga";
+import Alert from "../../components/alert";
+import subscribeClass from "../../util/subscribeClass";
+import { getLocalData } from "../../util/localStorage";
 
 export default new (class SocketService {
   public classID = uuid_v4();
@@ -13,19 +14,22 @@ export default new (class SocketService {
   public socketMessageSubscriberList = new subscribeClass<messageDataType_i>();
   public ltpSubscriberList = new subscribeClass<ltpData_i>();
 
-  _constructor(
-    url = process.env.SOCKET_URL
-      ? process.env.SOCKET_URL
-      : "http://localhost:3000",
-  ) {
+  constructor() {
     console.log(
       "socket.io service container created with classID:",
       this.classID,
     );
+  }
+
+  initiate(
+    url = process.env.SOCKET_URL
+      ? process.env.SOCKET_URL
+      : "http://localhost:3000",
+  ) {
     console.log("socket url : ", process.env.SOCKET_URL);
     this.socket = io(url, {
       auth: {
-        token: "Bearer accessToken",
+        token: `Bearer ${getLocalData("accessToken")}`,
       },
       path: process.env.SOCKET_PATH,
       reconnection: true,
@@ -35,6 +39,22 @@ export default new (class SocketService {
     });
 
     this.setupListeners();
+  }
+
+  private updateAuthToken(error?: any) {
+    if (typeof window !== "undefined") {
+      console.log("socket status ", this.socket?.active);
+      if (!error || error.message.includes("error")) {
+        if (!this.socket?.active)
+          setTimeout(() => {
+            if (this.socket) {
+              const token = localStorage.getItem("accessToken");
+              if (token) this.socket.auth = { token: `Bearer ${token}` };
+            }
+            this.socket?.connect();
+          }, 3000);
+      }
+    }
   }
 
   private setupListeners(): void {
@@ -56,27 +76,12 @@ export default new (class SocketService {
     // either by directly modifying the `auth` attribute
     this?.socket?.on("connect_error", (error) => {
       console.log("connect_error", error.message);
-      const isBrowser = typeof window !== "undefined";
-      if (isBrowser) {
-        console.log("socket status ", this.socket?.active);
-        if (error.message.includes("error")) {
-          if (!this.socket?.active) {
-            setTimeout(() => {
-              if (this.socket) {
-                const token = localStorage.getItem("accessToken");
-                if (token) this.socket.auth = { token: `Bearer ${token}` };
-              }
-              this.socket?.connect();
-            }, 5000);
-          }
-        } else {
-          console.log("Socket connected-------------------------");
-        }
-      }
+      this.updateAuthToken(error);
     });
 
     this?.socket?.on("reconnect_attempt", () => {
       console.log("reconnect_attempt");
+      this.updateAuthToken();
     });
 
     this.socket?.on("message", (data: messageDataType_i) => {
