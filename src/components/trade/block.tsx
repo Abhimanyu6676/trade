@@ -125,7 +125,7 @@ const Block = (props: { stock: Stock_i }) => {
     }
   };
 
-  const exitTrade = async (props: { stock: Stock_i; orders: order_i[] }) => {
+  const exitTrade = async (props: { stock: Stock_i; orders: Order_i[] }) => {
     socketService.sendOrderCmd({
       cmd: "exitTrade",
       data: {

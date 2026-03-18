@@ -5,7 +5,7 @@ import api from "../axios";
 
 export const _login = async (
   data: RequestBodyType<"login">,
-  cb?: (props: { user: user_i; accessToken: string }) => void,
+  cb?: (props: { user: User_i; accessToken: string }) => void,
 ) => {
   console.log("now logging in");
   await api

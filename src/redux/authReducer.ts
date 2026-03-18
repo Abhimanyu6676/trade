@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 interface authReducerInitialState_i {
   isAuthenticated: boolean;
-  user: user_i | null;
+  user: User_i | null;
   loading: boolean;
 }
 
