@@ -12,7 +12,7 @@ interface _baseActionType<TYPE, DATA> {
 
 /** DES-1 */ // AUTH Events and action
 
-interface _authEventAction_login extends _baseActionType<"LOGIN", User_i> {}
+interface _authEventAction_login extends _baseActionType<"LOGIN", USER.base> {}
 
 interface _authEventAction_logout extends _baseActionType<"LOGOUT", null> {}
 
@@ -32,11 +32,14 @@ interface _openAlgoEvents_i extends _baseEvent_i<
 
 /** DES-3 */ // Trade Events and action
 
-interface _sampleCmdEventAction_sample1 extends _baseActionType<"S1", User_i> {}
+interface _sampleCmdEventAction_sample1 extends _baseActionType<
+  "S1",
+  USER.base
+> {}
 
 interface _sampleCmdEventAction_sample2 extends _baseActionType<
   "S2",
-  Order_i
+  ORDER.base
 > {}
 
 interface _sampleEvents_i extends _baseEvent_i<
