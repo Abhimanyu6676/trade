@@ -3,12 +3,25 @@ import { setAuthState } from "../../redux/authReducer";
 import { storeLocalData } from "../../util/localStorage";
 import api from "../axios";
 
-export const _login = async (
-  data: RequestBodyType<"login">,
-  cb?: (props: { user: User_i; accessToken: string }) => void,
-) => {
+/**
+ *
+ * @param {* data: RequestBodyType<"login"> *}
+ * @param {* successCb?: (props:RequestDataType<"login">) => void *}
+ * @param {* errorCb?: (props: RequestResponseType<"login">) => void *}
+ * @returns {* Promise<RequestResponseType<"login">> *}
+ *
+ */
+export const _login: (props: {
+  data: RequestBodyType<"login">;
+  successCb?: (props: RequestDataType<"login">) => void;
+  errorCb?: (props: RequestResponseType<"login">) => void;
+}) => Promise<RequestResponseType<"login">> = async ({
+  data,
+  successCb,
+  errorCb,
+}) => {
   console.log("now logging in");
-  await api
+  const _response = await api
     .post("login", "/auth/login", data)
     .then((res) => {
       console.log("login response --- ", res);
@@ -22,10 +35,14 @@ export const _login = async (
         storeLocalData("user", res.data.user);
         storeLocalData("accessToken", res.data.accessToken);
         storeLocalData("auth_event", Date.now().toString());
-        cb && cb({ user: res.data.user, accessToken: res.data.accessToken });
+        successCb && successCb(res.data);
+        return res;
       } else throw res;
     })
     .catch((err) => {
-      console.log("login error - ", err);
+      console.log("login error --- ", err);
+      errorCb && errorCb(err);
+      return err;
     });
+  return _response;
 };

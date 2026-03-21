@@ -67,15 +67,15 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
     setOpenItemId((prev) => (prev === id ? null : id));
   };
 
-  //const handleLogout = onLogout ?? authApi.logout;
+  const handleLogout = onLogout ?? authApi.logout;
 
-  const handleLogout = () => {
+  /* const handleLogout = () => {
     console.log("sending test request");
     api.instance
       .post("/backend/test")
       .then((res) => res)
       .catch((err) => err);
-  };
+  }; */
 
   return (
     <>

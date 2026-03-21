@@ -3,33 +3,63 @@ import { uuid_v4 } from "../../util/uuid";
 import store from "../../redux";
 import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import Alert from "../../components/alert";
-import subscribeClass from "../../util/subscribeClass";
+import { subscribeClassTemplate } from "../../util/subscribeClass";
 import { getLocalData } from "../../util/localStorage";
+import eventBus from "../../util/eventBus";
 
 export default new (class SocketService {
   public classID = uuid_v4();
   private socket: Socket | null = null;
   public socketConnected = false;
 
-  public socketMessageSubscriberList = new subscribeClass<messageDataType_i>();
-  public ltpSubscriberList = new subscribeClass<ltpData_i>();
+  public socketMessageSubscriberList =
+    new subscribeClassTemplate<messageDataType_i>();
+  public ltpSubscriberList = new subscribeClassTemplate<ltpData_i>();
 
   constructor() {
     console.log(
       "socket.io service container created with classID:",
       this.classID,
     );
+
+    eventBus.setEventListener("SOCKET_CLASS_AUTH_LISTENER", "AUTH", (props) => {
+      switch (props.type) {
+        case "LOGIN":
+          console.log(
+            "This is socket class auth listener login event, user just logged in",
+          );
+          this.connect();
+
+          break;
+
+        case "LOGOUT":
+          console.log(
+            "This is socket class auth listener login event, user just logged out",
+          );
+          this.disconnect();
+          break;
+
+        default:
+          break;
+      }
+    });
   }
 
-  initiate(
-    url = process.env.SOCKET_URL
+  async initiate(
+    /* url = process.env.SOCKET_URL
       ? process.env.SOCKET_URL
-      : "http://localhost:3000",
+      : "http://localhost:3000", */
+    url = "http://localhost:3000",
   ) {
+    const token = await getLocalData("accessToken");
     console.log("socket url : ", process.env.SOCKET_URL);
+    console.log("socket token : ", token);
     this.socket = io(url, {
       auth: {
-        token: `Bearer ${getLocalData("accessToken")}`,
+        token: `Bearer ${token}`,
+      },
+      extraHeaders: {
+        authorization: `Bearer ${token}`,
       },
       path: process.env.SOCKET_PATH,
       reconnection: true,
@@ -41,15 +71,21 @@ export default new (class SocketService {
     this.setupListeners();
   }
 
-  private updateAuthToken(error?: any) {
+  private updateAuthTokenAndConnect(error?: any) {
     if (typeof window !== "undefined") {
       console.log("socket status ", this.socket?.active);
       if (!error || error.message.includes("error")) {
         if (!this.socket?.active)
           setTimeout(() => {
             if (this.socket) {
-              const token = localStorage.getItem("accessToken");
-              if (token) this.socket.auth = { token: `Bearer ${token}` };
+              const token = getLocalData("accessToken");
+              if (token) {
+                this.socket.auth = { token: `Bearer ${token}` };
+                this.socket.io.opts.extraHeaders = {
+                  ...this.socket.io.opts.extraHeaders,
+                  authorization: `Bearer ${token}`,
+                };
+              }
             }
             this.socket?.connect();
           }, 3000);
@@ -76,12 +112,12 @@ export default new (class SocketService {
     // either by directly modifying the `auth` attribute
     this?.socket?.on("connect_error", (error) => {
       console.log("connect_error", error.message);
-      this.updateAuthToken(error);
+      this.updateAuthTokenAndConnect(error);
     });
 
     this?.socket?.on("reconnect_attempt", () => {
       console.log("reconnect_attempt");
-      this.updateAuthToken();
+      this.updateAuthTokenAndConnect();
     });
 
     this.socket?.on("message", (data: messageDataType_i) => {
@@ -117,12 +153,16 @@ export default new (class SocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket.auth = { token: "Bearer undefined" };
+      this.socket.io.opts.extraHeaders = {
+        ...this.socket.io.opts.extraHeaders,
+        authorization: "Bearer undefined",
+      };
     }
   }
 
   public connect(): void {
     if (this.socket && !this.socket.active) {
-      this.socket.connect();
+      this.updateAuthTokenAndConnect();
     }
   }
 

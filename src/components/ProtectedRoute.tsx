@@ -14,22 +14,24 @@ export const ProtectedRoute = ({
   location,
   ...rest
 }: ProtectedRouteProps): JSX.Element | null => {
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.user.isAuthenticated,
-  );
+  const userState = useSelector((state: RootState) => state.user);
   const pathName = useLocation().pathname;
 
   useEffect(() => {
     console.log("ProtectedRoute current location is -- ", location);
-    if (!isAuthenticated && !window.location.pathname.includes("/auth")) {
+    if (
+      !userState.loading &&
+      !userState.isAuthenticated &&
+      !window.location.pathname.includes("/auth")
+    ) {
       navigate("/auth", {
         replace: true,
         state: { from: location?.pathname ?? "/" },
       });
     }
-  }, [location?.pathname, isAuthenticated]);
+  }, [location?.pathname, userState]);
 
-  if (!isAuthenticated) return null;
+  if (!userState.isAuthenticated) return null;
 
   return <Component {...rest} />;
 };

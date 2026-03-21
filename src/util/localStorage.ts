@@ -5,13 +5,10 @@ type keys_t = "user" | "stocksList" | "auth_event" | "accessToken";
  * @param {* key_<String> >> dataKey} key
  * @param {* value_<JSON Object> >> dataSet} value
  */
-export const storeLocalData = async (
-  key: keys_t,
-  value: unknown,
-): Promise<void> => {
+export const storeLocalData = (key: keys_t, value: unknown): void => {
   //console.log("SAVING DATA >> " + JSON.stringify(value))
   try {
-    await localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
     console.warn(e);
   }
@@ -24,9 +21,9 @@ export const storeLocalData = async (
  * @returns {* null:: in case dataSet doesn't exists}
  * @returns {* Object: if data exists}
  */
-export const getLocalData = async (key: keys_t): Promise<unknown> => {
+export const getLocalData = (key: keys_t): unknown => {
   try {
-    const jsonValue = await localStorage.getItem(key);
+    const jsonValue = localStorage.getItem(key);
     return jsonValue != null ? JSON.parse(jsonValue) : null;
   } catch (e) {
     console.warn(e);

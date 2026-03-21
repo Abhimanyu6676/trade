@@ -106,7 +106,7 @@
     "./gatsby-node.ts",
     "gatsby-config.ts",
     "./plugins/**/*",
-    "../tradeServer/types/**/*",
-    "../tradeServer/src/extendedExpressServer/expressResponse.d.ts"
-  ]
+    "../tradeServer/**/*.d.ts"
+  ],
+  "exclude": ["../tradeServer/src/util/eventBus/*"]
 }

@@ -7,6 +7,7 @@ import { authApi } from "../../api/auth";
 import * as styles from "./index.module.scss";
 import { FormData, zodResolver } from "./zodSchema";
 import { navigate } from "gatsby";
+import eventBus from "../../util/eventBus";
 
 export default function AuthUI(): JSX.Element {
   const [form, setForm] = useState<"register" | "login" | "forgot">("login");
@@ -44,13 +45,23 @@ export default function AuthUI(): JSX.Element {
         setForm("login");
       }
       if (form === "login") {
-        await authApi.login(data, () => {
-          console.log("login callback function");
-          navigate("/", {
-            replace: true,
-            state: { from: location?.pathname ?? "/" },
-          });
+        const loginResponse = await authApi.login({
+          data,
+          successCb: (props) => {
+            eventBus.getEmitter("AUTH")({
+              type: "AUTH",
+              action: {
+                type: "LOGIN",
+                data: props.user,
+              },
+            });
+            navigate("/", {
+              replace: true,
+              state: { from: location?.pathname ?? "/" },
+            });
+          },
         });
+        //console.log("login response =", loginResponse);
       }
       if (form === "forgot") {
         // Handle forgot password

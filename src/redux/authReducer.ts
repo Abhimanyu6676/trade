@@ -9,7 +9,7 @@ interface authReducerInitialState_i {
 const initialState: authReducerInitialState_i = {
   isAuthenticated: false,
   user: null,
-  loading: false,
+  loading: true,
 };
 
 export const authSlice = createSlice({

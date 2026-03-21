@@ -1,12 +1,13 @@
 import axios, { AxiosInstance } from "axios";
-import { axiosApiRequest_t } from "./axios_";
+import { axiosApiRequest_t } from "./axiosTypes";
 import { authApi } from "./auth";
+import { storeLocalData } from "../util/localStorage";
 
 /**
  * Axios instance used across the application
  */
 const _api = axios.create({
-  baseURL: "http://10.116.253.58:3000/backend",
+  baseURL: "http://localhost:3000/backend",
   withCredentials: true,
 });
 
@@ -53,7 +54,7 @@ _api.interceptors.response.use(
         throw error;
       }
 
-      localStorage.setItem("accessToken", accessToken);
+      storeLocalData("accessToken", accessToken);
 
       original.headers.Authorization = `Bearer ${accessToken}`;
 
