@@ -69,7 +69,7 @@ export default new (class SocketService {
     });
 
     this.setupSocketConnectionEvents();
-    this.setupListeners();
+    this.setupEventListeners();
   }
 
   private setupSocketConnectionEvents() {
@@ -122,7 +122,7 @@ export default new (class SocketService {
     }
   }
 
-  private setupListeners(): void {
+  private setupEventListeners(): void {
     /*     this.socket?.on("alert", (alert: Omit<notification_i, "id">) => {
       //console.log("alert from socket.io onAlert ", alert);
       if (!alert || typeof alert !== "object" || !("heading" in alert)) {
