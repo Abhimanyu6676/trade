@@ -68,32 +68,11 @@ export default new (class SocketService {
       autoConnect: false,
     });
 
+    this.setupSocketConnectionEvents();
     this.setupListeners();
   }
 
-  private updateAuthTokenAndConnect(error?: any) {
-    if (typeof window !== "undefined") {
-      console.log("socket status ", this.socket?.active);
-      if (!error || error.message.includes("error")) {
-        if (!this.socket?.active)
-          setTimeout(() => {
-            if (this.socket) {
-              const token = getLocalData("accessToken");
-              if (token) {
-                this.socket.auth = { token: `Bearer ${token}` };
-                this.socket.io.opts.extraHeaders = {
-                  ...this.socket.io.opts.extraHeaders,
-                  authorization: `Bearer ${token}`,
-                };
-              }
-            }
-            this.socket?.connect();
-          }, 3000);
-      }
-    }
-  }
-
-  private setupListeners(): void {
+  private setupSocketConnectionEvents() {
     this.socket?.on("connect", () => {
       console.log("Socket connected:", this.socket?.id);
       this.socketConnected = true;
@@ -119,30 +98,39 @@ export default new (class SocketService {
       console.log("reconnect_attempt");
       this.updateAuthTokenAndConnect();
     });
+  }
 
-    this.socket?.on("message", (data: messageDataType_i) => {
-      //console.log("message from socket.io onMessage ", data);
-      this.socketMessageSubscriberList.notify(data);
-    });
+  private updateAuthTokenAndConnect(error?: any) {
+    if (typeof window !== "undefined") {
+      console.log("socket status ", this.socket?.active);
+      if (!error || error.message.includes("error")) {
+        if (!this.socket?.active)
+          setTimeout(() => {
+            if (this.socket) {
+              const token = getLocalData("accessToken");
+              if (token) {
+                this.socket.auth = { token: `Bearer ${token}` };
+                this.socket.io.opts.extraHeaders = {
+                  ...this.socket.io.opts.extraHeaders,
+                  authorization: `Bearer ${token}`,
+                };
+              }
+            }
+            this.socket?.connect();
+          }, 3000);
+      }
+    }
+  }
 
-    this.socket?.on("ltp", (data: ltpData_i) => {
-      //console.log("ltp from socket.io onLtp ", data);
-      this.ltpSubscriberList.notify(data);
-    });
-
-    this.socket?.on("data", (stocks: Stock_i[]) => {
-      console.log("data from socket.io onData ", stocks);
-      store.dispatch(stocksSagaAction({ stocks: stocks })); // Dispatch action to update stocks in the store
-    });
-
-    this.socket?.on("alert", (alert: Omit<notification_i, "id">) => {
+  private setupListeners(): void {
+    /*     this.socket?.on("alert", (alert: Omit<notification_i, "id">) => {
       //console.log("alert from socket.io onAlert ", alert);
       if (!alert || typeof alert !== "object" || !("heading" in alert)) {
         console.error("Invalid alert data structure:", alert);
         return;
       }
       Alert.notify(alert);
-    });
+    }); */
   }
 
   public getSocket(): Socket | null {
