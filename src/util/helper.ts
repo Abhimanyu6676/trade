@@ -1,14 +1,16 @@
 import Decimal from "decimal.js";
 
-export const getStockKeyId = (
-  stock: Stock_i | searchSymbolResponseData_i | ltpData_i,
-) => {
-  return `${stock.symbol}:${stock.exchange}`;
+/**
+ *
+ * @param userID [string]
+ * @param stock [STOCK.base | searchSymbolResponseData_i | ltpData_i]
+ * @returns `${userID}-${stock.symbol}:${stock.exchange}`
+ */
+export const getStockKeyId = (userID: string, stock: STOCK.base | searchSymbolResponseData_i | ltpData_i) => {
+  return `${userID}-${stock.symbol}:${stock.exchange}`;
 };
 
-export const sleep = (
-  timeout: number /** @param timeout [number] in milliseconds */,
-) => {
+export const sleep = (timeout: number /** @param timeout [number] in milliseconds */) => {
   return new Promise((resolve) => setTimeout(resolve));
 };
 

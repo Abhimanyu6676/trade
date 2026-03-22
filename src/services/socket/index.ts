@@ -1,41 +1,28 @@
 import { io, Socket } from "socket.io-client";
-import { uuid_v4 } from "../../util/uuid";
-import store from "../../redux";
-import { stocksSagaAction } from "../../redux/saga/stocksSaga";
-import Alert from "../../components/alert";
-import { subscribeClassTemplate } from "../../util/subscribeClass";
-import { getLocalData } from "../../util/localStorage";
 import eventBus from "../../util/eventBus";
+import { getLocalData } from "../../util/localStorage";
+import { uuid_v4 } from "../../util/uuid";
 
-export default new (class SocketService {
+class SocketService {
   public classID = uuid_v4();
+  private url = process.env.SOCKET_URL ? process.env.SOCKET_URL : "http://localhost:3000";
   private socket: Socket | null = null;
   public socketConnected = false;
 
-  public socketMessageSubscriberList =
-    new subscribeClassTemplate<messageDataType_i>();
-  public ltpSubscriberList = new subscribeClassTemplate<ltpData_i>();
-
   constructor() {
-    console.log(
-      "socket.io service container created with classID:",
-      this.classID,
-    );
-
+    this.emit = this.emit.bind(this);
+    eventBus.setEmitter(this.emit);
+    console.log("socket.io class initiated with classID :", this.classID);
     eventBus.setEventListener("SOCKET_CLASS_AUTH_LISTENER", "AUTH", (props) => {
       switch (props.type) {
         case "LOGIN":
-          console.log(
-            "This is socket class auth listener login event, user just logged in",
-          );
+          console.log("This is socket class auth listener login event, user just logged in");
           this.connect();
 
           break;
 
         case "LOGOUT":
-          console.log(
-            "This is socket class auth listener login event, user just logged out",
-          );
+          console.log("This is socket class auth listener login event, user just logged out");
           this.disconnect();
           break;
 
@@ -45,34 +32,22 @@ export default new (class SocketService {
     });
   }
 
-  async initiate(
-    /* url = process.env.SOCKET_URL
-      ? process.env.SOCKET_URL
-      : "http://localhost:3000", */
-    url = "http://localhost:3000",
-  ) {
+  async initiate() {
     const token = await getLocalData("accessToken");
-    console.log("socket url : ", process.env.SOCKET_URL);
-    console.log("socket token : ", token);
-    this.socket = io(url, {
-      auth: {
-        token: `Bearer ${token}`,
-      },
-      extraHeaders: {
-        authorization: `Bearer ${token}`,
-      },
+    this.socket = io("http://localhost:3000", {
+      auth: { token: `Bearer ${token}` },
+      extraHeaders: { authorization: `Bearer ${token}` },
       path: process.env.SOCKET_PATH,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       autoConnect: false,
     });
-
-    this.setupSocketConnectionEvents();
-    this.setupEventListeners();
+    this.setupSocketEventsListeners();
   }
 
-  private setupSocketConnectionEvents() {
+  private setupSocketEventsListeners() {
+    console.log("setting socket event listeners");
     this.socket?.on("connect", () => {
       console.log("Socket connected:", this.socket?.id);
       this.socketConnected = true;
@@ -98,6 +73,11 @@ export default new (class SocketService {
       console.log("reconnect_attempt");
       this.updateAuthTokenAndConnect();
     });
+
+    this.socket?.on("data", (event: _eventBusModals) => {
+      console.log("data from socket.io onData", event);
+      eventBus.emitEvent(event, false);
+    });
   }
 
   private updateAuthTokenAndConnect(error?: any) {
@@ -122,17 +102,6 @@ export default new (class SocketService {
     }
   }
 
-  private setupEventListeners(): void {
-    /*     this.socket?.on("alert", (alert: Omit<notification_i, "id">) => {
-      //console.log("alert from socket.io onAlert ", alert);
-      if (!alert || typeof alert !== "object" || !("heading" in alert)) {
-        console.error("Invalid alert data structure:", alert);
-        return;
-      }
-      Alert.notify(alert);
-    }); */
-  }
-
   public getSocket(): Socket | null {
     return this.socket;
   }
@@ -141,10 +110,7 @@ export default new (class SocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket.auth = { token: "Bearer undefined" };
-      this.socket.io.opts.extraHeaders = {
-        ...this.socket.io.opts.extraHeaders,
-        authorization: "Bearer undefined",
-      };
+      this.socket.io.opts.extraHeaders = { ...this.socket.io.opts.extraHeaders, authorization: "Bearer undefined" };
     }
   }
 
@@ -154,26 +120,14 @@ export default new (class SocketService {
     }
   }
 
-  private sendMessage({
-    event = "message",
-    data,
-  }: {
-    event?: "order" | "message";
-    data: orderDataType_i | messageDataType_i;
-  }): void {
+  async emit(data: _eventBusModals) {
     if (this.socket) {
       //console.log("sending command ", event);
-      this.socket.emit(event, data);
+      this.socket.emit("data", data);
     } else {
       console.log("no socket available");
     }
   }
+}
 
-  public sendOrderCmd(D: orderDataType_i): void {
-    this.sendMessage({ event: "order", data: D });
-  }
-
-  public sendMsg(D: messageDataType_i): void {
-    this.sendMessage({ event: "message", data: D });
-  }
-})();
+export default new SocketService();

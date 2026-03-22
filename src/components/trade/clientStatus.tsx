@@ -9,23 +9,21 @@ import socketService from "../../services/socket";
 
 const ClientStatus = (props: {}) => {
   const [client1Connected, setClient1Connected] = useState(false);
-  const [client1WebSocketConnected, setClient1WebSocketConnected] =
-    useState(false);
+  const [client1WebSocketConnected, setClient1WebSocketConnected] = useState(false);
   const [client1Analyzer, setClient1Analyzer] = useState(true);
 
   const [client2Connected, setClient2Connected] = useState(false);
-  const [client2WebSocketConnected, setClient2WebSocketConnected] =
-    useState(false);
+  const [client2WebSocketConnected, setClient2WebSocketConnected] = useState(false);
   const [client2Analyzer, setClient2Analyzer] = useState(true);
   const [serverSocketStatus, setServerSocketStatus] = useState(false);
 
   const interval = setInterval(() => {
-    if (socketService.socketConnected != serverSocketStatus)
-      setServerSocketStatus(socketService.socketConnected);
+    if (socketService.socketConnected != serverSocketStatus) setServerSocketStatus(socketService.socketConnected);
   }, 2000);
 
   useEffect(() => {
-    socketService.socketMessageSubscriberList.subscribe({
+    //TODO
+    /** socketService.socketMessageSubscriberList.subscribe({
       id: "clientStatus",
       callback: (msg) => {
         console.log("message in clientStatus inside subscribed callback", msg);
@@ -48,14 +46,14 @@ const ClientStatus = (props: {}) => {
             setClient2Analyzer(msg.data.status.client2Analyzer);
         }
       },
-    });
+    }); */
     setTimeout(() => {
       console.log("sending getClientStatus msg to server");
-      socketService.sendMsg({ type: "getClientStatus", data: {} });
+      //TODO socketService.sendMsg({ type: "getClientStatus", data: {} });
     }, 2000);
     return () => {
       clearInterval(interval);
-      socketService.socketMessageSubscriberList.unSubscribe("clientStatus");
+      //TODO socketService.socketMessageSubscriberList.unSubscribe("clientStatus");
     };
   }, [socketService.socketConnected]);
 
@@ -72,10 +70,7 @@ const ClientStatus = (props: {}) => {
       }}
     >
       <div // client status container
-        style={{
-          display: "flex",
-          flexDirection: "column",
-        }}
+        style={{ display: "flex", flexDirection: "column" }}
       >
         <Status
           clientId="Client 1"
@@ -83,9 +78,7 @@ const ClientStatus = (props: {}) => {
           clientConnected={client1Connected}
           webSocketConnected={client1WebSocketConnected}
           clientAnalyzer={client1Analyzer}
-          clientApiKey={
-            process.env.client1ApiKey ? process.env.client1ApiKey : ""
-          }
+          clientApiKey={process.env.client1ApiKey ? process.env.client1ApiKey : ""}
         />
         <div style={{ height: 10 }} />
         <Status
@@ -94,29 +87,14 @@ const ClientStatus = (props: {}) => {
           clientConnected={client2Connected}
           webSocketConnected={client2WebSocketConnected}
           clientAnalyzer={client2Analyzer}
-          clientApiKey={
-            process.env.client2ApiKey ? process.env.client2ApiKey : ""
-          }
+          clientApiKey={process.env.client2ApiKey ? process.env.client2ApiKey : ""}
         />
       </div>
       <div //server status
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-        }}
+        style={{ display: "flex", flexDirection: "row", alignItems: "center" }}
       >
-        <h6
-          style={{
-            marginRight: 15,
-          }}
-        >
-          Backend Status
-        </h6>
-        <FaServer
-          size={18}
-          color={serverSocketStatus ? "#27F598" : "#F55427"}
-        />
+        <h6 style={{ marginRight: 15 }}>Backend Status</h6>
+        <FaServer size={18} color={serverSocketStatus ? "#27F598" : "#F55427"} />
       </div>
     </div>
   );
@@ -131,23 +109,10 @@ const Status = (props: {
   clientApiKey: string;
 }) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start", alignItems: "center" }}>
       <div className="-row --ve" style={{ width: 180 }}>
         <h5 style={{}}>{props.clientId}</h5>
-        <p
-          className="subtle-text"
-          style={{
-            fontSize: 12,
-            marginLeft: 5,
-          }}
-        >
+        <p className="subtle-text" style={{ fontSize: 12, marginLeft: 5 }}>
           {props.clientName}
         </p>
       </div>
@@ -164,14 +129,10 @@ const Status = (props: {
           padding: "0px 10px",
         }}
         onClick={() => {
-          socketService.sendMsg({ type: "getClientStatus", data: {} });
+          //TODO socketService.sendMsg({ type: "getClientStatus", data: {} });
         }}
       >
-        <FaNetworkWired
-          size={18}
-          color={props.clientConnected ? "#27F598" : "#F55427"}
-          style={{ marginRight: 15 }}
-        />
+        <FaNetworkWired size={18} color={props.clientConnected ? "#27F598" : "#F55427"} style={{ marginRight: 15 }} />
         <div style={{}}>
           {props.webSocketConnected ? (
             <MdOutlineLink color="#27F598" size={20} />
@@ -189,20 +150,13 @@ const Status = (props: {
           padding: "0px 10px",
         }}
         onClick={() => {
-          socketService.sendMsg({
+          /* TODO socketService.sendMsg({
             type: "toggleAnalyzer",
-            data: {
-              clientApiKey: props.clientApiKey,
-              analyzerOn: !props.clientAnalyzer,
-            },
-          });
+            data: { clientApiKey: props.clientApiKey, analyzerOn: !props.clientAnalyzer },
+          }); */
         }}
       >
-        {props.clientAnalyzer ? (
-          <GrTest color="#27F598" size={16} />
-        ) : (
-          <CgMediaLive color="#F55427" size={16} />
-        )}
+        {props.clientAnalyzer ? <GrTest color="#27F598" size={16} /> : <CgMediaLive color="#F55427" size={16} />}
       </button>
     </div>
   );

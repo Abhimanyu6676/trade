@@ -5,24 +5,22 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import Form from "react-bootstrap/esm/Form";
 import InputGroup from "react-bootstrap/esm/InputGroup";
 import { IoSearch } from "react-icons/io5";
-import socketService from "../../services/socket";
+import store from "../../redux";
+import eventBus from "../../util/eventBus";
 import { getStockKeyId } from "../../util/helper";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
-  const [selectedStock, setSelectedStock] =
-    useState<searchSymbolResponseData_i>();
+  const [selectedStock, setSelectedStock] = useState<searchSymbolResponseData_i>();
   const [symbolExchange, setSymbolExchange] = useState<"NSE" | "BSE">("BSE");
-  const [searchList, setSearchList] = useState<searchSymbolResponseData_i[]>(
-    [],
-  );
+  const [searchList, setSearchList] = useState<searchSymbolResponseData_i[]>([]);
 
   const searchSymbol = async () => {
     if (symbol) {
       console.log("Searching Symbol: ", symbol, " on ", symbolExchange);
-      socketService.sendOrderCmd({
-        cmd: "searchSymbol",
-        data: { symbol, exchange: symbolExchange },
+      eventBus.emitEvent({
+        type: "OPENALGO",
+        action: { type: "SEARCH_SYMBOL", data: { searchText: symbol, userID: store.getState().user?.user?.id ?? "" } },
       });
     } else {
       console.log("Search Symbol cannot be empty");
@@ -30,7 +28,8 @@ export const AddSymbol = () => {
   };
 
   useEffect(() => {
-    socketService.socketMessageSubscriberList.subscribe({
+    //TODO
+    /** socketService.socketMessageSubscriberList.subscribe({
       id: "searchSymbolComp",
       callback: (data) => {
         console.log("message in searchSymbolComp inside subscribed callback");
@@ -39,9 +38,9 @@ export const AddSymbol = () => {
           setSearchList(data.data.symbols);
         }
       },
-    });
+    });*/
     return () => {
-      socketService.socketMessageSubscriberList.unSubscribe("searchSymbolComp");
+      //TODO socketService.socketMessageSubscriberList.unSubscribe("searchSymbolComp");
     };
   }, []);
 
@@ -82,11 +81,7 @@ export const AddSymbol = () => {
               BSE
             </Dropdown.Item>
           </DropdownButton>
-          <SymbolSelector
-            searchList={searchList}
-            setSymbol={setSymbol}
-            setSelectedStock={setSelectedStock}
-          />
+          <SymbolSelector searchList={searchList} setSymbol={setSymbol} setSelectedStock={setSelectedStock} />
           <Form.Control
             placeholder="Add Symbol"
             value={symbol}
@@ -105,19 +100,25 @@ export const AddSymbol = () => {
         <Button
           variant="primary"
           onClick={() => {
-            console.log("socket.io serviceID = ", socketService.classID);
             if (selectedStock && symbolExchange) {
-              socketService.sendOrderCmd({
-                cmd: "addSymbol",
-                data: {
-                  key_id: getStockKeyId(selectedStock),
-                  name: selectedStock.name,
-                  symbol: selectedStock.symbol,
-                  brSymbol: selectedStock.brsymbol,
-                  exchange: selectedStock.exchange,
+              eventBus.emitEvent({
+                type: "OPENALGO",
+                action: {
+                  type: "ADD_STOCK",
+                  data: {
+                    stocks: [
+                      {
+                        key_id: getStockKeyId(store.getState().user.user?.id ?? "", selectedStock),
+                        name: selectedStock.name,
+                        symbol: selectedStock.symbol,
+                        brSymbol: selectedStock.brsymbol,
+                        exchange: selectedStock.exchange,
+                      },
+                    ],
+                    userID: store.getState().user.user?.id ?? "",
+                  },
                 },
               });
-
               setSymbol("");
               setSelectedStock(undefined);
               setSearchList([]);
@@ -134,9 +135,7 @@ export const AddSymbol = () => {
 };
 const SymbolSelector = (props: {
   searchList: searchSymbolResponseData_i[];
-  setSelectedStock: React.Dispatch<
-    React.SetStateAction<searchSymbolResponseData_i | undefined>
-  >;
+  setSelectedStock: React.Dispatch<React.SetStateAction<searchSymbolResponseData_i | undefined>>;
   setSymbol: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);

@@ -3,6 +3,7 @@ import store from "../../redux";
 import { setAuthState } from "../../redux/authReducer";
 import api from "../axios";
 import eventBus from "../../util/eventBus";
+import { EVENT } from "../../../../tradeServer/src/util/eventBus/eventBusTemplate";
 
 const logoutSideEffect = async () => {
   console.log("executing logoutSideEffect");
@@ -10,25 +11,12 @@ const logoutSideEffect = async () => {
   localStorage.removeItem("user");
   localStorage.removeItem("accessToken");
   localStorage.setItem("auth_event", Date.now().toString());
-  store.dispatch(
-    setAuthState({
-      user: null,
-    }),
-  );
-  eventBus.getEmitter("AUTH")({
-    type: "AUTH",
-    action: {
-      type: "LOGOUT",
-      data: null,
-    },
-  });
+  store.dispatch(setAuthState({ user: null }));
+  eventBus.emitEvent({ type: "AUTH", action: { type: "LOGOUT", data: { userID: "" } } }, false);
 
   console.log("current loc ", window.location.pathname);
   if (!window.location.pathname.includes("/auth"))
-    navigate("/auth", {
-      replace: true,
-      state: { from: location?.pathname ?? "/" },
-    });
+    navigate("/auth", { replace: true, state: { from: location?.pathname ?? "/" } });
 };
 
 export const _logout = async () => {

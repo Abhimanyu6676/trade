@@ -12,14 +12,10 @@ import api from "../axios";
  *
  */
 export const _login: (props: {
-  data: RequestBodyType<"login">;
-  successCb?: (props: RequestDataType<"login">) => void;
+  data: AxiosRequestBodyType<"login">;
+  successCb?: (props: AxiosResponseDataType<"login">) => void;
   errorCb?: (props: RequestResponseType<"login">) => void;
-}) => Promise<RequestResponseType<"login">> = async ({
-  data,
-  successCb,
-  errorCb,
-}) => {
+}) => Promise<RequestResponseType<"login">> = async ({ data, successCb, errorCb }) => {
   console.log("now logging in");
   const _response = await api
     .post("login", "/auth/login", data)
@@ -27,11 +23,7 @@ export const _login: (props: {
       console.log("login response --- ", res);
 
       if (res.data) {
-        store.dispatch(
-          setAuthState({
-            user: res.data.user,
-          }),
-        );
+        store.dispatch(setAuthState({ user: res.data.user }));
         storeLocalData("user", res.data.user);
         storeLocalData("accessToken", res.data.accessToken);
         storeLocalData("auth_event", Date.now().toString());

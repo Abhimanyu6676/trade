@@ -25,7 +25,7 @@
 ## Important Notes
 
 - `backend/auth/**/*` route is protected for authentication pages only (login, register, forgot-password, logout) api calls this route is omitted from interceptor refreshToken check
--
+- All classes that needs to be initiated in order, should have `_constructor` instead of `constructor` which is called at app starting point.
 
 ## Project Architecture & Capabilities
 

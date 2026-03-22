@@ -5,31 +5,14 @@ import { storeLocalData } from "../../util/localStorage";
 import api from "../axios";
 import { _logout } from "./logout";
 
-const restoreSessionSuccessSideEffect = (
-  props: RequestDataType<"refreshToken">,
-) => {
+const restoreSessionSuccessSideEffect = (props: AxiosResponseDataType<"refreshToken">) => {
   storeLocalData("accessToken", props.accessToken);
-  console.log(
-    "setting user loading to false in restore session success sideEffect",
-  );
-  store.dispatch(
-    setAuthState({
-      loading: false,
-      user: props.user,
-    }),
-  );
-  eventBus.getEmitter("AUTH")({
-    type: "AUTH",
-    action: {
-      type: "LOGIN",
-      data: props.user,
-    },
-  });
+  console.log("setting user loading to false in restore session success sideEffect");
+  store.dispatch(setAuthState({ loading: false, user: props.user }));
+  eventBus.getEmitter("AUTH")({ type: "AUTH", action: { type: "LOGIN", data: props.user } });
 };
 
-const restoreSession401SideEffect = (
-  props: RequestResponseType<"refreshToken">,
-) => {
+const restoreSession401SideEffect = (props: RequestResponseType<"refreshToken">) => {
   // if response error is received from server it'll always hold type="refreshToken", specifies that server rejected request
   // Axios interceptor sends axios error type if request never server
   // check if request is rejected by server or due to network error
@@ -56,14 +39,10 @@ const restoreSession401SideEffect = (
  *
  */
 export const _restoreSession: (props: {
-  successCb?: (props: RequestDataType<"refreshToken">) => void;
+  successCb?: (props: AxiosResponseDataType<"refreshToken">) => void;
   errorCb?: (props: RequestResponseType<"refreshToken">) => void;
   useSideEffects?: boolean;
-}) => Promise<RequestResponseType<"refreshToken">> = async ({
-  successCb,
-  errorCb,
-  useSideEffects = true,
-}) => {
+}) => Promise<RequestResponseType<"refreshToken">> = async ({ successCb, errorCb, useSideEffects = true }) => {
   console.log("refreshing token --");
   const _refreshTokenResponse = await api
     .post("refreshToken", "/auth/refresh", null)
@@ -82,14 +61,8 @@ export const _restoreSession: (props: {
     })
     .finally(() => {
       if (store.getState().user.loading) {
-        console.log(
-          "setting user loading to false in restore session final block",
-        );
-        store.dispatch(
-          setAuthState({
-            loading: false,
-          }),
-        );
+        console.log("setting user loading to false in restore session final block");
+        store.dispatch(setAuthState({ loading: false }));
       }
     });
   return _refreshTokenResponse;

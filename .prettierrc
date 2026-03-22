@@ -1,0 +1,16 @@
+{
+  "semi": true,
+  "trailingComma": "all",
+  "printWidth": 120,
+  "tabWidth": 2,
+  "objectWrap": "collapse",
+
+  "overrides": [
+    { "files": ".*", "options": { "printWidth": 60 } },
+    {
+      "files": ["*.css", "*.scss"],
+      "options": { "printWidth": 60 }
+    },
+    { "files": ["*.json"], "options": { "printWidth": 60 } }
+  ]
+}

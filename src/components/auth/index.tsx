@@ -22,11 +22,7 @@ export default function AuthUI(): JSX.Element {
     setError,
   } = useForm<FormData>({
     resolver: zodResolver,
-    defaultValues: {
-      name: "admin2",
-      email: "iamlive247@gmail.com",
-      password: "12345678",
-    },
+    defaultValues: { name: "admin2", email: "iamlive247@gmail.com", password: "12345678" },
     //shouldUnregister: true,
   });
 
@@ -50,15 +46,9 @@ export default function AuthUI(): JSX.Element {
           successCb: (props) => {
             eventBus.getEmitter("AUTH")({
               type: "AUTH",
-              action: {
-                type: "LOGIN",
-                data: props.user,
-              },
+              action: { type: "LOGIN", data: { ...props.user, userID: props.user.id } },
             });
-            navigate("/", {
-              replace: true,
-              state: { from: location?.pathname ?? "/" },
-            });
+            navigate("/", { replace: true, state: { from: location?.pathname ?? "/" } });
           },
         });
         //console.log("login response =", loginResponse);
@@ -72,10 +62,7 @@ export default function AuthUI(): JSX.Element {
   return (
     <div className={styles.auth_wrapper}>
       <div className={styles.auth_card}>
-        <button
-          className={`btn btn-sm btn-secondary ${styles.theme_btn}`}
-          onClick={toggleTheme}
-        >
+        <button className={`btn btn-sm btn-secondary ${styles.theme_btn}`} onClick={toggleTheme}>
           Toggle
         </button>
 
@@ -98,36 +85,18 @@ export default function AuthUI(): JSX.Element {
 
             {form === "register" && (
               <div className="form-floating mb-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Name"
-                  {...register("name")}
-                />
+                <input type="text" className="form-control" placeholder="Name" {...register("name")} />
                 <label>Name</label>
-                {errors.name?.message && (
-                  <small className="text-danger">
-                    {String(errors.name.message)}
-                  </small>
-                )}
+                {errors.name?.message && <small className="text-danger">{String(errors.name.message)}</small>}
               </div>
             )}
 
             {/* EMAIL */}
 
             <div className="form-floating mb-3">
-              <input
-                type="email"
-                className="form-control"
-                placeholder="Email"
-                {...register("email")}
-              />
+              <input type="email" className="form-control" placeholder="Email" {...register("email")} />
               <label>Email</label>
-              {errors.email?.message && (
-                <small className="text-danger">
-                  {String(errors.email.message)}
-                </small>
-              )}
+              {errors.email?.message && <small className="text-danger">{String(errors.email.message)}</small>}
             </div>
 
             {/* PASSWORD */}
@@ -144,18 +113,11 @@ export default function AuthUI(): JSX.Element {
                   <label>Password</label>
                 </div>
 
-                <span
-                  className={styles.password_toggle}
-                  onClick={() => setShowPassword(!showPassword)}
-                >
+                <span className={styles.password_toggle} onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
 
-                {errors.password?.message && (
-                  <small className="text-danger">
-                    {String(errors.password.message)}
-                  </small>
-                )}
+                {errors.password?.message && <small className="text-danger">{String(errors.password.message)}</small>}
               </div>
             )}
 
@@ -166,36 +128,24 @@ export default function AuthUI(): JSX.Element {
             <div className="text-center mt-3 small">
               {form === "login" && (
                 <>
-                  <span
-                    className={`${styles.auth_link} text-primary me-3`}
-                    onClick={() => setForm("forgot")}
-                  >
+                  <span className={`${styles.auth_link} text-primary me-3`} onClick={() => setForm("forgot")}>
                     Forgot?
                   </span>
 
-                  <span
-                    className={`${styles.auth_link} text-primary`}
-                    onClick={() => setForm("register")}
-                  >
+                  <span className={`${styles.auth_link} text-primary`} onClick={() => setForm("register")}>
                     Create account
                   </span>
                 </>
               )}
 
               {form === "register" && (
-                <span
-                  className={`${styles.auth_link} text-primary`}
-                  onClick={() => setForm("login")}
-                >
+                <span className={`${styles.auth_link} text-primary`} onClick={() => setForm("login")}>
                   Already have account
                 </span>
               )}
 
               {form === "forgot" && (
-                <span
-                  className={`${styles.auth_link} text-primary`}
-                  onClick={() => setForm("login")}
-                >
+                <span className={`${styles.auth_link} text-primary`} onClick={() => setForm("login")}>
                   Back to login
                 </span>
               )}

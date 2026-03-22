@@ -108,5 +108,5 @@
     "./plugins/**/*",
     "../tradeServer/**/*.d.ts"
   ],
-  "exclude": ["../tradeServer/src/util/eventBus/*"]
+  "exclude": []
 }

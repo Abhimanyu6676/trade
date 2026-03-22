@@ -5,17 +5,12 @@ import { RootState } from "../../redux";
 import Alert from ".";
 
 export const NotificationContainer = () => {
+  //TODO remove notification from redux and create a map of notifications in container itself
+  // use eventBus to listen to Alerts messages and add notification to map
   const notifications = useSelector((state: RootState) => state.notification);
 
   return (
-    <div
-      style={{
-        position: "sticky",
-        top: 0,
-        right: 0,
-        zIndex: 100,
-      }}
-    >
+    <div style={{ position: "sticky", top: 0, right: 0, zIndex: 100 }}>
       <div
         style={{
           //backgroundColor: "red",
@@ -33,7 +28,7 @@ export const NotificationContainer = () => {
       >
         {notifications.map((notification) => {
           return (
-            <Notification
+            <NotificationCard
               key={notification.id}
               id={notification.id}
               heading={notification.heading}
@@ -48,11 +43,7 @@ export const NotificationContainer = () => {
   );
 };
 
-const Notification = ({
-  variant = "notify",
-  timeout,
-  ...props
-}: notification_i) => {
+const NotificationCard = ({ variant = "notify", timeout, ...props }: notification_i) => {
   const removeNotification = () => {
     Alert.close(props.id);
   };
@@ -104,9 +95,7 @@ const Notification = ({
       }}
     >
       <h6>{props.heading}</h6>
-      <p style={{ fontSize: 12, overflow: "hidden", marginTop: 10 }}>
-        {props.text}
-      </p>
+      <p style={{ fontSize: 12, overflow: "hidden", marginTop: 10 }}>{props.text}</p>
       <button // remove button
         style={{
           position: "absolute",

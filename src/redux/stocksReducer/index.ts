@@ -1,14 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-interface stocksSplice_i {
-  stocksList: Stock_i[];
-  stocksObj: StocksListObject_i;
+interface stockListObj_i {
+  [key: string]: STOCK.withTrade;
 }
 
-const initialState: stocksSplice_i = {
-  stocksList: [],
-  stocksObj: {},
-};
+interface stocksSplice_i {
+  stocksList: STOCK.withTrade[];
+  stocksObj: stockListObj_i;
+}
+
+const initialState: stocksSplice_i = { stocksList: [], stocksObj: {} };
 
 /**
  * this reducer actions only to be used in stockSaga which will handle setting new state
@@ -25,27 +26,17 @@ export const stocksSlice = createSlice({
      *
      * @returns entirely new state object with previous state items also but as a new reference
      */
-    _setStocks: (
-      state,
-      action: {
-        type: string;
-        payload: Stock_i[];
-      },
-    ) => {
+    _setStocks: (state, action: { type: string; payload: STOCK.withTrade[] }) => {
       //console.log("current State:", state);
       //console.log("Setting stocks:", action);
-      let newStocksList: Stock_i[] = [];
-      let newStocksListObj: StocksListObject_i = {};
+      let newStocksList: STOCK.withTrade[] = [];
+      let newStocksListObj: stockListObj_i = {};
 
       action.payload.forEach((stock, stockIndex) => {
         newStocksList.push(stock);
         newStocksListObj[stock.key_id] = stock;
       });
-      return {
-        ...state,
-        stocksList: action.payload,
-        stocksObj: newStocksListObj,
-      };
+      return { ...state, stocksList: action.payload, stocksObj: newStocksListObj };
     },
     /**
      * @note only to be used in stockSaga which defines which command came and forward particular action
@@ -56,17 +47,9 @@ export const stocksSlice = createSlice({
      *
      * @returns void as mutation is handled by redux-toolkit
      */
-    _addUpdateStocks: (
-      state,
-      action: {
-        payload: Stock_i[];
-        type: string;
-      },
-    ) => {
+    _addUpdateStocks: (state, action: { payload: STOCK.withTrade[]; type: string }) => {
       action.payload.map((stock) => {
-        const index = state.stocksList.findIndex(
-          (s) => s.key_id === stock.key_id,
-        );
+        const index = state.stocksList.findIndex((s) => s.key_id === stock.key_id);
         if (index > -1) {
           //state.stocksList.splice(index, 1, stock);
           state.stocksList[index] = stock;
@@ -87,17 +70,9 @@ export const stocksSlice = createSlice({
      *
      * @returns void as mutation is handled by redux-toolkit
      */
-    _removeStocks: (
-      state,
-      action: {
-        payload: Stock_i[];
-        type: string;
-      },
-    ) => {
+    _removeStocks: (state, action: { payload: STOCK.withTrade[]; type: string }) => {
       action.payload.map((stock) => {
-        const index = state.stocksList.findIndex(
-          (s) => s.key_id === stock.key_id,
-        );
+        const index = state.stocksList.findIndex((s) => s.key_id === stock.key_id);
         if (index > -1) {
           state.stocksList.splice(index, 1);
           delete state.stocksObj[stock.key_id];
@@ -108,6 +83,6 @@ export const stocksSlice = createSlice({
   },
 });
 
-export const { _setStocks, _addUpdateStocks } = stocksSlice.actions;
+export const { _setStocks, _addUpdateStocks, _removeStocks } = stocksSlice.actions;
 
 export default stocksSlice.reducer;
