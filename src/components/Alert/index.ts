@@ -1,8 +1,5 @@
 import { uuidWithSpecifiedSize } from "../../util/uuid";
-import {
-  _addNotification,
-  _removeNotification,
-} from "../../redux/notificationReducer";
+import { _addNotification, _removeNotification } from "../../redux/notificationReducer";
 import store from "../../redux";
 
 const Alert = new (class _notificationClass {
@@ -10,10 +7,7 @@ const Alert = new (class _notificationClass {
   constructor() {}
 
   notify(props: Omit<notification_i, "id">) {
-    const newNotification = {
-      ...props,
-      id: uuidWithSpecifiedSize({ size: 10 }),
-    };
+    const newNotification = { ...props, id: uuidWithSpecifiedSize({ size: 10 }) };
     store.dispatch(_addNotification(newNotification));
   }
 
