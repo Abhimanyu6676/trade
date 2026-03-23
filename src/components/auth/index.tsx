@@ -37,16 +37,16 @@ export default function AuthUI(): JSX.Element {
   const onSubmit = async (data: FormData): Promise<void> => {
     try {
       if (form === "register") {
-        await authApi.register({ ...data, name: data.name ?? "username" });
+        await authApi.register({ ...data, username: data.name ?? "username" });
         setForm("login");
       }
       if (form === "login") {
         const loginResponse = await authApi.login({
           data,
           successCb: (props) => {
-            eventBus.getEmitter("AUTH")({
+            eventBus.emitEvent({
               type: "AUTH",
-              action: { type: "LOGIN", data: { ...props.user, userID: props.user.id } },
+              action: { type: "LOGIN", data: { ...props.user, userId: props.user.id } },
             });
             navigate("/", { replace: true, state: { from: location?.pathname ?? "/" } });
           },
