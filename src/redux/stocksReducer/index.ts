@@ -34,7 +34,7 @@ export const stocksSlice = createSlice({
 
       action.payload.forEach((stock, stockIndex) => {
         newStocksList.push(stock);
-        newStocksListObj[stock.key_id] = stock;
+        newStocksListObj[stock.keyId] = stock;
       });
       return { ...state, stocksList: action.payload, stocksObj: newStocksListObj };
     },
@@ -49,14 +49,14 @@ export const stocksSlice = createSlice({
      */
     _addUpdateStocks: (state, action: { payload: STOCK.withTrade[]; type: string }) => {
       action.payload.map((stock) => {
-        const index = state.stocksList.findIndex((s) => s.key_id === stock.key_id);
+        const index = state.stocksList.findIndex((s) => s.keyId === stock.keyId);
         if (index > -1) {
           //state.stocksList.splice(index, 1, stock);
           state.stocksList[index] = stock;
-          state.stocksObj[stock.key_id] = stock;
+          state.stocksObj[stock.keyId] = stock;
         } else {
           state.stocksList.push(stock);
-          state.stocksObj[stock.key_id] = stock;
+          state.stocksObj[stock.keyId] = stock;
         }
       });
       // NOTE no need to return state as redux-toolkit will handle mutable methods modification
@@ -72,10 +72,10 @@ export const stocksSlice = createSlice({
      */
     _removeStocks: (state, action: { payload: STOCK.withTrade[]; type: string }) => {
       action.payload.map((stock) => {
-        const index = state.stocksList.findIndex((s) => s.key_id === stock.key_id);
+        const index = state.stocksList.findIndex((s) => s.keyId === stock.keyId);
         if (index > -1) {
           state.stocksList.splice(index, 1);
-          delete state.stocksObj[stock.key_id];
+          delete state.stocksObj[stock.keyId];
         }
       });
       // NOTE no need to return state as redux-toolkit will handle mutable methods modification

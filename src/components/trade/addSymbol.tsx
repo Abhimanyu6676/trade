@@ -108,7 +108,7 @@ export const AddSymbol = () => {
                   data: {
                     stocks: [
                       {
-                        key_id: getStockKeyId(store.getState().user.user?.id ?? "", selectedStock),
+                        keyId: getStockKeyId(store.getState().user.user?.id ?? "", selectedStock),
                         name: selectedStock.name,
                         symbol: selectedStock.symbol,
                         brSymbol: selectedStock.brsymbol,

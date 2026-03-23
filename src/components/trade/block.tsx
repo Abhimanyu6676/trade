@@ -14,7 +14,7 @@ import { ThresholdView } from "./thresholdView";
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 const Block = (props: { stock: Stock_i }) => {
-  console.log(`${props.stock.key_id}-----------------------`);
+  console.log(`${props.stock.keyId}-----------------------`);
   const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
   const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
 
@@ -33,12 +33,8 @@ const Block = (props: { stock: Stock_i }) => {
           : 1,
   );
 
-  const [priceType, setPriceType] = useState<orderPriceType_i>(
-    buyOrder?.priceType || "MARKET",
-  );
-  const [productType, setProductType] = useState<orderProductType_i>(
-    buyOrder?.product || "MIS",
-  );
+  const [priceType, setPriceType] = useState<orderPriceType_i>(buyOrder?.priceType || "MARKET");
+  const [productType, setProductType] = useState<orderProductType_i>(buyOrder?.product || "MIS");
 
   const quantity = buyOrder?.quantity || 1;
   const threshold = buyOrder?.threshold || 0.5;
@@ -51,8 +47,7 @@ const Block = (props: { stock: Stock_i }) => {
   const isSellOrderActive = sellOrder && sellOrder?.orderStatus != "EXITED";
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
   const isAnyOfOneOrderExited =
-    (buyOrder && buyOrder?.orderStatus == "EXITED") ||
-    (sellOrder && sellOrder?.orderStatus == "EXITED");
+    (buyOrder && buyOrder?.orderStatus == "EXITED") || (sellOrder && sellOrder?.orderStatus == "EXITED");
 
   const buyPnl = decimal(
     buyOrder?.orderStatus == "ACTIVE"
@@ -73,7 +68,7 @@ const Block = (props: { stock: Stock_i }) => {
   const enterTrade = async () => {
     console.log("Entering trade");
     let orderTemplate: Omit<Omit<enterTradeOrder_i, "action">, "apiKey"> = {
-      key_id: props.stock.key_id,
+      keyId: props.stock.keyId,
       strategy: "nodeJS",
       symbol: props.stock.symbol,
       exchange: props.stock.exchange,
@@ -99,28 +94,15 @@ const Block = (props: { stock: Stock_i }) => {
       action: "SELL",
     };
 
-    socketService.sendOrderCmd({
-      cmd: "enterTrade",
-      data: [order1, order2],
-    });
+    socketService.sendOrderCmd({ cmd: "enterTrade", data: [order1, order2] });
   };
 
-  const updateTrade = async (props: {
-    stock: Stock_i;
-    threshold: number;
-    risk: number;
-    exitDrop: number;
-  }) => {
+  const updateTrade = async (props: { stock: Stock_i; threshold: number; risk: number; exitDrop: number }) => {
     if (isModified) {
       console.log("order is modified send new values to backend");
       socketService.sendOrderCmd({
         cmd: "modifyTrade",
-        data: {
-          key_id: props.stock.key_id,
-          threshold: props.threshold,
-          risk: props.risk,
-          exitDrop: props.exitDrop,
-        },
+        data: { keyId: props.stock.keyId, threshold: props.threshold, risk: props.risk, exitDrop: props.exitDrop },
       });
     }
   };
@@ -128,10 +110,7 @@ const Block = (props: { stock: Stock_i }) => {
   const exitTrade = async (props: { stock: Stock_i; orders: Order_i[] }) => {
     socketService.sendOrderCmd({
       cmd: "exitTrade",
-      data: {
-        key_id: props.stock.key_id,
-        id: props.orders.map((o) => o.orderId),
-      },
+      data: { keyId: props.stock.keyId, id: props.orders.map((o) => o.orderId) },
     });
   };
 
@@ -143,23 +122,17 @@ const Block = (props: { stock: Stock_i }) => {
   const exitDropFieldRef = useRef<HTMLInputElement>(null);
   const exitProfitFieldRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    console.log(
-      `${props.stock.key_id}-----------***************--------------`,
-    );
+    console.log(`${props.stock.keyId}-----------***************--------------`);
 
-    if (quantityFieldRef.current)
-      quantityFieldRef.current.value = quantity.toString();
+    if (quantityFieldRef.current) quantityFieldRef.current.value = quantity.toString();
 
-    if (thresholdFieldRef.current)
-      thresholdFieldRef.current.value = threshold.toString();
+    if (thresholdFieldRef.current) thresholdFieldRef.current.value = threshold.toString();
 
     if (riskFieldRef.current) riskFieldRef.current.value = risk.toString();
 
-    if (exitDropFieldRef.current)
-      exitDropFieldRef.current.value = exitDrop.toString();
+    if (exitDropFieldRef.current) exitDropFieldRef.current.value = exitDrop.toString();
 
-    if (exitProfitFieldRef.current)
-      exitProfitFieldRef.current.value = exitProfit.toString();
+    if (exitProfitFieldRef.current) exitProfitFieldRef.current.value = exitProfit.toString();
 
     return () => {};
   }, [threshold, risk, exitDrop, exitProfit]);
@@ -167,14 +140,14 @@ const Block = (props: { stock: Stock_i }) => {
   // subscribe to LTP
   useEffect(() => {
     socketService.ltpSubscriberList.subscribe({
-      id: props.stock.key_id,
+      id: props.stock.keyId,
       callback: (data) => {
         /* console.log(
-          `ltp data in stock block via new subscriberList ${props.stock.key_id}`,
+          `ltp data in stock block via new subscriberList ${props.stock.keyId}`,
           data,
         ); */
         const dataKeyId = getStockKeyId(data);
-        if (props.stock.key_id == dataKeyId) {
+        if (props.stock.keyId == dataKeyId) {
           setLtp((prevLtp) => {
             if (data.ltp < prevLtp) setLtpColor("#ff0000");
             else if (data.ltp > prevLtp) setLtpColor("#27F565");
@@ -185,32 +158,17 @@ const Block = (props: { stock: Stock_i }) => {
     });
 
     return () => {
-      socketService.ltpSubscriberList.unSubscribe(props.stock.key_id);
+      socketService.ltpSubscriberList.unSubscribe(props.stock.keyId);
     };
   }, []);
 
   return (
-    <div
-      className="container foreground"
-      style={{
-        borderRadius: 10,
-        padding: 15,
-        marginTop: 20,
-      }}
-    >
+    <div className="container foreground" style={{ borderRadius: 10, padding: 15, marginTop: 20 }}>
       <div // top buttons
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
+        style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
       >
         <div // Stock Name, Quantity and LTP Views
-          style={{
-            display: "flex",
-            flexDirection: "row",
-          }}
+          style={{ display: "flex", flexDirection: "row" }}
         >
           <div // stock name
             style={{
@@ -218,14 +176,7 @@ const Block = (props: { stock: Stock_i }) => {
               minWidth: 200,
             }}
           >
-            <p
-              className="subtle-text"
-              style={{
-                margin: 0,
-                padding: 0,
-                fontSize: 12,
-              }}
-            >
+            <p className="subtle-text" style={{ margin: 0, padding: 0, fontSize: 12 }}>
               Symbol Name
             </p>
             <div
@@ -255,33 +206,13 @@ const Block = (props: { stock: Stock_i }) => {
           <div // buy sell quantity
             style={{ minWidth: 100 }}
           >
-            <p
-              style={{
-                margin: 0,
-                padding: 0,
-                fontSize: 12,
-                color: variables.subtleText,
-              }}
-            >
-              Quantity
-            </p>
-            <h5>{`${buyOrder ? buyOrder.quantity : "--"} : ${
-              sellOrder ? sellOrder.quantity : "--"
-            }`}</h5>
+            <p style={{ margin: 0, padding: 0, fontSize: 12, color: variables.subtleText }}>Quantity</p>
+            <h5>{`${buyOrder ? buyOrder.quantity : "--"} : ${sellOrder ? sellOrder.quantity : "--"}`}</h5>
           </div>
           <div // LTP
             style={{ minWidth: 100 }}
           >
-            <p
-              style={{
-                margin: 0,
-                padding: 0,
-                fontSize: 12,
-                color: variables.subtleText,
-              }}
-            >
-              LTP
-            </p>
+            <p style={{ margin: 0, padding: 0, fontSize: 12, color: variables.subtleText }}>LTP</p>
             <h5 style={{ color: ltpColor }}>{ltp}</h5>
           </div>
           <div // buy/sell status
@@ -331,10 +262,7 @@ const Block = (props: { stock: Stock_i }) => {
           </div>
         </div>
         <div // Enter trade & trade priceType Button
-          style={{
-            display: "flex",
-            flexDirection: "row",
-          }}
+          style={{ display: "flex", flexDirection: "row" }}
         >
           <button // show hide field button
             style={{
@@ -351,11 +279,7 @@ const Block = (props: { stock: Stock_i }) => {
               setFieldsHidden(!fieldsHidden);
             }}
           >
-            {fieldsHidden ? (
-              <IoEyeOff size={22} color="#aaaaaa" />
-            ) : (
-              <IoEye size={22} color="#666666" />
-            )}
+            {fieldsHidden ? <IoEyeOff size={22} color="#aaaaaa" /> : <IoEye size={22} color="#666666" />}
           </button>
           <DropdownButton //Product type selector
             disabled={isOrderActive}
@@ -398,9 +322,7 @@ const Block = (props: { stock: Stock_i }) => {
             disabled={isOrderActive}
             variant="outline-secondary"
             title={productType}
-            style={{
-              marginRight: 10,
-            }}
+            style={{ marginRight: 10 }}
           >
             <Dropdown.Item
               onClick={() => {
@@ -439,10 +361,7 @@ const Block = (props: { stock: Stock_i }) => {
           >
             <Dropdown.Item
               onClick={() => {
-                socketService.sendOrderCmd({
-                  cmd: "deleteSymbol",
-                  data: { key_id: props.stock.key_id },
-                });
+                socketService.sendOrderCmd({ cmd: "deleteSymbol", data: { keyId: props.stock.keyId } });
               }}
             >
               DELETE SYMBOL
@@ -456,12 +375,7 @@ const Block = (props: { stock: Stock_i }) => {
         style={{}}
       >
         <div // data rows
-          style={{
-            marginTop: 20,
-            backgroundColor: variables.primaryColorDark,
-            borderRadius: 5,
-            padding: "10px 0px",
-          }}
+          style={{ marginTop: 20, backgroundColor: variables.primaryColorDark, borderRadius: 5, padding: "10px 0px" }}
         >
           <MasterRow // Buy/Sell order price
           >
@@ -560,31 +474,14 @@ const Block = (props: { stock: Stock_i }) => {
           <MasterRow // net PnL & %
           >
             <ChildRow heading="Net PnL" value={pnl} />
-            <ChildRow
-              heading="PnL %"
-              value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"}
-            />
+            <ChildRow heading="PnL %" value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"} />
           </MasterRow>
 
           <MasterRow // threshold graph view
           >
-            <div
-              style={{
-                display: "flex",
-                flex: 1,
-                padding: "5px 20px",
-              }}
-            >
+            <div style={{ display: "flex", flex: 1, padding: "5px 20px" }}>
               {(true || buyOrder || sellOrder) &&
-                ThresholdView({
-                  ltp,
-                  orderPrice,
-                  threshold,
-                  risk,
-                  exitDrop,
-                  exitProfit,
-                  isAnyOfOneOrderExited,
-                })}
+                ThresholdView({ ltp, orderPrice, threshold, risk, exitDrop, exitProfit, isAnyOfOneOrderExited })}
             </div>
             <ChildRow heading="" />
           </MasterRow>
@@ -613,16 +510,8 @@ const Block = (props: { stock: Stock_i }) => {
               style={{}}
               onClick={() => {
                 console.log("Exit Order");
-                buyOrder &&
-                  exitTrade({
-                    stock: props.stock,
-                    orders: [buyOrder],
-                  });
-                sellOrder &&
-                  exitTrade({
-                    stock: props.stock,
-                    orders: [sellOrder],
-                  });
+                buyOrder && exitTrade({ stock: props.stock, orders: [buyOrder] });
+                sellOrder && exitTrade({ stock: props.stock, orders: [sellOrder] });
               }}
             >
               Exit Trade
@@ -630,16 +519,10 @@ const Block = (props: { stock: Stock_i }) => {
             <Button
               variant={isBuyOrderActive ? "danger" : "outline-danger"}
               disabled={!isBuyOrderActive}
-              style={{
-                marginLeft: 20,
-              }}
+              style={{ marginLeft: 20 }}
               onClick={() => {
                 console.log("Exit Buy Order");
-                buyOrder &&
-                  exitTrade({
-                    stock: props.stock,
-                    orders: [buyOrder],
-                  });
+                buyOrder && exitTrade({ stock: props.stock, orders: [buyOrder] });
               }}
             >
               Exit Buy
@@ -647,16 +530,10 @@ const Block = (props: { stock: Stock_i }) => {
             <Button
               variant={isSellOrderActive ? "danger" : "outline-danger"}
               disabled={!isSellOrderActive}
-              style={{
-                marginLeft: 20,
-              }}
+              style={{ marginLeft: 20 }}
               onClick={() => {
                 console.log("Exit Sell Order");
-                sellOrder &&
-                  exitTrade({
-                    stock: props.stock,
-                    orders: [sellOrder],
-                  });
+                sellOrder && exitTrade({ stock: props.stock, orders: [sellOrder] });
               }}
             >
               Exit Sell
@@ -676,12 +553,7 @@ const Block = (props: { stock: Stock_i }) => {
               onClick={() => {
                 console.log("updating Order -- ", isOrderActive);
                 console.log("props", threshold, risk, exitDrop);
-                updateTrade({
-                  stock: props.stock,
-                  threshold,
-                  risk: risk,
-                  exitDrop,
-                });
+                updateTrade({ stock: props.stock, threshold, risk: risk, exitDrop });
                 setIsModified(false);
               }}
             >
@@ -698,21 +570,11 @@ const MasterRow = (props: { children?: any }) => {
   return <div className={styles.masterRow}>{props.children}</div>;
 };
 
-const ChildRow = (props: {
-  children?: React.JSX.Element;
-  heading: string;
-  value?: string | number;
-}) => {
+const ChildRow = (props: { children?: React.JSX.Element; heading: string; value?: string | number }) => {
   return (
     <div className={styles.childRow}>
       <p className={styles.heading}>{props.heading}</p>
-      <div>
-        {props.value != undefined ? (
-          <p className={styles.value}>{props.value}</p>
-        ) : (
-          props.children
-        )}
-      </div>
+      <div>{props.value != undefined ? <p className={styles.value}>{props.value}</p> : props.children}</div>
     </div>
   );
 };
