@@ -3,7 +3,6 @@ import store from "../../redux";
 import { setAuthState } from "../../redux/authReducer";
 import api from "../axios";
 import eventBus from "../../util/eventBus";
-import { EVENT } from "../../../../tradeServer/src/util/eventBus/eventBusTemplate";
 
 const logoutSideEffect = async () => {
   console.log("executing logoutSideEffect");

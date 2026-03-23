@@ -8,9 +8,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 const config = {
-  pathPrefix: "/trade",
+  pathPrefix: "/frontend",
   siteMetadata: {
-    title: `trade`,
+    title: `frontend`,
     siteUrl: `https://www.yourdomain.tld`,
   },
   // More easily incorporate content into your pages through automatic TypeScript type generation and better GraphQL IntelliSense.

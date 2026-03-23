@@ -1,8 +1,8 @@
 {
-  "name": "trade",
+  "name": "frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "trade",
+  "description": "frontend",
   "author": "Abhimanyu6676",
   "keywords": [
     "gatsby"

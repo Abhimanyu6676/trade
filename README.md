@@ -94,9 +94,9 @@ User session continues silently
 
 #### Adding/Modifying new theme
 
-- themes colors are defined as a map `$themes` in file `/Users/abhimanyu/Documents/trading/trade/src/styles/theme.scss`. scss functions set the variables according to the current theme attribute
+- themes colors are defined as a map `$themes` in file `/Users/abhimanyu/Documents/trading/frontend/src/styles/theme.scss`. scss functions set the variables according to the current theme attribute
 
-- add theme variables and colors in `$themes` map in file `trade/src/styles/theme.scss`
+- add theme variables and colors in `$themes` map in file `frontend/src/styles/theme.scss`
 - all themes in `$themes` map have all the colors types as in any other theme. if adding new variable to one theme, this variable has to be added to others also. value of these variable is as per that theme style
 
 - `$themes` format
@@ -114,21 +114,21 @@ User session continues silently
 
 - if you are adding new theme color variable, then make sure that all themes must have this variable.
 
-- make sure you add new themeName in `trade/src/styles/theme.d.ts` in RootThemes_t
+- make sure you add new themeName in `frontend/src/styles/theme.d.ts` in RootThemes_t
 
-- if adding new variable in themes add the variable to `trade/src/styles/themeVariables.d.ts` type and export it from `trade/src/styles/themeVariables.module.scss`. so it can accessed in react component as css variable
+- if adding new variable in themes add the variable to `frontend/src/styles/themeVariables.d.ts` type and export it from `frontend/src/styles/themeVariables.module.scss`. so it can accessed in react component as css variable
 
 #### Changing default theme
 
 > default theme is set during compile time, so every time this value changes, new build is required
 
-- change `DefaultRootTheme` in file `trade/src/style/theme.ts` to new default, which should be one of the `RootThemes_e`
+- change `DefaultRootTheme` in file `frontend/src/styles/theme.ts` to new default, which should be one of the `RootThemes_e`
 
 # File responsibilities
 
-- `trade/src/services/socket/` handles socket.io client. It manages auto-reconnect and emit all received messages to trade eventBus. the other services and classes or components can subscribe to eventBus events with a callback
+- `frontend/src/services/socket/` handles socket.io client. It manages auto-reconnect and emit all received messages to frontend eventBus. the other services and classes or components can subscribe to eventBus events with a callback
 
 - `eventBus` is created from a template and acts as the communication layer between classes, components and files. It can notify and publish events to subscribers. It also emits all the client events to server via websocket, and on server side, there is a server instance of eventBus that publish all server events to respective clients
 
-- eventBus events types are that are allowed are declared in `/Users/abhimanyu/Documents/trading/tradeServer/src/util/eventBus/events.d.ts`.
-- all new eventTypes must be declared in `/Users/abhimanyu/Documents/trading/tradeServer/src/util/eventBus/events.d.ts`
+- eventBus events types are that are allowed are declared in `/Users/abhimanyu/Documents/trading/backend/src/util/eventBus/events.d.ts`.
+- all new eventTypes must be declared in `/Users/abhimanyu/Documents/trading/backend/src/util/eventBus/events.d.ts`

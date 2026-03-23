@@ -3,9 +3,9 @@ import dotenv from "dotenv";
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const config: GatsbyConfig = {
-  pathPrefix: "/trade",
+  pathPrefix: "/frontend",
   siteMetadata: {
-    title: `trade`,
+    title: `frontend`,
     siteUrl: `https://www.yourdomain.tld`,
   },
   // More easily incorporate content into your pages through automatic TypeScript type generation and better GraphQL IntelliSense.

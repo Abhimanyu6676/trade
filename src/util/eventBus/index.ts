@@ -1,3 +1,3 @@
-import { EventBussClassTemplate } from "../../../../tradeServer/src/util/eventBus/eventBusTemplate";
+import { EventBussClassTemplate } from "../../../../backend/src/util/eventBus/eventBusTemplate";
 
 export default new EventBussClassTemplate();

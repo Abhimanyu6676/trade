@@ -106,7 +106,7 @@
     "./gatsby-node.ts",
     "gatsby-config.ts",
     "./plugins/**/*",
-    "../tradeServer/**/*.d.ts"
+    "../backend/**/*.d.ts"
   ],
   "exclude": []
 }
