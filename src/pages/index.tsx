@@ -1,11 +1,9 @@
 import React from "react";
-import { ProtectedRoute } from "../components/ProtectedRoute";
+import { ProtectedRoute } from "../components/global/ProtectedRoute";
 import TradeComponent from "../components/trade";
 import Header from "../components/header";
 
-type DashboardProps = {
-  location?: { pathname?: string };
-};
+type DashboardProps = { location?: { pathname?: string } };
 
 function Dashboard(): JSX.Element {
   return (

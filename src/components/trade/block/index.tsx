@@ -14,13 +14,12 @@ import * as styles from "./index.module.scss";
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 export const Block = (props: { stock: STOCK.all }) => {
-  console.log(`${props.stock.keyId}-----------------------`);
-  const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
-  const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
+  const buyOrder = props.stock.trade.orders.find((o) => o.action == ORDER.action.BUY);
+  const sellOrder = props.stock.trade.orders.find((o) => o.action == ORDER.action.SELL);
 
   const [ltp, setLtp] = useState(0);
   const [ltpColor, setLtpColor] = useState("");
-  const [fieldsHidden, setFieldsHidden] = useState(!props.stock.orders.length);
+  const [fieldsHidden, setFieldsHidden] = useState(!props.stock.trade);
 
   //Take average of both prices, sell and buy
   const [orderPrice, setOrderPrice] = useState(

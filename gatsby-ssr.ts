@@ -1,6 +1,6 @@
 import type { RenderBodyArgs } from "gatsby";
-import { GlobalRootComp } from "./src/components/globalRootComp";
 import { DefaultRootTheme } from "./src/styles/theme";
+import { GlobalRootComp } from "./src/components/global/globalRootComp";
 
 export const wrapRootElement = GlobalRootComp;
 

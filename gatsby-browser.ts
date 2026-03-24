@@ -1,3 +1,3 @@
-import { GlobalRootComp } from "./src/components/globalRootComp";
+import { GlobalRootComp } from "./src/components/global/globalRootComp";
 
 export const wrapRootElement = GlobalRootComp;
