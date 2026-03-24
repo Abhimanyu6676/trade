@@ -1,0 +1,25 @@
+.wrapper {
+  width: 100%;
+  margin: 20px 0px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.symbolInput {
+  min-height: 40px;
+  min-width: 60px;
+  max-width: 200px;
+  font-size: 15px;
+}
+
+.searchButton {
+  min-width: 44px;
+}
+
+@media (min-width: 576px) {
+  .wrapper {
+    align-items: center;
+  }
+}

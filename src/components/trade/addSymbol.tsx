@@ -8,6 +8,7 @@ import { IoSearch } from "react-icons/io5";
 import store from "../../redux";
 import eventBus from "../../util/eventBus";
 import { getStockKeyId } from "../../../../backend/src/util/helper";
+import * as styles from "./addSymbol.module.scss";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
@@ -64,48 +65,42 @@ export const AddSymbol = () => {
   }, []);
 
   return (
-    <div className="d-flex flex-column flex-lg-row gap-2 gap-lg-3 align-items-stretch align-items-lg-center">
-      <div className="d-flex flex-column flex-sm-row gap-2 align-items-stretch">
-        <InputGroup className="w-100">
-          <DropdownButton variant="outline-secondary" title={symbolExchange}>
-            <Dropdown.Item
-              onClick={() => {
-                setSymbolExchange("NSE");
-              }}
-            >
-              NSE
-            </Dropdown.Item>
-            <Dropdown.Item
-              onClick={() => {
-                setSymbolExchange("BSE");
-              }}
-            >
-              BSE
-            </Dropdown.Item>
-          </DropdownButton>
-          <SymbolSelector searchList={searchList} setSymbol={setSymbol} setSelectedStock={setSelectedStock} />
-          <Form.Control
-            placeholder="Add Symbol"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") searchSymbol();
+    <div className={styles.wrapper}>
+      <InputGroup>
+        <DropdownButton variant="outline-secondary" title={symbolExchange} align="end">
+          <Dropdown.Item
+            onClick={() => {
+              setSymbolExchange("NSE");
             }}
-            className="flex-grow-1"
-            style={{ minHeight: 40, fontSize: 15, minWidth: 60 }}
-          />
-          <Button
-            variant="outline-secondary"
-            onClick={searchSymbol}
-            className="d-flex align-items-center justify-content-center"
           >
-            <IoSearch style={{ padding: 0, margin: 0 }} />
-          </Button>
-        </InputGroup>
-      </div>
-      <Button variant="primary" className="w-100" onClick={addSymbol}>
-        Add Symbol
-      </Button>
+            NSE
+          </Dropdown.Item>
+          <Dropdown.Item
+            onClick={() => {
+              setSymbolExchange("BSE");
+            }}
+          >
+            BSE
+          </Dropdown.Item>
+        </DropdownButton>
+        <SymbolSelector searchList={searchList} setSymbol={setSymbol} setSelectedStock={setSelectedStock} />
+        <Form.Control
+          placeholder="Add Symbol"
+          value={symbol}
+          onChange={(e) => setSymbol(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") searchSymbol();
+          }}
+          className={styles.symbolInput}
+        />
+        <Button
+          variant="outline-secondary"
+          onClick={searchSymbol}
+          className={`d-flex align-items-center justify-content-center ${styles.searchButton}`}
+        >
+          <IoSearch style={{ padding: 0, margin: 0 }} />
+        </Button>
+      </InputGroup>
     </div>
   );
 };
@@ -131,6 +126,7 @@ const SymbolSelector = (props: {
         variant="outline-secondary"
         id="input-group-dropdown-2"
         title={""}
+        align="end"
         disabled={props.searchList?.length === 0}
         show={showDropdown}
         onToggle={() => {
