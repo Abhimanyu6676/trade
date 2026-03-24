@@ -13,13 +13,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, var(--header-bg), transparent 140%);
+  background: linear-gradient(
+    180deg,
+    var(--header-bg),
+    transparent 140%
+  );
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 6px 24px var(--header-shadow);
   position: sticky;
   top: 0;
   z-index: 20;
-  font-family: "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family:
+    "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
 }
 
 .left {
@@ -55,7 +60,11 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+  margin-right: 20px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
 }
 
 .logout:hover {
@@ -74,7 +83,10 @@
   gap: 5px;
   cursor: pointer;
   padding: 8px 10px;
-  transition: background 180ms ease, border 180ms ease, transform 180ms ease;
+  transition:
+    background 180ms ease,
+    border 180ms ease,
+    transform 180ms ease;
 }
 
 .hamburger:hover {
@@ -87,7 +99,9 @@
   height: 2px;
   background: var(--text-color);
   border-radius: 10px;
-  transition: transform 200ms ease, opacity 200ms ease;
+  transition:
+    transform 200ms ease,
+    opacity 200ms ease;
 }
 
 .hamburgerOpen:nth-child(1) {
@@ -229,7 +243,9 @@
   text-align: left;
   cursor: pointer;
   opacity: 0.85;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .subMenuItem:hover {

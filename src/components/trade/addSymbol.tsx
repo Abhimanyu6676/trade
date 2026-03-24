@@ -7,7 +7,7 @@ import InputGroup from "react-bootstrap/esm/InputGroup";
 import { IoSearch } from "react-icons/io5";
 import store from "../../redux";
 import eventBus from "../../util/eventBus";
-import { getStockKeyId } from "../../util/helper";
+import { getStockKeyId } from "../../../../backend/src/util/helper";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
@@ -20,51 +20,53 @@ export const AddSymbol = () => {
       console.log("Searching Symbol: ", symbol, " on ", symbolExchange);
       eventBus.emitEvent({
         type: "OPENALGO",
-        action: { type: "SEARCH_SYMBOL", data: { searchText: symbol, userID: store.getState().user?.user?.id ?? "" } },
+        action: { type: "SEARCH_SYMBOL", data: { searchText: symbol, userId: store.getState().user?.user?.id ?? "" } },
       });
     } else {
       console.log("Search Symbol cannot be empty");
     }
   };
 
+  const addSymbol = async () => {
+    if (selectedStock && symbolExchange) {
+      eventBus.emitEvent({
+        type: "OPENALGO",
+        action: {
+          type: "ADD_STOCK",
+          data: {
+            stocks: [
+              {
+                keyId: getStockKeyId({
+                  userId: store.getState().user.user?.id ?? "",
+                  symbol: selectedStock.symbol,
+                  exchange: selectedStock.exchange,
+                }),
+                name: selectedStock.name,
+                symbol: selectedStock.symbol,
+                brSymbol: selectedStock.brsymbol,
+                exchange: selectedStock.exchange,
+              },
+            ],
+            userId: store.getState().user.user?.id ?? "",
+          },
+        },
+      });
+      setSymbol("");
+      setSelectedStock(undefined);
+      setSearchList([]);
+    } else {
+      console.log("Symbol and Exchange cannot be empty");
+    }
+  };
+
   useEffect(() => {
-    //TODO
-    /** socketService.socketMessageSubscriberList.subscribe({
-      id: "searchSymbolComp",
-      callback: (data) => {
-        console.log("message in searchSymbolComp inside subscribed callback");
-        console.log(data);
-        if (data.type == "searchSymbolResults") {
-          setSearchList(data.data.symbols);
-        }
-      },
-    });*/
-    return () => {
-      //TODO socketService.socketMessageSubscriberList.unSubscribe("searchSymbolComp");
-    };
+    return () => {};
   }, []);
 
   return (
-    <div
-      //data-bs-theme={props.theme}
-      style={{
-        //backgroundColor: "red",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div // search input field
-        style={{
-          //backgroundColor: "green",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <InputGroup className="">
+    <div className="d-flex flex-column flex-lg-row gap-2 gap-lg-3 align-items-stretch align-items-lg-center">
+      <div className="d-flex flex-column flex-sm-row gap-2 align-items-stretch">
+        <InputGroup className="w-100">
           <DropdownButton variant="outline-secondary" title={symbolExchange}>
             <Dropdown.Item
               onClick={() => {
@@ -89,47 +91,21 @@ export const AddSymbol = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") searchSymbol();
             }}
-            style={{ width: 200, height: 40, fontSize: 15 }}
+            className="flex-grow-1"
+            style={{ minHeight: 40, fontSize: 15 }}
           />
-          <Button variant="outline-secondary" onClick={searchSymbol}>
+          <Button
+            variant="outline-secondary"
+            onClick={searchSymbol}
+            className="d-flex align-items-center justify-content-center"
+          >
             <IoSearch style={{ padding: 0, margin: 0 }} />
           </Button>
         </InputGroup>
       </div>
-      <div style={{ marginLeft: 30 }}>
-        <Button
-          variant="primary"
-          onClick={() => {
-            if (selectedStock && symbolExchange) {
-              eventBus.emitEvent({
-                type: "OPENALGO",
-                action: {
-                  type: "ADD_STOCK",
-                  data: {
-                    stocks: [
-                      {
-                        keyId: getStockKeyId(store.getState().user.user?.id ?? "", selectedStock),
-                        name: selectedStock.name,
-                        symbol: selectedStock.symbol,
-                        brSymbol: selectedStock.brsymbol,
-                        exchange: selectedStock.exchange,
-                      },
-                    ],
-                    userID: store.getState().user.user?.id ?? "",
-                  },
-                },
-              });
-              setSymbol("");
-              setSelectedStock(undefined);
-              setSearchList([]);
-            } else {
-              console.log("Symbol and Exchange cannot be empty");
-            }
-          }}
-        >
-          Add Symbol
-        </Button>
-      </div>
+      <Button variant="primary" className="w-100 w-lg-auto" onClick={addSymbol}>
+        Add Symbol
+      </Button>
     </div>
   );
 };
