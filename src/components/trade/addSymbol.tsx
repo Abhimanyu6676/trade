@@ -92,7 +92,7 @@ export const AddSymbol = () => {
               if (e.key === "Enter") searchSymbol();
             }}
             className="flex-grow-1"
-            style={{ minHeight: 40, fontSize: 15 }}
+            style={{ minHeight: 40, fontSize: 15, minWidth: 60 }}
           />
           <Button
             variant="outline-secondary"
@@ -103,7 +103,7 @@ export const AddSymbol = () => {
           </Button>
         </InputGroup>
       </div>
-      <Button variant="primary" className="w-100 w-lg-auto" onClick={addSymbol}>
+      <Button variant="primary" className="w-100" onClick={addSymbol}>
         Add Symbol
       </Button>
     </div>
