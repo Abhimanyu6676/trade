@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button } from "react-bootstrap";
-import { MdDarkMode, MdLightMode } from "react-icons/md";
+import { Button, Dropdown } from "react-bootstrap";
+import { MdDarkMode, MdLightMode, MdAccountCircle } from "react-icons/md";
+import { useSelector } from "react-redux";
 import { authApi } from "../../api/auth";
+import { RootState } from "../../redux";
 import { DefaultRootTheme, RootThemes_e, RootThemes_t } from "../../styles/theme";
 import * as styles from "./index.module.scss";
 
@@ -72,6 +74,9 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [path, setPath] = useState("/");
   const [theme, setTheme] = useState<RootThemes_t>(DefaultRootTheme);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const userState = useSelector((state: RootState) => state.user);
+  const isAuthenticated = userState?.isAuthenticated ?? false;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -91,7 +96,18 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
     setOpenItemId((prev) => (prev === id ? null : id));
   };
 
-  const handleLogout = onLogout ?? authApi.logout;
+  const handleLogout = async () => {
+    try {
+      if (onLogout) {
+        await onLogout();
+      } else {
+        await authApi.logout();
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+    setShowUserDropdown(false);
+  };
 
   const ToggleTheme = () => {
     const currentThemeAttribute = document.documentElement.getAttribute("data-theme");
@@ -135,9 +151,31 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
           </div>
         </div>
         <div className={styles.right}>
-          <button className={styles.logout} onClick={handleLogout}>
-            Logout
-          </button>
+          <Dropdown
+            show={showUserDropdown && isAuthenticated}
+            onToggle={(show) => isAuthenticated && setShowUserDropdown(show)}
+          >
+            <Dropdown.Toggle
+              variant="link"
+              id="user-dropdown"
+              className="d-flex align-items-center justify-content-center"
+              style={{
+                minHeight: 40,
+                minWidth: 40,
+                border: "none",
+                background: "none",
+                color: "inherit",
+                cursor: isAuthenticated ? "pointer" : "not-allowed",
+                opacity: isAuthenticated ? 1 : 0.5,
+              }}
+              disabled={!isAuthenticated}
+            >
+              <MdAccountCircle size={24} />
+            </Dropdown.Toggle>
+            <Dropdown.Menu align="end">
+              <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
           <Button
             variant="outline-secondary"
             onClick={ToggleTheme}
