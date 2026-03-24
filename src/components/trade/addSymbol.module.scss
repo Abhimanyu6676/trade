@@ -1,10 +1,11 @@
 .wrapper {
   width: 100%;
+  //background-color: red;
   margin: 20px 0px;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
 }
 
 .symbolInput {
@@ -21,5 +22,9 @@
 @media (min-width: 576px) {
   .wrapper {
     align-items: center;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
   }
 }

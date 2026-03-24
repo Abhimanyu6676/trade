@@ -66,41 +66,48 @@ export const AddSymbol = () => {
 
   return (
     <div className={styles.wrapper}>
-      <InputGroup>
-        <DropdownButton variant="outline-secondary" title={symbolExchange} align="end">
-          <Dropdown.Item
-            onClick={() => {
-              setSymbolExchange("NSE");
+      <div className={styles.inputContainer}>
+        <InputGroup>
+          <DropdownButton variant="outline-secondary" title={symbolExchange} align="end">
+            <Dropdown.Item
+              onClick={() => {
+                setSymbolExchange("NSE");
+              }}
+            >
+              NSE
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setSymbolExchange("BSE");
+              }}
+            >
+              BSE
+            </Dropdown.Item>
+          </DropdownButton>
+          <SymbolSelector searchList={searchList} setSymbol={setSymbol} setSelectedStock={setSelectedStock} />
+          <Form.Control
+            placeholder="Add Symbol"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") searchSymbol();
             }}
+            className={styles.symbolInput}
+          />
+          <Button
+            variant="outline-secondary"
+            onClick={searchSymbol}
+            className={`d-flex align-items-center justify-content-center ${styles.searchButton}`}
           >
-            NSE
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={() => {
-              setSymbolExchange("BSE");
-            }}
-          >
-            BSE
-          </Dropdown.Item>
-        </DropdownButton>
-        <SymbolSelector searchList={searchList} setSymbol={setSymbol} setSelectedStock={setSelectedStock} />
-        <Form.Control
-          placeholder="Add Symbol"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") searchSymbol();
-          }}
-          className={styles.symbolInput}
-        />
-        <Button
-          variant="outline-secondary"
-          onClick={searchSymbol}
-          className={`d-flex align-items-center justify-content-center ${styles.searchButton}`}
-        >
-          <IoSearch style={{ padding: 0, margin: 0 }} />
+            <IoSearch style={{ padding: 0, margin: 0 }} />
+          </Button>
+        </InputGroup>
+      </div>
+      <div className={styles.buttonContainer}>
+        <Button variant="primary" className="w-100" onClick={addSymbol}>
+          Add Symbol
         </Button>
-      </InputGroup>
+      </div>
     </div>
   );
 };
