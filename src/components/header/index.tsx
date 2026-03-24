@@ -114,13 +114,13 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
 
     if (currentThemeAttribute === RootThemes_e.dark) {
       document.documentElement.setAttribute("data-theme", RootThemes_e.light);
-      document.documentElement.classList.add(RootThemes_e.light);
       document.documentElement.classList.remove(RootThemes_e.dark);
+      document.documentElement.classList.add(RootThemes_e.light);
       setTheme(RootThemes_e.light);
     } else {
       document.documentElement.setAttribute("data-theme", RootThemes_e.dark);
-      document.documentElement.classList.add(RootThemes_e.dark);
       document.documentElement.classList.remove(RootThemes_e.light);
+      document.documentElement.classList.add(RootThemes_e.dark);
       setTheme(RootThemes_e.dark);
     }
   };
