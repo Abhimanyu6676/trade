@@ -12,7 +12,7 @@ class SocketService {
   constructor() {
     this.emit = this.emit.bind(this);
     eventBus.setEmitter(this.emit);
-    console.log("socket.io class initiated with classID :", this.classID);
+    console.log("\n\nsocket.io class initiated with classID :", this.classID);
     eventBus.setEventListener("SOCKET_CLASS_AUTH_LISTENER", "AUTH", (props) => {
       switch (props.type) {
         case "LOGIN":

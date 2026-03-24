@@ -8,6 +8,7 @@ import * as styles from "./index.module.scss";
 import { FormData, zodResolver } from "./zodSchema";
 import { navigate } from "gatsby";
 import eventBus from "../../util/eventBus";
+import Alert from "../alert";
 
 export default function AuthUI(): JSX.Element {
   const [form, setForm] = useState<"register" | "login" | "forgot">("login");
@@ -22,7 +23,7 @@ export default function AuthUI(): JSX.Element {
     setError,
   } = useForm<FormData>({
     resolver: zodResolver,
-    defaultValues: { name: "admin2", email: "iamlive247@gmail.com", password: "12345678" },
+    //defaultValues: { name: "abhimanyu", email: "iamlive247@gmail.com", password: "12345678" },
     //shouldUnregister: true,
   });
 
@@ -37,8 +38,8 @@ export default function AuthUI(): JSX.Element {
   const onSubmit = async (data: FormData): Promise<void> => {
     try {
       if (form === "register") {
-        await authApi.register({ ...data, username: data.name ?? "username" });
-        setForm("login");
+        const res = await authApi.register({ ...data, username: data.name ?? "username" });
+        if (res.data?.id) setForm("login");
       }
       if (form === "login") {
         const loginResponse = await authApi.login({
@@ -49,6 +50,14 @@ export default function AuthUI(): JSX.Element {
               action: { type: "LOGIN", data: { ...props.user, userId: props.user.id } },
             });
             navigate("/", { replace: true, state: { from: location?.pathname ?? "/" } });
+          },
+          errorCb: () => {
+            Alert.notify({
+              heading: "Login failed",
+              text: "CHeck credentials and try again",
+              variant: "error",
+              timeout: 5000,
+            });
           },
         });
         //console.log("login response =", loginResponse);
