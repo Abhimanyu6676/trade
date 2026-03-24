@@ -7,7 +7,7 @@ import { GrTest } from "react-icons/gr";
 import { CgMediaLive } from "react-icons/cg";
 import socketService from "../../../services/socket";
 
-const ClientStatus = (props: {}) => {
+export const ClientStatus = (props: {}) => {
   const [client1Connected, setClient1Connected] = useState(false);
   const [client1WebSocketConnected, setClient1WebSocketConnected] = useState(false);
   const [client1Analyzer, setClient1Analyzer] = useState(true);
@@ -129,5 +129,3 @@ const Status = (props: {
     </div>
   );
 };
-
-export default ClientStatus;
