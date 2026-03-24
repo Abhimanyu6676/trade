@@ -5,10 +5,10 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import Form from "react-bootstrap/esm/Form";
 import InputGroup from "react-bootstrap/esm/InputGroup";
 import { IoSearch } from "react-icons/io5";
-import store from "../../redux";
-import eventBus from "../../util/eventBus";
-import { getStockKeyId } from "../../../../backend/src/util/helper";
-import * as styles from "./addSymbol.module.scss";
+import store from "../../../redux";
+import eventBus from "../../../util/eventBus";
+import { getStockKeyId } from "../../../../../backend/src/util/helper";
+import * as styles from "./index.module.scss";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
@@ -66,7 +66,7 @@ export const AddSymbol = () => {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.inputContainer}>
+      <div>
         <InputGroup>
           <DropdownButton variant="outline-secondary" title={symbolExchange} align="end">
             <Dropdown.Item
@@ -103,7 +103,7 @@ export const AddSymbol = () => {
           </Button>
         </InputGroup>
       </div>
-      <div className={styles.buttonContainer}>
+      <div>
         <Button variant="primary" className="w-100" onClick={addSymbol}>
           Add Symbol
         </Button>

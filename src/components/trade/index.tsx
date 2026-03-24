@@ -1,4 +1,3 @@
-import * as styles from "./index.module.scss";
 import React from "react";
 import Block from "./block";
 import { AddSymbol } from "./addSymbol";
