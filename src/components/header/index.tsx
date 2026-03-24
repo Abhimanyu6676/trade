@@ -141,6 +141,7 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
             className={styles.hamburger}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             onClick={toggleMenu}
+            disabled
           >
             <span className={isMenuOpen ? styles.hamburgerOpen : ""} />
             <span className={isMenuOpen ? styles.hamburgerOpen : ""} />
@@ -151,20 +152,25 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
           </div>
         </div>
         <div className={styles.right}>
+          <Button
+            variant="outline-secondary"
+            onClick={ToggleTheme}
+            className="d-flex align-items-center justify-content-center"
+            style={{ minHeight: 40, minWidth: 40, marginRight: 20 }}
+          >
+            {theme === RootThemes_e.light ? <MdDarkMode /> : <MdLightMode />}
+          </Button>
           <Dropdown
             show={showUserDropdown && isAuthenticated}
             onToggle={(show) => isAuthenticated && setShowUserDropdown(show)}
           >
             <Dropdown.Toggle
-              variant="link"
+              variant="outline-secondary"
               id="user-dropdown"
               className="d-flex align-items-center justify-content-center"
               style={{
                 minHeight: 40,
                 minWidth: 40,
-                border: "none",
-                background: "none",
-                color: "inherit",
                 cursor: isAuthenticated ? "pointer" : "not-allowed",
                 opacity: isAuthenticated ? 1 : 0.5,
               }}
@@ -176,14 +182,6 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
               <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-          <Button
-            variant="outline-secondary"
-            onClick={ToggleTheme}
-            className="d-flex align-items-center justify-content-center"
-            style={{ minHeight: 40, minWidth: 40 }}
-          >
-            {theme === RootThemes_e.light ? <MdDarkMode /> : <MdLightMode />}
-          </Button>
         </div>
       </header>
 
