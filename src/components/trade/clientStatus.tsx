@@ -60,14 +60,7 @@ const ClientStatus = (props: {}) => {
   return (
     <div
       className="container foreground"
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 10,
-        borderRadius: 10,
-        padding: 15,
-      }}
+      style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", borderRadius: 10, padding: 15 }}
     >
       <div // client status container
         style={{ display: "flex", flexDirection: "column" }}
