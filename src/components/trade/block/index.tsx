@@ -1,19 +1,19 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import Form from "react-bootstrap/Form";
+import React, { useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
-import { getStockKeyId, decimal } from "../../util/helper";
-import socketService from "../../services/socket";
-import { IoEye } from "react-icons/io5";
-import { IoEyeOff } from "react-icons/io5";
-import * as variables from "../../styles/themeVariables.module.scss";
-import * as styles from "./block.module.scss";
-import { ThresholdView } from "./thresholdView";
+import Form from "react-bootstrap/Form";
+import { IoEye, IoEyeOff } from "react-icons/io5";
+import { decimal, getStockKeyId } from "../../../../../backend/src/util/helper";
+import socketService from "../../../services/socket";
+import { ThresholdView } from "../thresholdView";
+// theme modules are to be imported at last
+import * as variables from "../../../styles/themeVariables.module.scss";
+import * as styles from "./index.module.scss";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
-const Block = (props: { stock: Stock_i }) => {
+export const Block = (props: { stock: STOCK.all }) => {
   console.log(`${props.stock.keyId}-----------------------`);
   const buyOrder = props.stock?.orders?.find((o) => o.action == "BUY");
   const sellOrder = props.stock?.orders?.find((o) => o.action == "SELL");
@@ -578,5 +578,3 @@ const ChildRow = (props: { children?: React.JSX.Element; heading: string; value?
     </div>
   );
 };
-
-export default Block;

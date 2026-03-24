@@ -1,9 +1,9 @@
 import React from "react";
-import Block from "./block";
-import { AddSymbol } from "./addSymbol";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux";
-import ClientStatus from "./clientStatus";
+import { AddSymbol } from "./addSymbol";
+import { Block } from "./block";
+import { ClientStatus } from "./clientStatus";
 
 export default function TradeComponent() {
   const stocksState = useSelector((state: RootState) => state.stocks);

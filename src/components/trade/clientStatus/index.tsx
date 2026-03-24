@@ -5,9 +5,9 @@ import { MdOutlineLinkOff } from "react-icons/md";
 import { FaServer } from "react-icons/fa";
 import { GrTest } from "react-icons/gr";
 import { CgMediaLive } from "react-icons/cg";
-import socketService from "../../services/socket";
+import socketService from "../../../services/socket";
 
-export const ClientStatus = (props: {}) => {
+const ClientStatus = (props: {}) => {
   const [client1Connected, setClient1Connected] = useState(false);
   const [client1WebSocketConnected, setClient1WebSocketConnected] = useState(false);
   const [client1Analyzer, setClient1Analyzer] = useState(true);
@@ -22,31 +22,6 @@ export const ClientStatus = (props: {}) => {
   }, 2000);
 
   useEffect(() => {
-    //TODO
-    /** socketService.socketMessageSubscriberList.subscribe({
-      id: "clientStatus",
-      callback: (msg) => {
-        console.log("message in clientStatus inside subscribed callback", msg);
-        if (msg.type == "clientStatus" && msg.data.status) {
-          msg.data.status.client1Connected != undefined &&
-            setClient1Connected(msg.data.status.client1Connected);
-          msg.data.status.client1WebSocketConnected != undefined &&
-            setClient1WebSocketConnected(
-              msg.data.status.client1WebSocketConnected,
-            );
-          msg.data.status.client1Analyzer != undefined &&
-            setClient1Analyzer(msg.data.status.client1Analyzer);
-          msg.data.status.client2Connected != undefined &&
-            setClient2Connected(msg.data.status.client2Connected);
-          msg.data.status.client2WebSocketConnected != undefined &&
-            setClient2WebSocketConnected(
-              msg.data.status.client2WebSocketConnected,
-            );
-          msg.data.status.client2Analyzer != undefined &&
-            setClient2Analyzer(msg.data.status.client2Analyzer);
-        }
-      },
-    }); */
     setTimeout(() => {
       console.log("sending getClientStatus msg to server");
       //TODO socketService.sendMsg({ type: "getClientStatus", data: {} });
@@ -154,3 +129,5 @@ const Status = (props: {
     </div>
   );
 };
+
+export default ClientStatus;
