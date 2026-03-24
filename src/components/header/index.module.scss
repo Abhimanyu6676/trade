@@ -1,25 +1,11 @@
-:root {
-  --header-height: 64px;
-  --header-bg: var(--primary-color-dark);
-  --header-accent: #ffb703;
-  --header-shadow: rgba(0, 0, 0, 0.18);
-  --menu-bg: var(--primary-color-light);
-  --menu-width: 280px;
-}
-
 .header {
-  height: var(--header-height);
+  height: 64px;
   padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(
-    180deg,
-    var(--header-bg),
-    transparent 140%
-  );
+  background: var(--primary-color-dark);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 6px 24px var(--header-shadow);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -49,27 +35,6 @@
 .right {
   display: flex;
   align-items: center;
-}
-
-.logout {
-  padding: 8px 16px;
-  background: var(--header-accent);
-  border: none;
-  border-radius: 999px;
-  color: #1a1a1a;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  margin-right: 20px;
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    opacity 180ms ease;
-}
-
-.logout:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(255, 183, 3, 0.35);
 }
 
 .hamburger {
@@ -119,7 +84,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 13, 0.45);
+  background: rgb(0 0 0 / 0.45);
   opacity: 0;
   pointer-events: none;
   transition: opacity 200ms ease;
@@ -136,8 +101,8 @@
   top: 0;
   left: 0;
   height: 100vh;
-  width: var(--menu-width);
-  background: var(--menu-bg);
+  width: 280px;
+  background: var(--primary-color-light);
   border-right: 1px solid var(--border-color);
   transform: translateX(-105%);
   transition: transform 260ms ease;
@@ -145,7 +110,6 @@
   display: flex;
   flex-direction: column;
   padding: 18px 16px 24px;
-  box-shadow: 10px 0 40px rgba(0, 0, 0, 0.25);
 }
 
 .sideMenuOpen {
@@ -171,7 +135,7 @@
   height: 32px;
   border-radius: 10px;
   border: 1px solid var(--border-color);
-  background: var(--primary-color-dark);
+  background: var(--primary-color-light);
   color: var(--text-color);
   cursor: pointer;
   transition: transform 180ms ease;
@@ -256,10 +220,6 @@
 @media (max-width: 720px) {
   .path {
     max-width: 40vw;
-  }
-
-  .logout {
-    padding: 6px 12px;
   }
 
   .sideMenu {
