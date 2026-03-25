@@ -9,10 +9,11 @@ import {
   ORDER_productType,
   ORDER_status,
 } from "../../../../../backend/src/crud/order/order";
+import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
+import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as variables from "../../../styles/themeVariables.module.scss";
-import { TradeDetails } from "./tradeDetails";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -294,7 +295,13 @@ export const Block = (props: { stock: STOCK.all }) => {
           >
             <Dropdown.Item
               onClick={() => {
-                //TODO socketService.sendOrderCmd({ cmd: "deleteSymbol", data: { keyId: props.stock.keyId } });
+                eventBus.emitEvent({
+                  type: "OPENALGO",
+                  action: {
+                    type: "REMOVE_STOCK",
+                    data: { stocks: [props.stock], userId: store.getState().user.user?.id ?? "" },
+                  },
+                });
               }}
             >
               DELETE SYMBOL
