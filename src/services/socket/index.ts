@@ -67,7 +67,7 @@ class SocketService {
     // either by directly modifying the `auth` attribute
     this?.socket?.on("connect_error", (error) => {
       console.log(
-        "connect_error------------------------------------------------------------------------",
+        "socket connect_error------------------------------------------------------------------------",
         error.message,
       );
       api.auth.refresh({});
@@ -77,7 +77,7 @@ class SocketService {
     });
 
     this?.socket?.on(
-      "reconnect_attempt------------------------------------------------------------------------",
+      "socket reconnect_attempt------------------------------------------------------------------------",
       () => {
         console.log("reconnect_attempt");
         api.auth.refresh({});
