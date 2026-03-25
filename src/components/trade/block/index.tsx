@@ -8,7 +8,8 @@ import {
   ORDER_priceType,
   ORDER_productType,
   ORDER_status,
-} from "../../../../../backend/src/crud/order/order";
+  //@ts-ignore
+} from "../../../../../backend/src/crud/order/order.d.ts";
 import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
 import { TradeDetails } from "./tradeDetails";

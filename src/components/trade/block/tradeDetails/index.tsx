@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order";
+//@ts-ignore
+import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order.d.ts";
 import { decimal } from "../../../../../../backend/src/util/helper";
 import * as variables from "../../../../styles/themeVariables.module.scss";
 //
