@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 interface stockListObj_i {
-  [key: string]: STOCK.withTrade;
+  [key: string]: STOCK.all;
 }
 
 interface stocksSplice_i {
-  stocksList: STOCK.withTrade[];
+  stocksList: STOCK.all[];
   stocksObj: stockListObj_i;
 }
 
@@ -26,10 +26,10 @@ export const stocksSlice = createSlice({
      *
      * @returns entirely new state object with previous state items also but as a new reference
      */
-    _setStocks: (state, action: { type: string; payload: STOCK.withTrade[] }) => {
+    _setStocks: (state, action: { type: string; payload: STOCK.all[] }) => {
       //console.log("current State:", state);
       //console.log("Setting stocks:", action);
-      let newStocksList: STOCK.withTrade[] = [];
+      let newStocksList: STOCK.all[] = [];
       let newStocksListObj: stockListObj_i = {};
 
       action.payload.forEach((stock, stockIndex) => {
@@ -47,7 +47,7 @@ export const stocksSlice = createSlice({
      *
      * @returns void as mutation is handled by redux-toolkit
      */
-    _addUpdateStocks: (state, action: { payload: STOCK.withTrade[]; type: string }) => {
+    _addUpdateStocks: (state, action: { payload: STOCK.all[]; type: string }) => {
       action.payload.map((stock) => {
         const index = state.stocksList.findIndex((s) => s.keyId === stock.keyId);
         if (index > -1) {
@@ -70,7 +70,7 @@ export const stocksSlice = createSlice({
      *
      * @returns void as mutation is handled by redux-toolkit
      */
-    _removeStocks: (state, action: { payload: STOCK.withTrade[]; type: string }) => {
+    _removeStocks: (state, action: { payload: STOCK.all[]; type: string }) => {
       action.payload.map((stock) => {
         const index = state.stocksList.findIndex((s) => s.keyId === stock.keyId);
         if (index > -1) {
