@@ -48,7 +48,7 @@ class SocketService {
   }
 
   private setupSocketEventsListeners() {
-    console.log("setting socket event listeners");
+    //console.log("setting socket event listeners");
     this.socket?.on("connect", () => {
       console.log("Socket connected:", this.socket?.id);
       this.socketConnected = true;
@@ -66,14 +66,26 @@ class SocketService {
 
     // either by directly modifying the `auth` attribute
     this?.socket?.on("connect_error", (error) => {
-      console.log("connect_error", error.message);
-      this.updateAuthTokenAndConnect(error);
+      console.log(
+        "connect_error------------------------------------------------------------------------",
+        error.message,
+      );
+      api.auth.refresh({});
+      setTimeout(() => {
+        this.connect;
+      }, 2000);
     });
 
-    this?.socket?.on("reconnect_attempt", () => {
-      console.log("reconnect_attempt");
-      this.updateAuthTokenAndConnect();
-    });
+    this?.socket?.on(
+      "reconnect_attempt------------------------------------------------------------------------",
+      () => {
+        console.log("reconnect_attempt");
+        api.auth.refresh({});
+        setTimeout(() => {
+          this.connect;
+        }, 2000);
+      },
+    );
 
     this.socket?.on("data", (event: _eventBusModals) => {
       console.log("data from socket.io onData", event);
@@ -81,30 +93,26 @@ class SocketService {
     });
   }
 
-  private updateAuthTokenAndConnect(error?: any) {
+  private updateAuthToken() {
     if (typeof window !== "undefined") {
-      console.log("socket status ", this.socket?.active);
-      if (!error || error.message.includes("error")) {
-        if (!this.socket?.active) api.auth.refresh({});
-        setTimeout(() => {
-          if (this.socket) {
-            const token = getLocalData("accessToken");
-            if (token) {
-              this.socket.auth = { token: `Bearer ${token}` };
-              this.socket.io.opts.extraHeaders = {
-                ...this.socket.io.opts.extraHeaders,
-                authorization: `Bearer ${token}`,
-              };
-            }
-          }
-          this.socket?.connect();
-        }, 3000);
+      console.log("updating socket AuthToken");
+      console.log("socket status", this.socket?.active);
+
+      if (this.socket) {
+        const token = getLocalData("accessToken");
+        if (token) {
+          this.socket.auth = { token: `Bearer ${token}` };
+          this.socket.io.opts.extraHeaders = { ...this.socket.io.opts.extraHeaders, authorization: `Bearer ${token}` };
+        }
       }
     }
   }
 
-  public getSocket(): Socket | null {
-    return this.socket;
+  public connect(): void {
+    if (this.socket && !this.socket.active) {
+      this.updateAuthToken();
+      this.socket.connect();
+    }
   }
 
   public disconnect(): void {
@@ -115,10 +123,8 @@ class SocketService {
     }
   }
 
-  public connect(): void {
-    if (this.socket && !this.socket.active) {
-      this.updateAuthTokenAndConnect();
-    }
+  public getSocket(): Socket | null {
+    return this.socket;
   }
 
   async emit(data: _eventBusModals) {
