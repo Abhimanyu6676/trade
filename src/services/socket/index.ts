@@ -14,7 +14,7 @@ class SocketService {
     this.emit = this.emit.bind(this);
     eventBus.setEmitter(this.emit);
     console.log("\n\nsocket.io class initiated with classID :", this.classID);
-    eventBus.setEventListener("SOCKET_CLASS_AUTH_LISTENER", "AUTH", (props) => {
+    eventBus.setEventListener("SOCKET_CLASS_AUTH_LISTENER", "AUTH", async (props) => {
       switch (props.type) {
         case "LOGIN":
           console.log("This is socket class auth listener login event, user just logged in");
