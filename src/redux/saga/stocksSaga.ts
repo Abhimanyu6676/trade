@@ -6,13 +6,13 @@ import { stocksSagaSideEffectAction } from "./stocksSagaSideEffect";
 
 export interface stocksSagaAction_Props {
   /** @deprecated */
-  addStocks?: Stock_i[];
+  addStocks?: STOCK.all[];
   /** @deprecated */
-  removeStocks?: Stock_i[];
+  removeStocks?: STOCK.all[];
   /** @deprecated */
-  updateStocks?: Stock_i[];
+  updateStocks?: STOCK.all[];
   /** @param stocks (Stock_i[]) */
-  stocks?: Stock_i[];
+  stocks?: STOCK.all[];
 }
 
 export const [stocksSagaAction, stocksSagaWatcher] = _getWorker<stocksSagaAction_Props>({
