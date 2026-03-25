@@ -10,12 +10,13 @@ import { ThresholdView } from "../thresholdView";
 // theme modules are to be imported at last
 import * as variables from "../../../styles/themeVariables.module.scss";
 import * as styles from "./index.module.scss";
+import { ORDER_action } from "../../../../../backend/src/crud/order/order";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 export const Block = (props: { stock: STOCK.all }) => {
-  const buyOrder = props.stock.trade.orders.find((o) => o.action == ORDER.action.BUY);
-  const sellOrder = props.stock.trade.orders.find((o) => o.action == ORDER.action.SELL);
+  const buyOrder = props.stock.trade.orders.find((o) => o.action == ORDER_action.BUY);
+  const sellOrder = props.stock.trade.orders.find((o) => o.action == ORDER_action.SELL);
 
   const [ltp, setLtp] = useState(0);
   const [ltpColor, setLtpColor] = useState("");
