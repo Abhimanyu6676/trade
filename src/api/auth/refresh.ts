@@ -9,7 +9,7 @@ const restoreSessionSuccessSideEffect = (props: AxiosResponseDataType<"refreshTo
   storeLocalData("accessToken", props.accessToken);
   console.log("setting user loading to false in restore session success sideEffect");
   store.dispatch(setAuthState({ loading: false, user: props.user }));
-  eventBus.getEmitter("AUTH")({ type: "AUTH", action: { type: "LOGIN", data: props.user } });
+  eventBus.emitEvent({ type: "AUTH", action: { type: "LOGIN", data: { user: props.user, userId: props.user.id } } });
 };
 
 const restoreSession401SideEffect = (props: RequestResponseType<"refreshToken">) => {
