@@ -1,6 +1,7 @@
 import React from "react";
-import { decimal } from "../../../util/helper";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa6";
+import { decimal } from "../../../../../util/helper";
+//
 import * as styles from "./index.module.scss";
 
 export const ThresholdView = ({
@@ -30,9 +31,7 @@ export const ThresholdView = ({
   const sellRiskPrice = decimal(lowerThreshold + (orderPrice / 100) * risk);
 
   /** if offset manipulation is not required for some calculation than send `0` as offset */
-  const getPointLocation: (point: number, offset?: number) => number = (
-    point,
-  ) => {
+  const getPointLocation: (point: number, offset?: number) => number = (point) => {
     return ((point - lowerBound) / (upperBound - lowerBound)) * 100;
   };
 
@@ -55,27 +54,18 @@ export const ThresholdView = ({
     >
       <div className="-col --vc" style={{ position: "relative" }}>
         <div // risks points container
-          style={{
-            position: "relative",
-            flex: 1,
-          }}
+          style={{ position: "relative", flex: 1 }}
         >
           <div // sell risk price
             className={styles.thresholdPoints}
-            style={{
-              left: `${getPointLocation(sellRiskPrice)}%`,
-              transform: `translateX(-50%) translateY(-100%)`,
-            }}
+            style={{ left: `${getPointLocation(sellRiskPrice)}%`, transform: `translateX(-50%) translateY(-100%)` }}
           >
             {sellRiskPrice}
             <FaCaretDown />
           </div>
           <div // buy risk price
             className={styles.thresholdPoints}
-            style={{
-              left: `${getPointLocation(buyRiskPrice)}%`,
-              transform: `translateX(-50%) translateY(-100%)`,
-            }}
+            style={{ left: `${getPointLocation(buyRiskPrice)}%`, transform: `translateX(-50%) translateY(-100%)` }}
           >
             {buyRiskPrice}
             <FaCaretDown />
@@ -84,11 +74,7 @@ export const ThresholdView = ({
         <div // ltp pointer
           hidden={outOfView}
           className={styles.thresholdPointer}
-          style={{
-            left: `${pointerLocation}%`,
-            transform: `translateX(-50%)`,
-            zIndex: 100,
-          }}
+          style={{ left: `${pointerLocation}%`, transform: `translateX(-50%)`, zIndex: 100 }}
         />
         <div // threshold bars container
           className={`-row --vc ${styles.thresholdBarContainer}`}
@@ -108,9 +94,7 @@ export const ThresholdView = ({
         >
           <div // lower bound
             className={styles.thresholdPoints}
-            style={{
-              left: 0,
-            }}
+            style={{ left: 0 }}
           >
             <FaCaretUp />
             {lowerBound}
@@ -118,29 +102,21 @@ export const ThresholdView = ({
 
           <div // lower threshold
             className={styles.thresholdPoints}
-            style={{
-              fontSize: 10,
-              left: `${getPointLocation(lowerThreshold)}%`,
-            }}
+            style={{ fontSize: 10, left: `${getPointLocation(lowerThreshold)}%` }}
           >
             <FaCaretUp />
             {lowerThreshold}
           </div>
           <div // upper threshold
             className={styles.thresholdPoints}
-            style={{
-              fontSize: 10,
-              left: `${getPointLocation(upperThreshold)}%`,
-            }}
+            style={{ fontSize: 10, left: `${getPointLocation(upperThreshold)}%` }}
           >
             <FaCaretUp />
             {upperThreshold}
           </div>
           <div // upper bound
             className={styles.thresholdPoints}
-            style={{
-              left: "100%",
-            }}
+            style={{ left: "100%" }}
           >
             <FaCaretUp />
             {upperBound}

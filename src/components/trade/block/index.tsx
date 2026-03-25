@@ -2,70 +2,37 @@ import React, { useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
-import Form from "react-bootstrap/Form";
 import { IoEye, IoEyeOff } from "react-icons/io5";
-import { decimal, getStockKeyId } from "../../../../../backend/src/util/helper";
-import socketService from "../../../services/socket";
-import { ThresholdView } from "../thresholdView";
+import {
+  ORDER_action,
+  ORDER_priceType,
+  ORDER_productType,
+  ORDER_status,
+} from "../../../../../backend/src/crud/order/order";
+import eventBus from "../../../util/eventBus";
 // theme modules are to be imported at last
 import * as variables from "../../../styles/themeVariables.module.scss";
-import * as styles from "./index.module.scss";
-import { ORDER_action } from "../../../../../backend/src/crud/order/order";
+import { TradeDetails } from "./tradeDetails";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 export const Block = (props: { stock: STOCK.all }) => {
-  const buyOrder = props.stock.trade.orders.find((o) => o.action == ORDER_action.BUY);
-  const sellOrder = props.stock.trade.orders.find((o) => o.action == ORDER_action.SELL);
+  const buyOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
+  const sellOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
 
-  const [ltp, setLtp] = useState(0);
+  const [ltp, setLtp] = useState(props.stock.ltp || 0);
   const [ltpColor, setLtpColor] = useState("");
   const [fieldsHidden, setFieldsHidden] = useState(!props.stock.trade);
+  const previousLtpRef = useRef(props.stock.ltp || 0);
 
-  //Take average of both prices, sell and buy
-  const [orderPrice, setOrderPrice] = useState(
-    buyOrder?.price && sellOrder?.price
-      ? decimal((buyOrder.price + sellOrder.price) / 2)
-      : buyOrder?.price
-        ? buyOrder.price
-        : sellOrder?.price
-          ? sellOrder.price
-          : 1,
-  );
+  const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
+  const [productType, setProductType] = useState<ORDER_productType>(buyOrder?.product || ORDER_productType.MIS);
 
-  const [priceType, setPriceType] = useState<orderPriceType_i>(buyOrder?.priceType || "MARKET");
-  const [productType, setProductType] = useState<orderProductType_i>(buyOrder?.product || "MIS");
-
-  const quantity = buyOrder?.quantity || 1;
-  const threshold = buyOrder?.threshold || 0.5;
-  const risk = buyOrder?.risk || 0.15;
-  const exitDrop = buyOrder?.exitDrop || 0.2;
-  const exitProfit = buyOrder?.exitProfit || 0.2;
-  const [isModified, setIsModified] = useState(false);
-
-  const isBuyOrderActive = buyOrder && buyOrder?.orderStatus != "EXITED";
-  const isSellOrderActive = sellOrder && sellOrder?.orderStatus != "EXITED";
+  const isBuyOrderActive = buyOrder && buyOrder?.status != ORDER_status.EXITED;
+  const isSellOrderActive = sellOrder && sellOrder?.status != ORDER_status.EXITED;
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
-  const isAnyOfOneOrderExited =
-    (buyOrder && buyOrder?.orderStatus == "EXITED") || (sellOrder && sellOrder?.orderStatus == "EXITED");
 
-  const buyPnl = decimal(
-    buyOrder?.orderStatus == "ACTIVE"
-      ? (ltp - buyOrder.price) * buyOrder.quantity
-      : buyOrder?.orderStatus == "EXITED" && buyOrder?.exitPrice
-        ? (buyOrder.exitPrice - buyOrder.price) * buyOrder.quantity
-        : 0,
-  );
-  const sellPnl = decimal(
-    sellOrder?.orderStatus == "ACTIVE"
-      ? (sellOrder.price - ltp) * sellOrder.quantity
-      : sellOrder?.orderStatus == "EXITED" && sellOrder?.exitPrice
-        ? (sellOrder.price - sellOrder.exitPrice) * sellOrder.quantity
-        : 0,
-  );
-  const pnl = decimal(buyPnl + sellPnl);
-
-  const enterTrade = async () => {
+  /*  const enterTrade = async () => {
     console.log("Entering trade");
     let orderTemplate: Omit<Omit<enterTradeOrder_i, "action">, "apiKey"> = {
       keyId: props.stock.keyId,
@@ -114,53 +81,27 @@ export const Block = (props: { stock: STOCK.all }) => {
     });
   };
 
-  const ModifyTrade = () => {};
+  const ModifyTrade = () => {}; */
 
-  const quantityFieldRef = useRef<HTMLInputElement>(null);
-  const thresholdFieldRef = useRef<HTMLInputElement>(null);
-  const riskFieldRef = useRef<HTMLInputElement>(null);
-  const exitDropFieldRef = useRef<HTMLInputElement>(null);
-  const exitProfitFieldRef = useRef<HTMLInputElement>(null);
+  const enterTrade = (props: any) => {};
   useEffect(() => {
-    console.log(`${props.stock.keyId}-----------***************--------------`);
+    const ltpListenerIdRef = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
+    eventBus.setEventListener(ltpListenerIdRef, "OPENALGO", async (action) => {
+      switch (action.type) {
+        case "LTP":
+          {
+          }
+          break;
 
-    if (quantityFieldRef.current) quantityFieldRef.current.value = quantity.toString();
-
-    if (thresholdFieldRef.current) thresholdFieldRef.current.value = threshold.toString();
-
-    if (riskFieldRef.current) riskFieldRef.current.value = risk.toString();
-
-    if (exitDropFieldRef.current) exitDropFieldRef.current.value = exitDrop.toString();
-
-    if (exitProfitFieldRef.current) exitProfitFieldRef.current.value = exitProfit.toString();
-
-    return () => {};
-  }, [threshold, risk, exitDrop, exitProfit]);
-
-  // subscribe to LTP
-  useEffect(() => {
-    socketService.ltpSubscriberList.subscribe({
-      id: props.stock.keyId,
-      callback: (data) => {
-        /* console.log(
-          `ltp data in stock block via new subscriberList ${props.stock.keyId}`,
-          data,
-        ); */
-        const dataKeyId = getStockKeyId(data);
-        if (props.stock.keyId == dataKeyId) {
-          setLtp((prevLtp) => {
-            if (data.ltp < prevLtp) setLtpColor("#ff0000");
-            else if (data.ltp > prevLtp) setLtpColor("#27F565");
-            return data.ltp;
-          });
-        }
-      },
+        default:
+          break;
+      }
     });
 
     return () => {
-      socketService.ltpSubscriberList.unSubscribe(props.stock.keyId);
+      eventBus.removeEventListener(ltpListenerIdRef, "OPENALGO");
     };
-  }, []);
+  }, [props.stock.keyId]);
 
   return (
     <div className="container foreground" style={{ borderRadius: 10, padding: 15, marginTop: 20 }}>
@@ -227,11 +168,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <div
               style={{
                 backgroundColor:
-                  buyOrder?.orderStatus == "ACTIVE"
-                    ? "#33EB45"
-                    : buyOrder?.orderStatus == "EXITED"
-                      ? "#F83725"
-                      : "#82829B",
+                  buyOrder?.status == "ACTIVE" ? "#33EB45" : buyOrder?.status == "EXITED" ? "#F83725" : "#82829B",
                 padding: "0px 5px",
                 borderRadius: 3,
                 boxShadow: "2px 2px 5px rgba(0,0,0,0.3)",
@@ -244,11 +181,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <div
               style={{
                 backgroundColor:
-                  sellOrder?.orderStatus == "ACTIVE"
-                    ? "#33EB45"
-                    : sellOrder?.orderStatus == "EXITED"
-                      ? "#F83725"
-                      : "#82829B",
+                  sellOrder?.status == "ACTIVE" ? "#33EB45" : sellOrder?.status == "EXITED" ? "#F83725" : "#82829B",
                 padding: "0px 5px",
                 borderRadius: 3,
                 boxShadow: "2px 2px 5px rgba(0,0,0,0.3)",
@@ -288,7 +221,7 @@ export const Block = (props: { stock: STOCK.all }) => {
           >
             <Dropdown.Item
               onClick={() => {
-                setPriceType("MARKET");
+                setPriceType(ORDER_priceType.MARKET);
               }}
             >
               MARKET
@@ -296,7 +229,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <Dropdown.Item
               disabled
               onClick={() => {
-                setPriceType("LIMIT");
+                setPriceType(ORDER_priceType.LIMIT);
               }}
             >
               LIMIT
@@ -304,7 +237,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <Dropdown.Item
               disabled
               onClick={() => {
-                setPriceType("SL");
+                setPriceType(ORDER_priceType.SL);
               }}
             >
               SL
@@ -312,7 +245,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <Dropdown.Item
               disabled
               onClick={() => {
-                setPriceType("SL-M");
+                setPriceType(ORDER_priceType.SL_M);
               }}
             >
               SL-M
@@ -326,14 +259,14 @@ export const Block = (props: { stock: STOCK.all }) => {
           >
             <Dropdown.Item
               onClick={() => {
-                setProductType("MIS");
+                setProductType(ORDER_productType.MIS);
               }}
             >
               MIS
             </Dropdown.Item>
             <Dropdown.Item
               onClick={() => {
-                setProductType("CNC");
+                setProductType(ORDER_productType.CNC);
               }}
             >
               CNC
@@ -341,7 +274,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <Dropdown.Item
               disabled
               onClick={() => {
-                setProductType("NRML");
+                setProductType(ORDER_productType.NRML);
               }}
             >
               NRML
@@ -361,7 +294,7 @@ export const Block = (props: { stock: STOCK.all }) => {
           >
             <Dropdown.Item
               onClick={() => {
-                socketService.sendOrderCmd({ cmd: "deleteSymbol", data: { keyId: props.stock.keyId } });
+                //TODO socketService.sendOrderCmd({ cmd: "deleteSymbol", data: { keyId: props.stock.keyId } });
               }}
             >
               DELETE SYMBOL
@@ -369,212 +302,7 @@ export const Block = (props: { stock: STOCK.all }) => {
           </DropdownButton>
         </div>
       </div>
-
-      <div // input fields and bottom buttons container
-        hidden={fieldsHidden}
-        style={{}}
-      >
-        <div // data rows
-          style={{ marginTop: 20, backgroundColor: variables.primaryColorDark, borderRadius: 5, padding: "10px 0px" }}
-        >
-          <MasterRow // Buy/Sell order price
-          >
-            <ChildRow heading="Buy Order Price">
-              <Form.Control
-                className={styles.input}
-                type="number"
-                disabled={isBuyOrderActive}
-                value={buyOrder ? buyOrder.price : orderPrice}
-                onChange={(e) => {
-                  setOrderPrice(parseFloat(e.target.value));
-                }}
-              />
-            </ChildRow>
-            <ChildRow heading="Sell Order Price">
-              <Form.Control
-                className={styles.input}
-                type="number"
-                disabled={isSellOrderActive}
-                value={sellOrder ? sellOrder.price : orderPrice}
-                onChange={(e) => {
-                  setOrderPrice(parseFloat(e.target.value));
-                }}
-              />
-            </ChildRow>
-          </MasterRow>
-
-          <MasterRow // order quantity and threshold
-          >
-            <ChildRow heading="Buy/Sell Order Quantity">
-              <Form.Control
-                ref={quantityFieldRef}
-                className={styles.input}
-                type="number"
-                disabled={isOrderActive}
-                defaultValue={quantity}
-              />
-            </ChildRow>
-            <ChildRow heading="Threshold %">
-              <Form.Control
-                ref={thresholdFieldRef}
-                className={styles.input}
-                type="number"
-                defaultValue={threshold}
-                onChange={ModifyTrade}
-              />
-            </ChildRow>
-          </MasterRow>
-
-          <MasterRow // risk and exitDrop fields
-          >
-            <ChildRow heading="Risk %">
-              <Form.Control
-                ref={riskFieldRef}
-                className={styles.input}
-                type="number"
-                defaultValue={risk}
-                onChange={ModifyTrade}
-              />
-            </ChildRow>
-            <ChildRow heading="Exit on Drop %">
-              <Form.Control
-                ref={exitDropFieldRef}
-                className={styles.input}
-                type="number"
-                defaultValue={exitDrop}
-                onChange={ModifyTrade}
-              />
-            </ChildRow>
-          </MasterRow>
-
-          {/*  <MasterRow // upper/lower threshold
-          >
-            <ChildRow heading="Upper Threshold" value={upperThreshold} />
-            <ChildRow heading="Lower Threshold" value={lowerThreshold} />
-          </MasterRow> */}
-
-          <MasterRow // buy/sell prices for both orders
-          >
-            <ChildRow
-              heading="Buy Order (Buy::Sell)"
-              value={`${buyOrder?.price ? buyOrder?.price : "N/A"} :: ${buyOrder?.exitPrice ? buyOrder?.exitPrice : "N/A"}`}
-            />
-            <ChildRow
-              heading="Sell Order (Buy::Sell)"
-              value={`${sellOrder?.price ? sellOrder?.price : "N/A"} :: ${sellOrder?.exitPrice ? sellOrder?.exitPrice : "N/A"}`}
-            />
-          </MasterRow>
-
-          <MasterRow // buy/sell PnL
-          >
-            <ChildRow heading="Buy PnL" value={buyPnl} />
-            <ChildRow heading="Sell PnL" value={sellPnl} />
-          </MasterRow>
-
-          <MasterRow // net PnL & %
-          >
-            <ChildRow heading="Net PnL" value={pnl} />
-            <ChildRow heading="PnL %" value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"} />
-          </MasterRow>
-
-          <MasterRow // threshold graph view
-          >
-            <div style={{ display: "flex", flex: 1, padding: "5px 20px" }}>
-              {(true || buyOrder || sellOrder) &&
-                ThresholdView({ ltp, orderPrice, threshold, risk, exitDrop, exitProfit, isAnyOfOneOrderExited })}
-            </div>
-            <ChildRow heading="" />
-          </MasterRow>
-        </div>
-        <div // bottom Buttons
-          style={{
-            //backgroundColor: "red",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: 10,
-          }}
-        >
-          <div // left side buttons
-            style={{
-              //backgroundColor: "red",
-              display: "flex",
-              flex: 1,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Button
-              variant={isOrderActive ? "danger" : "outline-danger"}
-              disabled={!isOrderActive}
-              style={{}}
-              onClick={() => {
-                console.log("Exit Order");
-                buyOrder && exitTrade({ stock: props.stock, orders: [buyOrder] });
-                sellOrder && exitTrade({ stock: props.stock, orders: [sellOrder] });
-              }}
-            >
-              Exit Trade
-            </Button>
-            <Button
-              variant={isBuyOrderActive ? "danger" : "outline-danger"}
-              disabled={!isBuyOrderActive}
-              style={{ marginLeft: 20 }}
-              onClick={() => {
-                console.log("Exit Buy Order");
-                buyOrder && exitTrade({ stock: props.stock, orders: [buyOrder] });
-              }}
-            >
-              Exit Buy
-            </Button>
-            <Button
-              variant={isSellOrderActive ? "danger" : "outline-danger"}
-              disabled={!isSellOrderActive}
-              style={{ marginLeft: 20 }}
-              onClick={() => {
-                console.log("Exit Sell Order");
-                sellOrder && exitTrade({ stock: props.stock, orders: [sellOrder] });
-              }}
-            >
-              Exit Sell
-            </Button>
-          </div>
-          <div // right side buttons
-            style={{
-              //backgroundColor: "red",
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Button
-              variant={isModified ? "success" : "outline-success"}
-              disabled={!isModified}
-              onClick={() => {
-                console.log("updating Order -- ", isOrderActive);
-                console.log("props", threshold, risk, exitDrop);
-                updateTrade({ stock: props.stock, threshold, risk: risk, exitDrop });
-                setIsModified(false);
-              }}
-            >
-              Update Order
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const MasterRow = (props: { children?: any }) => {
-  return <div className={styles.masterRow}>{props.children}</div>;
-};
-
-const ChildRow = (props: { children?: React.JSX.Element; heading: string; value?: string | number }) => {
-  return (
-    <div className={styles.childRow}>
-      <p className={styles.heading}>{props.heading}</p>
-      <div>{props.value != undefined ? <p className={styles.value}>{props.value}</p> : props.children}</div>
+      {props.stock.trade && <TradeDetails stock={props.stock} trade={props.stock.trade} />}
     </div>
   );
 };
