@@ -80,13 +80,14 @@ _api.interceptors.response.use(
   },
 );
 
-const api: { get: axiosApiRequest_t; post: axiosApiRequest_t; instance: AxiosInstance } = {
+const api: { get: axiosApiRequest_t; post: axiosApiRequest_t; auth: typeof authApi; instance: AxiosInstance } = {
   get: (type, path, body) => {
     return _api.post(path, { ...body, type });
   },
   post: (type, path, body) => {
     return _api.post(path, { ...body, type });
   },
+  auth: authApi,
   instance: _api,
 };
 

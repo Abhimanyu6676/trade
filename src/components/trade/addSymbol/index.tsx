@@ -9,11 +9,13 @@ import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
 import { getStockKeyId } from "../../../../../backend/src/util/helper";
 import * as styles from "./index.module.scss";
+//@ts-ignore
+import { ORDER_exchange } from "../../../../../backend/src/crud/order/order.d.ts";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
   const [selectedStock, setSelectedStock] = useState<searchSymbolResponseData_i>();
-  const [symbolExchange, setSymbolExchange] = useState<"NSE" | "BSE">("BSE");
+  const [symbolExchange, setSymbolExchange] = useState<ORDER_exchange>(ORDER_exchange.BSE);
   const [searchList, setSearchList] = useState<searchSymbolResponseData_i[]>([]);
 
   const searchSymbol = async () => {
@@ -21,7 +23,10 @@ export const AddSymbol = () => {
       console.log("Searching Symbol: ", symbol, " on ", symbolExchange);
       eventBus.emitEvent({
         type: "OPENALGO",
-        action: { type: "SEARCH_SYMBOL", data: { searchText: symbol, userId: store.getState().user?.user?.id ?? "" } },
+        action: {
+          type: "SEARCH_SYMBOL",
+          data: { symbol: symbol, exchange: symbolExchange, userId: store.getState().user?.user?.id ?? "" },
+        },
       });
     } else {
       console.log("Search Symbol cannot be empty");
@@ -61,7 +66,20 @@ export const AddSymbol = () => {
   };
 
   useEffect(() => {
-    return () => {};
+    eventBus.setEventListener("ADD_SYMBOL_COMP_OPENALGO_LISTENER", "OPENALGO", (props) => {
+      switch (props.type) {
+        case "SEARCH_SYMBOL_RESULTS":
+          setSearchList(props.data.searchResult.symbols);
+
+          break;
+
+        default:
+          break;
+      }
+    });
+    return () => {
+      eventBus.removeEventListener("ADD_SYMBOL_COMP_OPENALGO_LISTENER", "OPENALGO");
+    };
   }, []);
 
   return (
@@ -71,14 +89,14 @@ export const AddSymbol = () => {
           <DropdownButton variant="outline-secondary" title={symbolExchange} align="end">
             <Dropdown.Item
               onClick={() => {
-                setSymbolExchange("NSE");
+                setSymbolExchange(ORDER_exchange.NSE);
               }}
             >
               NSE
             </Dropdown.Item>
             <Dropdown.Item
               onClick={() => {
-                setSymbolExchange("BSE");
+                setSymbolExchange(ORDER_exchange.BSE);
               }}
             >
               BSE

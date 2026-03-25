@@ -12,7 +12,6 @@ import Alert from "../alert";
 
 export default function AuthUI(): JSX.Element {
   const [form, setForm] = useState<"register" | "login" | "forgot">("login");
-  const [theme, setTheme] = useState("dark");
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,14 +25,6 @@ export default function AuthUI(): JSX.Element {
     //defaultValues: { name: "abhimanyu", email: "iamlive247@gmail.com", password: "12345678" },
     //shouldUnregister: true,
   });
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
-
-  const toggleTheme = (): void => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
 
   const onSubmit = async (data: FormData): Promise<void> => {
     try {
@@ -71,10 +62,6 @@ export default function AuthUI(): JSX.Element {
   return (
     <div className={styles.auth_wrapper}>
       <div className={styles.auth_card}>
-        <button className={`btn btn-sm btn-secondary ${styles.theme_btn}`} onClick={toggleTheme}>
-          Toggle
-        </button>
-
         <AnimatePresence mode="wait">
           <motion.form
             key={form}

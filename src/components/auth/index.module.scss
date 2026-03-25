@@ -1,6 +1,7 @@
 .auth_wrapper {
   background: var(--primary-color-dark);
   display: flex;
+  height: 100vh;
   align-items: center;
   justify-content: center;
 }
@@ -13,18 +14,11 @@
   width: 100%;
   color: var(--text-color);
   position: relative;
-  margin-top: 10%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
 .auth_link {
   cursor: pointer;
-}
-
-.theme_btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
 }
 
 .password_field {

@@ -2,6 +2,7 @@ import { io, Socket } from "socket.io-client";
 import eventBus from "../../util/eventBus";
 import { getLocalData } from "../../util/localStorage";
 import { uuid_v4 } from "../../util/uuid";
+import api from "../../api/axios";
 
 class SocketService {
   public classID = uuid_v4();
@@ -84,20 +85,20 @@ class SocketService {
     if (typeof window !== "undefined") {
       console.log("socket status ", this.socket?.active);
       if (!error || error.message.includes("error")) {
-        if (!this.socket?.active)
-          setTimeout(() => {
-            if (this.socket) {
-              const token = getLocalData("accessToken");
-              if (token) {
-                this.socket.auth = { token: `Bearer ${token}` };
-                this.socket.io.opts.extraHeaders = {
-                  ...this.socket.io.opts.extraHeaders,
-                  authorization: `Bearer ${token}`,
-                };
-              }
+        if (!this.socket?.active) api.auth.refresh({});
+        setTimeout(() => {
+          if (this.socket) {
+            const token = getLocalData("accessToken");
+            if (token) {
+              this.socket.auth = { token: `Bearer ${token}` };
+              this.socket.io.opts.extraHeaders = {
+                ...this.socket.io.opts.extraHeaders,
+                authorization: `Bearer ${token}`,
+              };
             }
-            this.socket?.connect();
-          }, 3000);
+          }
+          this.socket?.connect();
+        }, 3000);
       }
     }
   }
