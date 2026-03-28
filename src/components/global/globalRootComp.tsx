@@ -8,6 +8,7 @@ import DataEventsListenerClass from "./dataEventsListener";
 // these imports are supposed to be imported at last
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/global.scss";
+import Alert from "../alert";
 //
 export const GlobalRootComp: React.FC<{ element: ReactNode }> = ({ element }) => {
   return (
@@ -29,6 +30,7 @@ const InitiateClasses = () => {
     if (isBrowser) {
       eventBus._constructor();
       DataEventsListenerClass._constructor();
+      Alert.initiate();
     }
   };
 
