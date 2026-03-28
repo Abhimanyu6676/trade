@@ -86,6 +86,7 @@ export const Block = (props: { stock: STOCK.all }) => {
   const ModifyTrade = () => {}; */
 
   const enterTrade = (props: any) => {};
+
   useEffect(() => {
     const ltpListenerIdRef = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
     eventBus.setEventListener(ltpListenerIdRef, "OPENALGO", async (action) => {
@@ -103,7 +104,7 @@ export const Block = (props: { stock: STOCK.all }) => {
     return () => {
       eventBus.removeEventListener(ltpListenerIdRef, "OPENALGO");
     };
-  }, [props.stock.keyId]);
+  }, [props.stock]);
 
   return (
     <div className="container foreground" style={{ borderRadius: 10, padding: 15, marginTop: 20 }}>

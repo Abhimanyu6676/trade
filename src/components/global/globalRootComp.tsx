@@ -5,6 +5,7 @@ import { SocketContainer } from "../../services/socket/socketContainer";
 import { NotificationContainer } from "../alert/notificationContainer";
 import { TabSync } from "../auth/TabSync";
 import DataEventsListenerClass from "./dataEventsListener";
+import CrudEventsListenerClass from "./crudEventsListener";
 // these imports are supposed to be imported at last
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/global.scss";
@@ -30,6 +31,7 @@ const InitiateClasses = () => {
     if (isBrowser) {
       eventBus._constructor();
       DataEventsListenerClass.initiate();
+      CrudEventsListenerClass.initiate();
       Alert.initiate();
     }
   };

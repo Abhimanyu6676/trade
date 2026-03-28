@@ -47,7 +47,7 @@ export const stocksSlice = createSlice({
      *
      * @returns void as mutation is handled by redux-toolkit
      */
-    _addUpdateStocks: (state, action: { payload: STOCK.all[]; type: string }) => {
+    _addUpdateStocks: (state, action: { type: string; payload: STOCK.all[] }) => {
       action.payload.map((stock) => {
         const index = state.stocksList.findIndex((s) => s.keyId === stock.keyId);
         if (index > -1) {
