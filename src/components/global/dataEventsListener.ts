@@ -3,7 +3,7 @@ import { stocksSagaAction } from "../../redux/saga/stocksSaga";
 import eventBus from "../../util/eventBus";
 
 class DataEventsListenerClass {
-  _constructor() {
+  initiate() {
     eventBus.setEventListener("DATA_EVENTS_LISTENER_FOR_DataEventsListenerClass", "DATA", async (action) => {
       switch (action.type) {
         case "STOCK_LIST":

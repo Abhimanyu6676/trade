@@ -29,7 +29,7 @@ const InitiateClasses = () => {
     const isBrowser = typeof window !== undefined;
     if (isBrowser) {
       eventBus._constructor();
-      DataEventsListenerClass._constructor();
+      DataEventsListenerClass.initiate();
       Alert.initiate();
     }
   };
