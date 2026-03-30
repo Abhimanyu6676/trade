@@ -5,6 +5,7 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import {
   ORDER_action,
+  ORDER_exchange,
   ORDER_priceType,
   ORDER_productType,
   ORDER_status,
@@ -85,7 +86,40 @@ export const Block = (props: { stock: STOCK.all }) => {
 
   const ModifyTrade = () => {}; */
 
-  const enterTrade = (props: any) => {};
+  const enterTrade = (props: any) => {
+    eventBus.emitEvent({
+      type: "TRADE",
+      action: {
+        type: "ENTER_TRADE",
+        data: {
+          userId: store.getState().user.user?.id ?? "",
+          trade: {
+            keyId: "",
+            symbol: "",
+            exchange: "",
+            orders: [
+              {
+                keyId: "",
+                apiKey: "",
+                orderId: "",
+                symbol: "",
+                exchange: ORDER_exchange.BSE,
+                action: ORDER_action.BUY,
+              },
+              {
+                keyId: "",
+                apiKey: "",
+                orderId: "",
+                symbol: "",
+                exchange: ORDER_exchange.BSE,
+                action: ORDER_action.BUY,
+              },
+            ],
+          },
+        },
+      },
+    });
+  };
 
   useEffect(() => {
     const ltpListenerIdRef = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
