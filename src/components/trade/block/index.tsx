@@ -16,6 +16,7 @@ import { logger } from "../../../util/logger";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as variables from "../../../styles/themeVariables.module.scss";
+import * as styles from "./index.module.scss";
 import { getStockKeyId, getSymbolKey } from "../../../../../backend/src/util/helper";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
