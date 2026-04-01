@@ -21,13 +21,14 @@ import { getStockKeyId, getSymbolKey } from "../../../../../backend/src/util/hel
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 export const Block = (props: { stock: STOCK.all }) => {
+  const ltpFieldId = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
+
   const buyOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
   const sellOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
 
-  const [ltp, setLtp] = useState(props.stock.ltp || 0);
-  const [ltpColor, setLtpColor] = useState("");
+  //const [ltp, setLtp] = useState(props.stock.ltp || 0);
+  //const [ltpColor, setLtpColor] = useState("");
   const [fieldsHidden, setFieldsHidden] = useState(!props.stock.trade);
-  const previousLtpRef = useRef(props.stock.ltp || 0);
 
   const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
   const [productType, setProductType] = useState<ORDER_productType>(buyOrder?.product || ORDER_productType.MIS);
@@ -123,7 +124,7 @@ export const Block = (props: { stock: STOCK.all }) => {
   };
 
   useEffect(() => {
-    const ltpListenerIdRef = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
+    const ltpListenerIdRef = ltpFieldId;
 
     eventBus.setEventListener(ltpListenerIdRef, "OPENALGO", async (action) => {
       switch (action.type) {
@@ -132,7 +133,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             if (
               props.stock.keyId.includes(getSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }))
             ) {
-              const LTP_FIELD = document.getElementById("LTP_FIELD");
+              const LTP_FIELD = document.getElementById(`ltpField-${props.stock.keyId}`);
               if (LTP_FIELD) {
                 const preValue = parseFloat(LTP_FIELD.innerText);
                 LTP_FIELD.innerText = action.data.ltp.toString();
@@ -212,7 +213,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             style={{ minWidth: 100 }}
           >
             <p style={{ margin: 0, padding: 0, fontSize: 12, color: variables.subtleText }}>LTP</p>
-            <h5 id="LTP_FIELD" /* style={{ color: ltpColor }} */>0</h5>
+            <h5 id={ltpFieldId} /* style={{ color: ltpColor }} */>0</h5>
           </div>
           <div // buy/sell status
             style={{
