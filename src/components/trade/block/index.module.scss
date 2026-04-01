@@ -1,0 +1,261 @@
+@use "sass:map";
+@use "../../../styles/theme.scss";
+
+// Variables
+$status-colors: (
+  active: #33eb45,
+  exited: #f83725,
+  inactive: #82829b,
+);
+$text-white: #fff;
+
+%reset-margin {
+  margin: 0;
+}
+
+%reset-padding {
+  padding: 0;
+}
+
+// Main container
+.container {
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 16px;
+
+  @media (min-width: 641px) {
+    padding: 15px;
+    margin-top: 20px;
+  }
+}
+
+// Layout sections
+.topSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  @media (min-width: 641px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  @media (min-width: 1024px) {
+    flex-wrap: nowrap;
+  }
+}
+
+.stockInfoGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  @media (min-width: 641px) {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+    flex-basis: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    flex-basis: auto;
+  }
+}
+
+.topInfoRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+
+  @media (min-width: 1024px) {
+    display: contents;
+    width: auto;
+  }
+}
+
+.bottomInfoRow {
+  display: none;
+
+  @media (min-width: 641px) {
+    display: contents;
+  }
+}
+
+// Info cards
+.infoCard {
+  display: flex;
+  flex-direction: column;
+  min-width: fit-content;
+
+  &.ltpCard {
+    align-items: flex-end;
+  }
+
+  @media (min-width: 641px) {
+    min-width: 100px;
+  }
+
+  @media (min-width: 769px) {
+    min-width: 120px;
+  }
+}
+
+.stockNameCard {
+  min-width: 150px;
+
+  @media (min-width: 641px) {
+    min-width: 180px;
+  }
+
+  @media (min-width: 769px) {
+    min-width: 200px;
+  }
+}
+
+.centerCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  @media (min-width: 641px) {
+    flex: unset;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+// Text styles
+.labelText {
+  @extend %reset-margin;
+  @extend %reset-padding;
+  font-size: 11px;
+  color: var(--subtle-text);
+
+  @media (min-width: 641px) {
+    font-size: 12px;
+  }
+}
+
+.valueText {
+  @extend %reset-margin;
+}
+
+.symbolText {
+  @extend %reset-margin;
+  @extend %reset-padding;
+}
+
+.symbolContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.exchangeBadge {
+  @extend %reset-margin;
+  font-size: 11px;
+  padding: 2px 5px;
+  border: 1px solid var(--highlighted-border);
+
+  @media (min-width: 641px) {
+    font-size: 12px;
+    padding: 0px 5px;
+  }
+}
+
+// Status badges
+.statusGroup {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-start;
+
+  @media (min-width: 641px) {
+    justify-content: center;
+    gap: 8px;
+  }
+}
+
+.statusBadge {
+  @extend %reset-margin;
+  padding: 3px 5px;
+  border-radius: 3px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  color: $text-white;
+  font-weight: bold;
+  font-size: 11px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: 641px) {
+    font-size: 12px;
+    padding: 4px 6px;
+    min-width: 28px;
+  }
+
+  &.active {
+    background-color: map.get($status-colors, active);
+  }
+
+  &.exited {
+    background-color: map.get($status-colors, exited);
+  }
+
+  &.inactive {
+    background-color: map.get($status-colors, inactive);
+  }
+}
+
+// Controls
+.actionsGroup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: flex-end;
+
+  @media (min-width: 641px) {
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  @media (min-width: 1024px) {
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
+.iconButton {
+  all: unset;
+  cursor: pointer;
+  border: 0px solid #aaaaaa;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px;
+
+  @media (min-width: 641px) {
+    width: 30px;
+    height: 30px;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

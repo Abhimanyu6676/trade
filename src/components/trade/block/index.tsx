@@ -15,7 +15,6 @@ import eventBus from "../../../util/eventBus";
 import { logger } from "../../../util/logger";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
-import * as variables from "../../../styles/themeVariables.module.scss";
 import * as styles from "./index.module.scss";
 import { getStockKeyId, getSymbolKey } from "../../../../../backend/src/util/helper";
 
@@ -164,121 +163,41 @@ export const Block = (props: { stock: STOCK.all }) => {
   }, [props.stock]);
 
   return (
-    <div className="container foreground" style={{ borderRadius: 10, padding: 15, marginTop: 20 }}>
-      <div // top buttons
-        style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
-      >
-        <div // Stock Name, Quantity and LTP Views
-          style={{ display: "flex", flexDirection: "row" }}
-        >
-          <div // stock name
-            style={{
-              //backgroundColor: "red"
-              minWidth: 200,
-            }}
-          >
-            <p className="subtle-text" style={{ margin: 0, padding: 0, fontSize: 12 }}>
-              Symbol Name
-            </p>
-            <div
-              style={{
-                //backgroundColor: "red",
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "flex-end",
-              }}
-            >
-              <h5 style={{ margin: 0, padding: 0 }}>{props.stock.symbol}</h5>
-              <p
-                //className="highlighted-border"
-                style={{
-                  fontSize: 12,
-                  margin: 0,
-                  marginLeft: 5,
-                  padding: "0px 5px",
-                  //border: "1px solid var(--text-color)",
-                  border: `1px solid ${variables.highlightedBorder}`,
-                }}
-              >
-                {props.stock.exchange}
-              </p>
+    <div className={`foreground ${styles.container}`}>
+      <div className={styles.topSection}>
+        <div className={styles.stockInfoGroup}>
+          <div className={styles.topInfoRow}>
+            <div className={`${styles.infoCard} ${styles.stockNameCard}`}>
+              <p className={`subtle-text ${styles.labelText}`}>Symbol Name</p>
+              <div className={styles.symbolContainer}>
+                <h5 className={styles.symbolText}>{props.stock.symbol}</h5>
+                <p className={styles.exchangeBadge}>{props.stock.exchange}</p>
+              </div>
             </div>
-          </div>
-          <div // buy sell quantity
-            style={{ minWidth: 100 }}
-          >
-            <p style={{ margin: 0, padding: 0, fontSize: 12, color: variables.subtleText }}>Quantity</p>
-            <h5>{`${buyOrder ? buyOrder.quantity : "--"} : ${sellOrder ? sellOrder.quantity : "--"}`}</h5>
-          </div>
-          <div // LTP
-            style={{ minWidth: 100 }}
-          >
-            <p style={{ margin: 0, padding: 0, fontSize: 12, color: variables.subtleText }}>LTP</p>
-            <h5 id={ltpFieldId} /* style={{ color: ltpColor }} */>0</h5>
-          </div>
-          <div // buy/sell status
-            style={{
-              //backgroundColor: "red",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor:
-                  buyOrder?.status == "ACTIVE" ? "#33EB45" : buyOrder?.status == "EXITED" ? "#F83725" : "#82829B",
-                padding: "0px 5px",
-                borderRadius: 3,
-                boxShadow: "2px 2px 5px rgba(0,0,0,0.3)",
-                color: "#fff",
-                fontWeight: "bold",
-              }}
-            >
-              B
+            <div className={`${styles.infoCard} ${styles.centerCard}`}>
+              <p className={`${styles.labelText}`}>Quantity</p>
+              <h5
+                className={styles.valueText}
+              >{`${buyOrder ? buyOrder.quantity : "--"} : ${sellOrder ? sellOrder.quantity : "--"}`}</h5>
             </div>
-            <div
-              style={{
-                backgroundColor:
-                  sellOrder?.status == "ACTIVE" ? "#33EB45" : sellOrder?.status == "EXITED" ? "#F83725" : "#82829B",
-                padding: "0px 5px",
-                borderRadius: 3,
-                boxShadow: "2px 2px 5px rgba(0,0,0,0.3)",
-                color: "#fff",
-                fontWeight: "bold",
-                marginLeft: 5,
-              }}
-            >
-              S
+            <div className={[styles.infoCard, styles.ltpCard].join(" ")}>
+              <p className={`${styles.labelText}`}>LTP</p>
+              <h5 id={ltpFieldId} className={styles.valueText}>
+                0
+              </h5>
             </div>
           </div>
         </div>
-        <div // Enter trade & trade priceType Button
-          style={{ display: "flex", flexDirection: "row" }}
-        >
-          <button // show hide field button
-            style={{
-              all: "unset",
-              cursor: "pointer",
-              border: "0px solid #aaaaaa",
-              width: 30,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginRight: 10,
-            }}
+        <div className={styles.actionsGroup}>
+          {/*  <button
+            className={styles.iconButton}
             onClick={() => {
               setFieldsHidden(!fieldsHidden);
             }}
           >
             {fieldsHidden ? <IoEyeOff size={22} color="#aaaaaa" /> : <IoEye size={22} color="#666666" />}
-          </button>
-          <DropdownButton //Product type selector
-            disabled={isOrderActive}
-            variant="outline-secondary"
-            title={priceType}
-          >
+          </button> */}
+          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={priceType}>
             <Dropdown.Item
               onClick={() => {
                 setPriceType(ORDER_priceType.MARKET);
@@ -311,12 +230,7 @@ export const Block = (props: { stock: STOCK.all }) => {
               SL-M
             </Dropdown.Item>
           </DropdownButton>
-          <DropdownButton // price type selector
-            disabled={isOrderActive}
-            variant="outline-secondary"
-            title={productType}
-            style={{ marginRight: 10 }}
-          >
+          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={productType}>
             <Dropdown.Item
               onClick={() => {
                 setProductType(ORDER_productType.MIS);
@@ -340,18 +254,10 @@ export const Block = (props: { stock: STOCK.all }) => {
               NRML
             </Dropdown.Item>
           </DropdownButton>
-          <Button // enterTrade button
-            style={{ marginRight: 10 }}
-            onClick={enterTrade}
-            disabled={isOrderActive}
-          >
+          <Button onClick={enterTrade} disabled={isOrderActive}>
             Enter Trade
           </Button>
-          <DropdownButton //delete symbol selector button
-            disabled={isOrderActive}
-            variant="outline-secondary"
-            title={""}
-          >
+          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={""}>
             <Dropdown.Item
               onClick={() => {
                 eventBus.emitEvent({
