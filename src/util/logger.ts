@@ -9,7 +9,7 @@ const customLevels = {
 const createLogger = () => {
   const printable = {
     eventBusTemplate: false, // don't delete/modify this as it is fixed for eventBusTemplate, which is also used by backend
-    test: true,
+    socketService: false,
   };
   const newCustomLevels = { ...customLevels, ...printable };
   const logger: Record<keyof typeof newCustomLevels, any> = {};
@@ -28,7 +28,7 @@ const createLogger = () => {
         });
         if (key in printable && !printable[key]) {
         } else {
-          console.log(`%c[${method.toUpperCase()}] ${string}`, customLevels[key]);
+          console.log(`%c(--)[${method.toUpperCase()}] ${string}`, customLevels[method]);
         }
       };
     }

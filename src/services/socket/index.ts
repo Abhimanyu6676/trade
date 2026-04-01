@@ -3,6 +3,7 @@ import eventBus from "../../util/eventBus";
 import { getLocalData } from "../../util/localStorage";
 import { uuid_v4 } from "../../util/uuid";
 import api from "../../api/axios";
+import { logger } from "../../util/logger";
 
 class SocketService {
   public classID = uuid_v4();
@@ -13,17 +14,17 @@ class SocketService {
   constructor() {
     this.emit = this.emit.bind(this);
     eventBus.setEmitter(this.emit);
-    console.log("\n\nsocket.io class initiated with classID :", this.classID);
+    logger.socketService("\n\nsocket.io class initiated with classID :", this.classID);
     eventBus.setEventListener("SOCKET_CLASS_AUTH_LISTENER", "AUTH", async (props) => {
       switch (props.type) {
         case "LOGIN":
-          console.log("This is socket class auth listener login event, user just logged in");
+          logger.socketService("This is socket class auth listener login event, user just logged in");
           this.connect();
 
           break;
 
         case "LOGOUT":
-          console.log("This is socket class auth listener login event, user just logged out");
+          logger.socketService("This is socket class auth listener login event, user just logged out");
           this.disconnect();
           break;
 
@@ -48,14 +49,14 @@ class SocketService {
   }
 
   private setupSocketEventsListeners() {
-    //console.log("setting socket event listeners");
+    //logger.socketService("setting socket event listeners");
     this.socket?.on("connect", () => {
-      console.log("Socket connected:", this.socket?.id);
+      logger.socketService("Socket connected:", this.socket?.id);
       this.socketConnected = true;
     });
 
     this.socket?.on("disconnect", () => {
-      console.log("Socket disconnected");
+      logger.socketService("Socket disconnected");
       this.socketConnected = false;
     });
 
@@ -66,7 +67,7 @@ class SocketService {
 
     // either by directly modifying the `auth` attribute
     this?.socket?.on("connect_error", (error) => {
-      console.log(
+      logger.socketService(
         "socket connect_error------------------------------------------------------------------------",
         error.message,
       );
@@ -79,7 +80,7 @@ class SocketService {
     this?.socket?.on(
       "socket reconnect_attempt------------------------------------------------------------------------",
       () => {
-        console.log("reconnect_attempt");
+        logger.socketService("reconnect_attempt");
         api.auth.refresh({});
         setTimeout(() => {
           this.connect;
@@ -88,15 +89,15 @@ class SocketService {
     );
 
     this.socket?.on("data", (event: _eventBusModals) => {
-      console.log("data from socket.io onData", event);
+      logger.socketService("data from socket.io onData", event);
       eventBus.emitEvent(event, false);
     });
   }
 
   private updateAuthToken() {
     if (typeof window !== "undefined") {
-      console.log("updating socket AuthToken");
-      console.log("socket status", this.socket?.active);
+      logger.socketService("updating socket AuthToken");
+      logger.socketService("socket status", this.socket?.active);
 
       if (this.socket) {
         const token = getLocalData("accessToken");
@@ -129,10 +130,10 @@ class SocketService {
 
   async emit(data: _eventBusModals) {
     if (this.socket) {
-      //console.log("sending command ", event);
+      //logger.socketService("sending command ", event);
       this.socket.emit("data", data);
     } else {
-      console.log("no socket available");
+      logger.socketService("no socket available");
     }
   }
 }

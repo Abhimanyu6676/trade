@@ -9,13 +9,14 @@ import {
   ORDER_priceType,
   ORDER_productType,
   ORDER_status,
-  //@ts-ignore
-} from "../../../../../backend/src/crud/order/order.d.ts";
+} from "../../../../../backend/src/crud/order/order.d";
 import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
+import { logger } from "../../../util/logger";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as variables from "../../../styles/themeVariables.module.scss";
+import { getStockKeyId, getSymbolKey } from "../../../../../backend/src/util/helper";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -123,10 +124,30 @@ export const Block = (props: { stock: STOCK.all }) => {
 
   useEffect(() => {
     const ltpListenerIdRef = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
+
     eventBus.setEventListener(ltpListenerIdRef, "OPENALGO", async (action) => {
       switch (action.type) {
         case "LTP":
           {
+            if (
+              props.stock.keyId.includes(getSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }))
+            ) {
+              const LTP_FIELD = document.getElementById("LTP_FIELD");
+              if (LTP_FIELD) {
+                const preValue = parseFloat(LTP_FIELD.innerText);
+                LTP_FIELD.innerText = action.data.ltp.toString();
+                if (action.data.ltp > preValue) {
+                  LTP_FIELD.style.color = "#00cc00";
+                } else if (action.data.ltp < preValue) {
+                  LTP_FIELD.style.color = "#aa0000";
+                }
+              }
+              /* setLtp((ltp) => {
+                if (action.data.ltp > ltp) setLtpColor("#00cc00");
+                else if (action.data.ltp < ltp) setLtpColor("#aa0000");
+                return action.data.ltp;
+              }); */
+            }
           }
           break;
 
@@ -191,7 +212,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             style={{ minWidth: 100 }}
           >
             <p style={{ margin: 0, padding: 0, fontSize: 12, color: variables.subtleText }}>LTP</p>
-            <h5 style={{ color: ltpColor }}>{ltp}</h5>
+            <h5 id="LTP_FIELD" /* style={{ color: ltpColor }} */>0</h5>
           </div>
           <div // buy/sell status
             style={{
@@ -332,7 +353,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             <Dropdown.Item
               onClick={() => {
                 eventBus.emitEvent({
-                  type: "OPENALGO",
+                  type: "CRUD",
                   action: {
                     type: "REMOVE_STOCK",
                     data: { stocks: [props.stock], userId: store.getState().user.user?.id ?? "" },

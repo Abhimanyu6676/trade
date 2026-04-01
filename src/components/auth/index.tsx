@@ -38,7 +38,7 @@ export default function AuthUI(): JSX.Element {
           successCb: (props) => {
             eventBus.emitEvent({
               type: "AUTH",
-              action: { type: "LOGIN", data: { ...props.user, userId: props.user.id } },
+              action: { type: "LOGIN", data: { user: props.user, userId: props.user.id } },
             });
             navigate("/", { replace: true, state: { from: location?.pathname ?? "/" } });
           },
