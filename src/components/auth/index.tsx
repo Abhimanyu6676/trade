@@ -22,7 +22,7 @@ export default function AuthUI(): JSX.Element {
     setError,
   } = useForm<FormData>({
     resolver: zodResolver,
-    //defaultValues: { name: "abhimanyu", email: "iamlive247@gmail.com", password: "12345678" },
+    defaultValues: { email: "iamlive247@gmail.com", password: "12345678" },
     //shouldUnregister: true,
   });
 
