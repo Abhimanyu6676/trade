@@ -7,7 +7,7 @@ import { logger } from "../../util/logger";
 
 class SocketService {
   public classID = uuid_v4();
-  private url = process.env.SOCKET_URL ? process.env.SOCKET_URL : "http://localhost:3000";
+  private url = process.env.BASE_URL;
   private socket: Socket | null = null;
   public socketConnected = false;
 
@@ -36,7 +36,7 @@ class SocketService {
 
   async initiate() {
     const token = await getLocalData("accessToken");
-    this.socket = io("http://localhost:3000", {
+    this.socket = io(this.url, {
       auth: { token: `Bearer ${token}` },
       extraHeaders: { authorization: `Bearer ${token}` },
       path: process.env.SOCKET_PATH,

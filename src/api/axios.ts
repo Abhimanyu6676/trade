@@ -6,7 +6,7 @@ import { storeLocalData } from "../util/localStorage";
 /**
  * Axios instance used across the application
  */
-const _api = axios.create({ baseURL: "http://localhost:3000/backend", withCredentials: true });
+const _api = axios.create({ baseURL: `${process.env.BASE_URL}/backend`, withCredentials: true });
 
 let refreshPromise: any = null;
 /**
