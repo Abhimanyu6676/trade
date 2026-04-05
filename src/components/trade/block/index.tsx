@@ -21,13 +21,11 @@ import { getStockKeyId, getSymbolKey } from "../../../../../backend/src/util/hel
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
 export const Block = (props: { stock: STOCK.all }) => {
-  const ltpFieldId = `TRADE_BLOCK_LTP_${props.stock.keyId}`;
+  const ltpFieldId = `ltp_${props.stock.keyId}`;
 
   const buyOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
   const sellOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
 
-  //const [ltp, setLtp] = useState(props.stock.ltp || 0);
-  //const [ltpColor, setLtpColor] = useState("");
   const [fieldsHidden, setFieldsHidden] = useState(!props.stock.trade);
 
   const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
@@ -36,57 +34,6 @@ export const Block = (props: { stock: STOCK.all }) => {
   const isBuyOrderActive = buyOrder && buyOrder?.status != ORDER_status.EXITED;
   const isSellOrderActive = sellOrder && sellOrder?.status != ORDER_status.EXITED;
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
-
-  /*  const enterTrade = async () => {
-    console.log("Entering trade");
-    let orderTemplate: Omit<Omit<enterTradeOrder_i, "action">, "apiKey"> = {
-      keyId: props.stock.keyId,
-      strategy: "nodeJS",
-      symbol: props.stock.symbol,
-      exchange: props.stock.exchange,
-      priceType: priceType,
-      product: productType,
-      quantity,
-      price: priceType == "LIMIT" ? orderPrice : ltp,
-      triggerPrice: 0,
-      disclosedQuantity: 0,
-      threshold,
-      risk: risk,
-      exitDrop,
-    };
-
-    const order1: enterTradeOrder_i = {
-      ...orderTemplate,
-      apiKey: process.env.client1ApiKey ? process.env.client1ApiKey : "",
-      action: "BUY",
-    };
-    const order2: enterTradeOrder_i = {
-      ...orderTemplate,
-      apiKey: process.env.client2ApiKey ? process.env.client2ApiKey : "",
-      action: "SELL",
-    };
-
-    socketService.sendOrderCmd({ cmd: "enterTrade", data: [order1, order2] });
-  };
-
-  const updateTrade = async (props: { stock: Stock_i; threshold: number; risk: number; exitDrop: number }) => {
-    if (isModified) {
-      console.log("order is modified send new values to backend");
-      socketService.sendOrderCmd({
-        cmd: "modifyTrade",
-        data: { keyId: props.stock.keyId, threshold: props.threshold, risk: props.risk, exitDrop: props.exitDrop },
-      });
-    }
-  };
-
-  const exitTrade = async (props: { stock: Stock_i; orders: Order_i[] }) => {
-    socketService.sendOrderCmd({
-      cmd: "exitTrade",
-      data: { keyId: props.stock.keyId, id: props.orders.map((o) => o.orderId) },
-    });
-  };
-
-  const ModifyTrade = () => {}; */
 
   const enterTrade = (props: any) => {
     eventBus.emitEvent({
@@ -124,7 +71,7 @@ export const Block = (props: { stock: STOCK.all }) => {
   };
 
   useEffect(() => {
-    const ltpListenerIdRef = ltpFieldId;
+    const ltpListenerIdRef = `tradeBlockHeader_openAlgoListener_${props.stock.keyId}`;
 
     eventBus.setEventListener(ltpListenerIdRef, "OPENALGO", async (action) => {
       switch (action.type) {
@@ -133,7 +80,7 @@ export const Block = (props: { stock: STOCK.all }) => {
             if (
               props.stock.keyId.includes(getSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }))
             ) {
-              const LTP_FIELD = document.getElementById(`ltpField-${props.stock.keyId}`);
+              const LTP_FIELD = document.getElementById(ltpFieldId);
               if (LTP_FIELD) {
                 const preValue = parseFloat(LTP_FIELD.innerText);
                 LTP_FIELD.innerText = action.data.ltp.toString();
@@ -143,11 +90,6 @@ export const Block = (props: { stock: STOCK.all }) => {
                   LTP_FIELD.style.color = "#aa0000";
                 }
               }
-              /* setLtp((ltp) => {
-                if (action.data.ltp > ltp) setLtpColor("#00cc00");
-                else if (action.data.ltp < ltp) setLtpColor("#aa0000");
-                return action.data.ltp;
-              }); */
             }
           }
           break;
@@ -189,14 +131,6 @@ export const Block = (props: { stock: STOCK.all }) => {
           </div>
         </div>
         <div className={styles.actionsGroup}>
-          {/*  <button
-            className={styles.iconButton}
-            onClick={() => {
-              setFieldsHidden(!fieldsHidden);
-            }}
-          >
-            {fieldsHidden ? <IoEyeOff size={22} color="#aaaaaa" /> : <IoEye size={22} color="#666666" />}
-          </button> */}
           <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={priceType}>
             <Dropdown.Item
               onClick={() => {
