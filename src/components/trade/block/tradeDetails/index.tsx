@@ -3,36 +3,44 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 //@ts-ignore
 import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order.d.ts";
+import { ORDER_defaults } from "../../../../../../backend/src/crud/order/order.index";
 import { decimal } from "../../../../../../backend/src/util/helper";
 import * as variables from "../../../../styles/themeVariables.module.scss";
 //
 import * as styles from "./index.module.scss";
 import { ThresholdView } from "./thresholdView";
 
-type Props = { stock: STOCK.all; trade: TRADE.all };
+type Props = {
+  stock: STOCK.all;
+  buyPriceFieldRef: React.RefObject<HTMLInputElement>;
+  sellPriceFieldRef: React.RefObject<HTMLInputElement>;
+  quantityFieldRef: React.RefObject<HTMLInputElement>;
+  thresholdFieldRef: React.RefObject<HTMLInputElement>;
+  riskFieldRef: React.RefObject<HTMLInputElement>;
+  exitDropFieldRef: React.RefObject<HTMLInputElement>;
+  exitProfitFieldRef: React.RefObject<HTMLInputElement>;
+  quantity: number;
+  threshold: number;
+  risk: number;
+  exitDrop: number;
+  exitProfit: number;
+  ltp: number;
+};
 
 export const TradeDetails = (props: Props) => {
-  const buyOrder = props.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
-  const sellOrder = props.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
-
-  const [ltp, setLtp] = useState(0);
+  const buyOrder = props.stock?.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
+  const sellOrder = props.stock?.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
 
   //Take average of both prices, sell and buy
-  const [orderPrice, setOrderPrice] = useState(
+  const orderPrice =
     buyOrder?.price && sellOrder?.price
       ? decimal((buyOrder.price + sellOrder.price) / 2)
       : buyOrder?.price
         ? buyOrder.price
         : sellOrder?.price
           ? sellOrder.price
-          : 1,
-  );
+          : 1;
 
-  const quantity = buyOrder?.quantity || 1;
-  const threshold = buyOrder?.threshold || 0.5;
-  const risk = buyOrder?.risk || 0.15;
-  const exitDrop = buyOrder?.exitDrop || 0.2;
-  const exitProfit = buyOrder?.exitProfit || 0.2;
   const [isModified, setIsModified] = useState(false);
 
   const isBuyOrderActive = buyOrder && buyOrder?.status != ORDER_status.EXITED;
@@ -43,39 +51,28 @@ export const TradeDetails = (props: Props) => {
 
   const buyPnl = decimal(
     buyOrder?.status == ORDER_status.ACTIVE
-      ? (ltp - buyOrder.price) * buyOrder.quantity
+      ? (props.ltp - buyOrder.price) * buyOrder.quantity
       : buyOrder?.status == ORDER_status.EXITED && buyOrder?.exitPrice
         ? (buyOrder.exitPrice - buyOrder.price) * buyOrder.quantity
         : 0,
   );
   const sellPnl = decimal(
     sellOrder?.status == ORDER_status.ACTIVE
-      ? (sellOrder.price - ltp) * sellOrder.quantity
+      ? (sellOrder.price - props.ltp) * sellOrder.quantity
       : sellOrder?.status == ORDER_status.EXITED && sellOrder?.exitPrice
         ? (sellOrder.price - sellOrder.exitPrice) * sellOrder.quantity
         : 0,
   );
   const pnl = decimal(buyPnl + sellPnl);
 
-  const quantityFieldRef = useRef<HTMLInputElement>(null);
-  const thresholdFieldRef = useRef<HTMLInputElement>(null);
-  const riskFieldRef = useRef<HTMLInputElement>(null);
-  const exitDropFieldRef = useRef<HTMLInputElement>(null);
-  const exitProfitFieldRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    if (quantityFieldRef.current) quantityFieldRef.current.value = quantity.toString();
-
-    if (thresholdFieldRef.current) thresholdFieldRef.current.value = threshold.toString();
-
-    if (riskFieldRef.current) riskFieldRef.current.value = risk.toString();
-
-    if (exitDropFieldRef.current) exitDropFieldRef.current.value = exitDrop.toString();
-
-    if (exitProfitFieldRef.current) exitProfitFieldRef.current.value = exitProfit.toString();
-
+    if (props.quantityFieldRef.current) props.quantityFieldRef.current.value = props.quantity.toString();
+    if (props.thresholdFieldRef.current) props.thresholdFieldRef.current.value = props.threshold.toString();
+    if (props.riskFieldRef.current) props.riskFieldRef.current.value = props.risk.toString();
+    if (props.exitDropFieldRef.current) props.exitDropFieldRef.current.value = props.exitDrop.toString();
+    if (props.exitProfitFieldRef.current) props.exitProfitFieldRef.current.value = props.exitProfit.toString();
     return () => {};
-  }, [threshold, risk, exitDrop, exitProfit]);
+  }, [props.stock]);
 
   const modifyTrade = (props: any) => {};
   const exitTrade = (props: any) => {};
@@ -92,24 +89,20 @@ export const TradeDetails = (props: Props) => {
         >
           <ChildRow heading="Buy Order Price">
             <Form.Control
+              ref={props.buyPriceFieldRef}
               className={styles.input}
               type="number"
               disabled={isBuyOrderActive}
-              value={buyOrder ? buyOrder.price : orderPrice}
-              onChange={(e) => {
-                setOrderPrice(parseFloat(e.target.value));
-              }}
+              defaultValue={buyOrder ? buyOrder.price : orderPrice}
             />
           </ChildRow>
           <ChildRow heading="Sell Order Price">
             <Form.Control
+              ref={props.sellPriceFieldRef}
               className={styles.input}
               type="number"
               disabled={isSellOrderActive}
-              value={sellOrder ? sellOrder.price : orderPrice}
-              onChange={(e) => {
-                setOrderPrice(parseFloat(e.target.value));
-              }}
+              defaultValue={sellOrder ? sellOrder.price : orderPrice}
             />
           </ChildRow>
         </MasterRow>
@@ -118,19 +111,19 @@ export const TradeDetails = (props: Props) => {
         >
           <ChildRow heading="Buy/Sell Order Quantity">
             <Form.Control
-              ref={quantityFieldRef}
+              ref={props.quantityFieldRef}
               className={styles.input}
               type="number"
               disabled={isOrderActive}
-              defaultValue={quantity}
+              defaultValue={props.quantity}
             />
           </ChildRow>
           <ChildRow heading="Threshold %">
             <Form.Control
-              ref={thresholdFieldRef}
+              ref={props.thresholdFieldRef}
               className={styles.input}
               type="number"
-              defaultValue={threshold}
+              defaultValue={props.threshold}
               onChange={modifyTrade}
             />
           </ChildRow>
@@ -140,39 +133,30 @@ export const TradeDetails = (props: Props) => {
         >
           <ChildRow heading="Risk %">
             <Form.Control
-              ref={riskFieldRef}
+              ref={props.riskFieldRef}
               className={styles.input}
               type="number"
-              defaultValue={risk}
+              defaultValue={props.risk}
               onChange={modifyTrade}
             />
           </ChildRow>
           <ChildRow heading="Exit on Drop %">
             <Form.Control
-              ref={exitDropFieldRef}
+              ref={props.exitDropFieldRef}
               className={styles.input}
               type="number"
-              defaultValue={exitDrop}
+              defaultValue={props.exitDrop}
               onChange={modifyTrade}
             />
           </ChildRow>
         </MasterRow>
 
-        {/*  <MasterRow // upper/lower threshold
-          >
-            <ChildRow heading="Upper Threshold" value={upperThreshold} />
-            <ChildRow heading="Lower Threshold" value={lowerThreshold} />
-          </MasterRow> */}
-
         <MasterRow // buy/sell prices for both orders
         >
-          <ChildRow
-            heading="Buy Order (Buy::Sell)"
-            value={`${buyOrder?.price ? buyOrder?.price : "N/A"} :: ${buyOrder?.exitPrice ? buyOrder?.exitPrice : "N/A"}`}
-          />
+          <ChildRow heading="Buy Order (Buy::Sell)" value={`${buyOrder?.price ?? 0} :: ${buyOrder?.exitPrice ?? 0}`} />
           <ChildRow
             heading="Sell Order (Buy::Sell)"
-            value={`${sellOrder?.price ? sellOrder?.price : "N/A"} :: ${sellOrder?.exitPrice ? sellOrder?.exitPrice : "N/A"}`}
+            value={`${sellOrder?.price ?? 0} :: ${sellOrder?.exitPrice ?? 0}`}
           />
         </MasterRow>
 
@@ -185,17 +169,27 @@ export const TradeDetails = (props: Props) => {
         <MasterRow // net PnL & %
         >
           <ChildRow heading="Net PnL" value={pnl} />
-          <ChildRow heading="PnL %" value={decimal(((pnl / orderPrice) * 100) / quantity) + "%"} />
+          <ChildRow heading="PnL %" value={decimal(((pnl / orderPrice) * 100) / props.quantity) + "%"} />
         </MasterRow>
 
-        <MasterRow // threshold graph view
-        >
-          <div style={{ display: "flex", flex: 1, padding: "5px 20px" }}>
-            {(true || buyOrder || sellOrder) &&
-              ThresholdView({ ltp, orderPrice, threshold, risk, exitDrop, exitProfit, isAnyOfOneOrderExited })}
-          </div>
-          <ChildRow heading="" />
-        </MasterRow>
+        {props.stock.trade && (
+          <MasterRow // threshold graph view
+          >
+            <div style={{ display: "flex", flex: 1, padding: "5px 20px" }}>
+              {(true || buyOrder || sellOrder) &&
+                ThresholdView({
+                  ltp: props.ltp,
+                  orderPrice,
+                  threshold: props.threshold,
+                  risk: props.risk,
+                  exitDrop: props.exitDrop,
+                  exitProfit: props.exitProfit,
+                  isAnyOfOneOrderExited,
+                })}
+            </div>
+            <ChildRow heading="" />
+          </MasterRow>
+        )}
       </div>
       <div // bottom Buttons
         style={{
@@ -263,8 +257,13 @@ export const TradeDetails = (props: Props) => {
             disabled={!isModified}
             onClick={() => {
               console.log("updating Order -- ", isOrderActive);
-              console.log("props", threshold, risk, exitDrop);
-              updateTradeOnServer({ stock: props.stock, threshold, risk: risk, exitDrop });
+              console.log("props", props.threshold, props.risk, props.exitDrop);
+              updateTradeOnServer({
+                stock: props.stock,
+                threshold: props.threshold,
+                risk: props.risk,
+                exitDrop: props.exitDrop,
+              });
               setIsModified(false);
             }}
           >

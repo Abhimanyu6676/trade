@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { axiosApiRequest_t } from "./axiosTypes";
 import { authApi } from "./auth";
 import { storeLocalData } from "../util/localStorage";
+import { _eventApi } from "./eventsApi";
 
 /**
  * Axios instance used across the application
@@ -80,7 +81,13 @@ _api.interceptors.response.use(
   },
 );
 
-const api: { get: axiosApiRequest_t; post: axiosApiRequest_t; auth: typeof authApi; instance: AxiosInstance } = {
+const api: {
+  get: axiosApiRequest_t;
+  post: axiosApiRequest_t;
+  auth: typeof authApi;
+  event: typeof _eventApi;
+  instance: AxiosInstance;
+} = {
   get: (type, path, body) => {
     return _api.post(path, { ...body, type });
   },
@@ -88,6 +95,7 @@ const api: { get: axiosApiRequest_t; post: axiosApiRequest_t; auth: typeof authA
     return _api.post(path, { ...body, type });
   },
   auth: authApi,
+  event: _eventApi,
   instance: _api,
 };
 
