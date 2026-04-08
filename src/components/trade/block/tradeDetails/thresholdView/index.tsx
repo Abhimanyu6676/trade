@@ -82,7 +82,7 @@ export const ThresholdView = ({
           {Array(thresholdViewSticksCount)
             .fill(0)
             .map((i, index) => {
-              return <div />;
+              return <div key={"bar" + index} />;
             })}
         </div>
         <div // threshold points container

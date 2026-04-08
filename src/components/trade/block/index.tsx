@@ -4,11 +4,12 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import {
   ORDER_action,
+  ORDER_defaults,
   ORDER_exchange,
   ORDER_priceType,
   ORDER_productType,
   ORDER_status,
-} from "../../../../../backend/src/crud/order/order.d";
+} from "../../../../../backend/src/crud/order/order.index";
 import { getSymbolKey } from "../../../../../backend/src/util/helper";
 import api from "../../../api/axios";
 import store from "../../../redux";
@@ -16,7 +17,6 @@ import eventBus from "../../../util/eventBus";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as styles from "./index.module.scss";
-import { ORDER_defaults } from "../../../../../backend/src/crud/order/order.index";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -50,6 +50,39 @@ export const Block = (props: { stock: STOCK.all }) => {
   const exitProfit = buyOrder?.exitProfit ?? ORDER_defaults.exitProfit;
 
   const enterTrade = () => {
+    let execute_buyOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.BUY } = {
+      keyId: props.stock.keyId,
+      apiKey: process.env.client1ApiKey ?? "",
+      strategy: ORDER_defaults.strategy,
+      symbol: props.stock.symbol,
+      exchange: ORDER_exchange.BSE,
+      quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
+      price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
+      priceType,
+      product: productType,
+      action: ORDER_action.BUY,
+      threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
+      risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
+      exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
+      exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
+    };
+
+    const execute_sellOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.SELL } = {
+      keyId: props.stock.keyId,
+      apiKey: process.env.client2ApiKey ?? "",
+      strategy: ORDER_defaults.strategy,
+      symbol: props.stock.symbol,
+      exchange: ORDER_exchange.BSE,
+      quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
+      price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
+      priceType,
+      product: productType,
+      action: ORDER_action.SELL,
+      threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
+      risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
+      exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
+      exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
+    };
     api.event({
       data: {
         event: {
@@ -68,38 +101,7 @@ export const Block = (props: { stock: STOCK.all }) => {
                 risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
                 exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
                 exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
-                orders: [
-                  {
-                    keyId: props.stock.keyId,
-                    apiKey: process.env.client1ApiKey ?? "",
-                    symbol: props.stock.symbol,
-                    exchange: ORDER_exchange.BSE,
-                    quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
-                    price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
-                    priceType,
-                    product: productType,
-                    action: ORDER_action.BUY,
-                    threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
-                    risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
-                    exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
-                    exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
-                  },
-                  {
-                    keyId: props.stock.keyId,
-                    apiKey: process.env.client2ApiKey ?? "",
-                    symbol: props.stock.symbol,
-                    exchange: ORDER_exchange.BSE,
-                    quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
-                    price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
-                    priceType,
-                    product: productType,
-                    action: ORDER_action.SELL,
-                    threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
-                    risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
-                    exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
-                    exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
-                  },
-                ],
+                orders: [execute_buyOrder, execute_sellOrder],
               },
             },
           },
@@ -154,9 +156,30 @@ export const Block = (props: { stock: STOCK.all }) => {
             </div>
             <div className={`${styles.infoCard} ${styles.centerCard}`}>
               <p className={`${styles.labelText}`}>Quantity</p>
-              <h5
+              <div
                 className={styles.valueText}
-              >{`${buyOrder ? buyOrder.quantity : "--"} : ${sellOrder ? sellOrder.quantity : "--"}`}</h5>
+                style={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+              >
+                <h5
+                  title={buyOrder?.status}
+                  style={{
+                    color:
+                      buyOrder?.status == "ACTIVE" ? "#00ff00" : buyOrder?.status == "EXITED" ? "#ff0000" : undefined,
+                  }}
+                >
+                  {buyOrder ? buyOrder.quantity : "--"}
+                </h5>
+                <h5 style={{ margin: "0px 5px" }}>:</h5>
+                <h5
+                  title={sellOrder?.status}
+                  style={{
+                    color:
+                      sellOrder?.status == "ACTIVE" ? "#00ff00" : sellOrder?.status == "EXITED" ? "#ff0000" : undefined,
+                  }}
+                >
+                  {sellOrder ? sellOrder.quantity : "--"}
+                </h5>
+              </div>
             </div>
             <div className={[styles.infoCard, styles.ltpCard].join(" ")}>
               <p className={`${styles.labelText}`}>LTP</p>
@@ -227,7 +250,7 @@ export const Block = (props: { stock: STOCK.all }) => {
           <Button onClick={enterTrade} disabled={isOrderActive}>
             Enter Trade
           </Button>
-          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={""}>
+          <DropdownButton variant="outline-secondary" title={""}>
             <Dropdown.Item
               onClick={() => {
                 setFieldsHidden(!fieldsHidden);
@@ -236,6 +259,7 @@ export const Block = (props: { stock: STOCK.all }) => {
               {fieldsHidden ? "EXPAND" : "COLLAPSE"}
             </Dropdown.Item>
             <Dropdown.Item
+              disabled={isOrderActive}
               style={{ color: "red" }}
               onClick={() => {
                 eventBus.emitEvent({

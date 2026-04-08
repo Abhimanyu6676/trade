@@ -9,14 +9,13 @@ import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
 import { getStockKeyId } from "../../../../../backend/src/util/helper";
 import * as styles from "./index.module.scss";
-//@ts-ignore
-import { ORDER_exchange } from "../../../../../backend/src/crud/order/order.d.ts";
+import { ORDER_exchange } from "../../../../../backend/src/crud/order/order.index";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");
-  const [selectedStock, setSelectedStock] = useState<searchSymbolResponseData_i>();
   const [symbolExchange, setSymbolExchange] = useState<ORDER_exchange>(ORDER_exchange.BSE);
-  const [searchList, setSearchList] = useState<searchSymbolResponseData_i[]>([]);
+  const [searchList, setSearchList] = useState<OPENALGO.search.searchSymbolData_t[]>([]);
+  const [selectedStock, setSelectedStock] = useState<OPENALGO.search.searchSymbolData_t>();
 
   const searchSymbol = async () => {
     if (symbol) {
@@ -36,7 +35,7 @@ export const AddSymbol = () => {
   const addSymbol = async () => {
     if (selectedStock && symbolExchange) {
       eventBus.emitEvent({
-        type: "OPENALGO",
+        type: "CRUD",
         action: {
           type: "ADD_STOCK",
           data: {
@@ -66,11 +65,10 @@ export const AddSymbol = () => {
   };
 
   useEffect(() => {
-    eventBus.setEventListener("ADD_SYMBOL_COMP_OPENALGO_LISTENER", "OPENALGO", (props) => {
+    eventBus.setEventListener("ADD_SYMBOL_COMP_OPENALGO_LISTENER", "OPENALGO", async (props) => {
       switch (props.type) {
         case "SEARCH_SYMBOL_RESULTS":
-          setSearchList(props.data.searchResult.symbols);
-
+          setSearchList(props.data.symbols);
           break;
 
         default:
@@ -130,8 +128,8 @@ export const AddSymbol = () => {
   );
 };
 const SymbolSelector = (props: {
-  searchList: searchSymbolResponseData_i[];
-  setSelectedStock: React.Dispatch<React.SetStateAction<searchSymbolResponseData_i | undefined>>;
+  searchList: OPENALGO.search.searchSymbolData_t[];
+  setSelectedStock: React.Dispatch<React.SetStateAction<OPENALGO.search.searchSymbolData_t | undefined>>;
   setSymbol: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);

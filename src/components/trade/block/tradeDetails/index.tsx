@@ -1,12 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-//@ts-ignore
-import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order.d.ts";
-import { ORDER_defaults } from "../../../../../../backend/src/crud/order/order.index";
+import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order.index";
 import { decimal } from "../../../../../../backend/src/util/helper";
+import store from "../../../../redux/index";
 import * as variables from "../../../../styles/themeVariables.module.scss";
-//
+import eventBus from "../../../../util/eventBus/index";
 import * as styles from "./index.module.scss";
 import { ThresholdView } from "./thresholdView";
 
@@ -215,8 +214,16 @@ export const TradeDetails = (props: Props) => {
             style={{}}
             onClick={() => {
               console.log("Exit Order");
-              buyOrder && exitTrade({ stock: props.stock, orders: [buyOrder] });
-              sellOrder && exitTrade({ stock: props.stock, orders: [sellOrder] });
+              const trade = props.stock?.trade;
+              if (trade?.id && trade.status == "ACTIVE" && trade.orders) {
+                eventBus.emitEvent({
+                  type: "TRADE",
+                  action: {
+                    type: "EXIT_TRADE",
+                    data: { userId: store.getState().user.user?.id ?? "", trade: { ...trade, orders: trade.orders } },
+                  },
+                });
+              }
             }}
           >
             Exit Trade
@@ -227,7 +234,15 @@ export const TradeDetails = (props: Props) => {
             style={{ marginLeft: 20 }}
             onClick={() => {
               console.log("Exit Buy Order");
-              buyOrder && exitTrade({ stock: props.stock, orders: [buyOrder] });
+              if (buyOrder?.id && buyOrder?.status != "EXITED") {
+                eventBus.emitEvent({
+                  type: "TRADE",
+                  action: {
+                    type: "EXIT_ORDER",
+                    data: { userId: store.getState().user.user?.id ?? "", order: buyOrder },
+                  },
+                });
+              }
             }}
           >
             Exit Buy
@@ -238,7 +253,15 @@ export const TradeDetails = (props: Props) => {
             style={{ marginLeft: 20 }}
             onClick={() => {
               console.log("Exit Sell Order");
-              sellOrder && exitTrade({ stock: props.stock, orders: [sellOrder] });
+              if (sellOrder?.id && sellOrder?.status != "EXITED") {
+                eventBus.emitEvent({
+                  type: "TRADE",
+                  action: {
+                    type: "EXIT_ORDER",
+                    data: { userId: store.getState().user.user?.id ?? "", order: sellOrder },
+                  },
+                });
+              }
             }}
           >
             Exit Sell
