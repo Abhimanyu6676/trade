@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order.index";
+import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order_constants";
 import { decimal } from "../../../../../../backend/src/util/helper";
 import store from "../../../../redux/index";
 import * as variables from "../../../../styles/themeVariables.module.scss";

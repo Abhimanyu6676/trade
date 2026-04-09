@@ -9,7 +9,7 @@ import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
 import { getStockKeyId } from "../../../../../backend/src/util/helper";
 import * as styles from "./index.module.scss";
-import { ORDER_exchange } from "../../../../../backend/src/crud/order/order.index";
+import { ORDER_exchange } from "../../../../../backend/src/crud/order/order_constants";
 
 export const AddSymbol = () => {
   const [symbol, setSymbol] = useState<string>("");

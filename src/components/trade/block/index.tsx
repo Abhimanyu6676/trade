@@ -9,7 +9,7 @@ import {
   ORDER_priceType,
   ORDER_productType,
   ORDER_status,
-} from "../../../../../backend/src/crud/order/order.index";
+} from "../../../../../backend/src/crud/order/order_constants";
 import { getSymbolKey } from "../../../../../backend/src/util/helper";
 import api from "../../../api/axios";
 import store from "../../../redux";
