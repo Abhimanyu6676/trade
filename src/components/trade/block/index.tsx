@@ -11,12 +11,13 @@ import {
   ORDER_status,
 } from "../../../../../backend/src/crud/order/order_constants";
 import { getSymbolKey } from "../../../../../backend/src/util/helper";
-import api from "../../../api/axios";
+import api from "../../../services/api/axios";
 import store from "../../../redux";
 import eventBus from "../../../util/eventBus";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as styles from "./index.module.scss";
+import { navigate } from "gatsby";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -44,10 +45,10 @@ export const Block = (props: { stock: STOCK.all }) => {
   const exitProfitFieldRef = useRef<HTMLInputElement>(null);
 
   const quantity = buyOrder?.quantity ?? ORDER_defaults.quantity;
-  const threshold = buyOrder?.threshold ?? ORDER_defaults.threshold;
-  const risk = buyOrder?.risk ?? ORDER_defaults.risk;
-  const exitDrop = buyOrder?.exitDrop ?? ORDER_defaults.exitDrop;
-  const exitProfit = buyOrder?.exitProfit ?? ORDER_defaults.exitProfit;
+  const threshold = props.stock.trade?.threshold ?? ORDER_defaults.threshold;
+  const risk = props.stock.trade?.risk ?? ORDER_defaults.risk;
+  const exitDrop = props.stock.trade?.exitDrop ?? ORDER_defaults.exitDrop;
+  const exitProfit = props.stock.trade?.exitProfit ?? ORDER_defaults.exitProfit;
 
   const enterTrade = () => {
     let execute_buyOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.BUY } = {
@@ -55,7 +56,7 @@ export const Block = (props: { stock: STOCK.all }) => {
       apiKey: process.env.client1ApiKey ?? "",
       strategy: ORDER_defaults.strategy,
       symbol: props.stock.symbol,
-      exchange: ORDER_exchange.BSE,
+      exchange: props.stock.exchange,
       quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
       price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
       priceType,
@@ -72,7 +73,7 @@ export const Block = (props: { stock: STOCK.all }) => {
       apiKey: process.env.client2ApiKey ?? "",
       strategy: ORDER_defaults.strategy,
       symbol: props.stock.symbol,
-      exchange: ORDER_exchange.BSE,
+      exchange: props.stock.exchange,
       quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
       price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
       priceType,
@@ -101,6 +102,7 @@ export const Block = (props: { stock: STOCK.all }) => {
                 risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
                 exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
                 exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
+                autoReEntry: true,
                 orders: [execute_buyOrder, execute_sellOrder],
               },
             },
@@ -257,6 +259,13 @@ export const Block = (props: { stock: STOCK.all }) => {
               }}
             >
               {fieldsHidden ? "EXPAND" : "COLLAPSE"}
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                navigate(`/stockDetails?keyId=${props.stock.keyId}`);
+              }}
+            >
+              TRADE DETAILS
             </Dropdown.Item>
             <Dropdown.Item
               disabled={isOrderActive}

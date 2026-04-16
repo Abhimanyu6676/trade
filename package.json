@@ -9,11 +9,11 @@
   ],
   "proxy": "https://mis.kotaksecurities.com",
   "scripts": {
+    "clean": "gatsby clean",
     "dev": "gatsby develop -p 4000 -H 0.0.0.0",
     "start": "gatsby develop -p 4000 -H 0.0.0.0",
-    "build": "gatsby build",
+    "build": "gatsby build && rm -rf /var/www/trading/html && mkdir -p /var/www/trading/html && sudo cp -rf public/* /var/www/trading/html/ && sudo chmod -R 755 /var/www/trading/html/",
     "serve": "gatsby serve -p 4000 -H 0.0.0.0",
-    "clean": "gatsby clean",
     "typecheck": "tsc --noEmit",
     "deploy": "gatsby build --prefix-paths && gh-pages -d public"
   },

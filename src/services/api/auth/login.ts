@@ -1,6 +1,6 @@
-import store from "../../redux";
-import { setAuthState } from "../../redux/authReducer";
-import { storeLocalData } from "../../util/localStorage";
+import store from "../../../redux";
+import { setAuthState } from "../../../redux/authReducer";
+import { storeLocalData } from "../../../util/localStorage";
 import api from "../axios";
 
 /**

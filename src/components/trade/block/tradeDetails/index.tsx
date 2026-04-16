@@ -155,7 +155,7 @@ export const TradeDetails = (props: Props) => {
           <ChildRow heading="Buy Order (Buy::Sell)" value={`${buyOrder?.price ?? 0} :: ${buyOrder?.exitPrice ?? 0}`} />
           <ChildRow
             heading="Sell Order (Buy::Sell)"
-            value={`${sellOrder?.price ?? 0} :: ${sellOrder?.exitPrice ?? 0}`}
+            value={`${sellOrder?.exitPrice ?? 0} :: ${sellOrder?.price ?? 0}`}
           />
         </MasterRow>
 

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { authApi } from "../../api/auth";
+import { authApi } from "../../services/api/auth";
 import * as styles from "./index.module.scss";
 import { FormData, zodResolver } from "./zodSchema";
 import { navigate } from "gatsby";

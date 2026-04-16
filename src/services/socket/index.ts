@@ -2,7 +2,7 @@ import { io, Socket } from "socket.io-client";
 import eventBus from "../../util/eventBus";
 import { getLocalData } from "../../util/localStorage";
 import { uuid_v4 } from "../../util/uuid";
-import api from "../../api/axios";
+import api from "../api/axios";
 import { logger } from "../../util/logger";
 
 class SocketService {

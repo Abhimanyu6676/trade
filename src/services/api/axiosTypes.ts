@@ -42,13 +42,13 @@ const apiRequest3 = <K extends AxiosRequestTypes>(
 // region [c6] usage with different methods
 const f = () => {
   const res1 = apiRequest1("logout", "/auth/logout", null);
-  const res11 = apiRequest1<"register">("register", "/auth/register", { name: "", email: "", password: "" });
+  const res11 = apiRequest1<"register">("register", "/auth/register", { username: "", email: "", password: "" });
 
   const res2 = apiRequest2("login", "/auth/login", { email: "", password: "" });
   const res22 = apiRequest2<"refreshToken">("refreshToken", "/auth/refresh", null);
 
   const res3 = apiRequest3<"logout">("/auth/logout", null);
-  const res33 = apiRequest3("/auth/register", { name: "", email: "", password: "" });
+  const res33 = apiRequest3("/auth/register", { username: "", email: "", password: "" });
 };
 //endregion
 

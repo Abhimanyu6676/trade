@@ -1,7 +1,7 @@
-import store from "../../redux";
-import { setAuthState } from "../../redux/authReducer";
-import eventBus from "../../util/eventBus";
-import { storeLocalData } from "../../util/localStorage";
+import store from "../../../redux";
+import { setAuthState } from "../../../redux/authReducer";
+import eventBus from "../../../util/eventBus";
+import { storeLocalData } from "../../../util/localStorage";
 import api from "../axios";
 import { _logout } from "./logout";
 

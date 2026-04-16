@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { authApi } from "../../api/auth";
+import { authApi } from "../../services/api/auth";
 import store from "../../redux";
 import { setAuthState } from "../../redux/authReducer";
 import { getLocalData } from "../../util/localStorage";
@@ -27,11 +27,7 @@ export const TabSync: React.FC = () => {
         const token = getLocalData("accessToken");
 
         if (!token) {
-          store.dispatch(
-            setAuthState({
-              user: null,
-            }),
-          );
+          store.dispatch(setAuthState({ user: null }));
         }
       }
     };

@@ -1,4 +1,4 @@
-import Alert from "../../components/alert";
+import Alert from "../../../components/alert";
 import api from "../axios";
 
 export const _register: (props: AxiosRequestBodyType<"register">) => Promise<RequestResponseType<"register">> = async (

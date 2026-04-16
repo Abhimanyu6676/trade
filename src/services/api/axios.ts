@@ -1,8 +1,9 @@
 import axios, { AxiosInstance } from "axios";
 import { axiosApiRequest_t } from "./axiosTypes";
 import { authApi } from "./auth";
-import { storeLocalData } from "../util/localStorage";
+import { storeLocalData } from "../../util/localStorage";
 import { _eventApi } from "./eventsApi";
+import { _dbApi } from "./db";
 
 /**
  * Axios instance used across the application
@@ -60,6 +61,7 @@ _api.interceptors.response.use(
         console.log(`${original.url} error.response`, error?.response);
         if (error.response?.data) {
           let errData: RequestResponseTypes = error.response?.data;
+          //@ts-ignore
           errData.error = { ...errData.error, statusCode: errData.error?.statusCode ?? error.status };
           throw errData;
         } else throw error?.response;
@@ -87,6 +89,7 @@ const api: {
   auth: typeof authApi;
   event: typeof _eventApi;
   instance: AxiosInstance;
+  db: typeof _dbApi;
 } = {
   get: (type, path, body) => {
     return _api.post(path, { ...body, type });
@@ -96,6 +99,7 @@ const api: {
   },
   auth: authApi,
   event: _eventApi,
+  db: _dbApi,
   instance: _api,
 };
 

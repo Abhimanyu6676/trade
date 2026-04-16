@@ -1,8 +1,8 @@
 import { navigate } from "gatsby";
-import store from "../../redux";
-import { setAuthState } from "../../redux/authReducer";
+import store from "../../../redux";
+import { setAuthState } from "../../../redux/authReducer";
 import api from "../axios";
-import eventBus from "../../util/eventBus";
+import eventBus from "../../../util/eventBus";
 
 const logoutSideEffect = async () => {
   console.log("executing logoutSideEffect");

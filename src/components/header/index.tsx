@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button, Dropdown } from "react-bootstrap";
 import { MdDarkMode, MdLightMode, MdAccountCircle } from "react-icons/md";
 import { useSelector } from "react-redux";
-import { authApi } from "../../api/auth";
+import { authApi } from "../../services/api/auth";
 import { RootState } from "../../redux";
 import { DefaultRootTheme, RootThemes_e, RootThemes_t } from "../../styles/theme";
 import * as styles from "./index.module.scss";
