@@ -11,18 +11,20 @@ import { ThresholdView } from "./thresholdView";
 
 type Props = {
   stock: STOCK.all;
-  buyPriceFieldRef: React.RefObject<HTMLInputElement>;
-  sellPriceFieldRef: React.RefObject<HTMLInputElement>;
+  priceFieldRef: React.RefObject<HTMLInputElement>;
   quantityFieldRef: React.RefObject<HTMLInputElement>;
   thresholdFieldRef: React.RefObject<HTMLInputElement>;
   riskFieldRef: React.RefObject<HTMLInputElement>;
   exitDropFieldRef: React.RefObject<HTMLInputElement>;
   exitProfitFieldRef: React.RefObject<HTMLInputElement>;
+  autoReEnterFieldRef: React.RefObject<HTMLInputElement>;
   quantity: number;
   threshold: number;
   risk: number;
   exitDrop: number;
   exitProfit: number;
+  autoReEnter: boolean;
+  setAutoReEnter: React.Dispatch<React.SetStateAction<boolean>>;
   ltp: number;
 };
 
@@ -84,31 +86,18 @@ export const TradeDetails = (props: Props) => {
       <div // data rows
         style={{ marginTop: 20, backgroundColor: variables.primaryColorDark, borderRadius: 5, padding: "10px 0px" }}
       >
-        <MasterRow // Buy/Sell order price
+        <MasterRow // order price & order quantity
         >
-          <ChildRow heading="Buy Order Price">
+          <ChildRow heading="Order Price">
             <Form.Control
-              ref={props.buyPriceFieldRef}
+              ref={props.priceFieldRef}
               className={styles.input}
               type="number"
               disabled={isBuyOrderActive}
               defaultValue={buyOrder ? buyOrder.price : orderPrice}
             />
           </ChildRow>
-          <ChildRow heading="Sell Order Price">
-            <Form.Control
-              ref={props.sellPriceFieldRef}
-              className={styles.input}
-              type="number"
-              disabled={isSellOrderActive}
-              defaultValue={sellOrder ? sellOrder.price : orderPrice}
-            />
-          </ChildRow>
-        </MasterRow>
-
-        <MasterRow // order quantity and threshold
-        >
-          <ChildRow heading="Buy/Sell Order Quantity">
+          <ChildRow heading="Order Quantity">
             <Form.Control
               ref={props.quantityFieldRef}
               className={styles.input}
@@ -117,6 +106,10 @@ export const TradeDetails = (props: Props) => {
               defaultValue={props.quantity}
             />
           </ChildRow>
+        </MasterRow>
+
+        <MasterRow // threshold & risk
+        >
           <ChildRow heading="Threshold %">
             <Form.Control
               ref={props.thresholdFieldRef}
@@ -126,10 +119,7 @@ export const TradeDetails = (props: Props) => {
               onChange={modifyTrade}
             />
           </ChildRow>
-        </MasterRow>
 
-        <MasterRow // risk and exitDrop fields
-        >
           <ChildRow heading="Risk %">
             <Form.Control
               ref={props.riskFieldRef}
@@ -139,12 +129,26 @@ export const TradeDetails = (props: Props) => {
               onChange={modifyTrade}
             />
           </ChildRow>
+        </MasterRow>
+
+        <MasterRow // exitDrop & exitProfit
+        >
           <ChildRow heading="Exit on Drop %">
             <Form.Control
               ref={props.exitDropFieldRef}
               className={styles.input}
               type="number"
               defaultValue={props.exitDrop}
+              onChange={modifyTrade}
+            />
+          </ChildRow>
+
+          <ChildRow heading="Exit on Profit %">
+            <Form.Control
+              ref={props.exitProfitFieldRef}
+              className={styles.input}
+              type="number"
+              defaultValue={props.exitProfit}
               onChange={modifyTrade}
             />
           </ChildRow>
@@ -169,6 +173,40 @@ export const TradeDetails = (props: Props) => {
         >
           <ChildRow heading="Net PnL" value={pnl} />
           <ChildRow heading="PnL %" value={decimal(((pnl / orderPrice) * 100) / props.quantity) + "%"} />
+        </MasterRow>
+
+        <MasterRow // net PnL & %
+        >
+          <ChildRow>
+            <Form>
+              <Form.Check
+                reverse
+                type="switch"
+                id="custom-switch"
+                label="Toggle Auto-Enter"
+                checked={props.autoReEnter}
+                onChange={(e) => {
+                  console.log("switch toggled", e.target.checked);
+                  if (props.stock.trade) {
+                    eventBus.emitEvent({
+                      type: "TRADE",
+                      action: {
+                        type: "MODIFY_TRADE",
+                        data: {
+                          tradeId: props.stock?.trade?.id ?? "",
+                          data: { autoReEntry: e.target.checked },
+                          userId: store.getState().user.user?.id ?? "",
+                        },
+                      },
+                    });
+                  } else {
+                    props.setAutoReEnter(e.target.checked);
+                  }
+                }}
+              />
+            </Form>
+          </ChildRow>
+          <ChildRow />
         </MasterRow>
 
         {props.stock.trade && (
@@ -302,10 +340,10 @@ const MasterRow = (props: { children?: any }) => {
   return <div className={styles.masterRow}>{props.children}</div>;
 };
 
-const ChildRow = (props: { children?: React.JSX.Element; heading: string; value?: string | number }) => {
+const ChildRow = (props: { children?: React.JSX.Element; heading?: string; value?: string | number }) => {
   return (
     <div className={styles.childRow}>
-      <p className={styles.heading}>{props.heading}</p>
+      {props.heading && <p className={styles.heading}>{props.heading}</p>}
       <div>{props.value != undefined ? <p className={styles.value}>{props.value}</p> : props.children}</div>
     </div>
   );

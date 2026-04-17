@@ -30,19 +30,21 @@ export const Block = (props: { stock: STOCK.all }) => {
 
   const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
   const [productType, setProductType] = useState<ORDER_productType>(buyOrder?.product || ORDER_productType.MIS);
+  const [strategy, setStrategy] = useState("DRFT_R");
+  const [autoReEnter, setAutoReEnter] = useState<boolean>(props.stock.trade?.autoReEntry ?? false);
 
   const isBuyOrderActive = buyOrder && buyOrder?.status != ORDER_status.EXITED;
   const isSellOrderActive = sellOrder && sellOrder?.status != ORDER_status.EXITED;
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
 
   const ltpFieldRef = useRef<HTMLInputElement>(null);
-  const buyPriceFieldRef = useRef<HTMLInputElement>(null);
-  const sellPriceFieldRef = useRef<HTMLInputElement>(null);
+  const priceFieldRef = useRef<HTMLInputElement>(null);
   const quantityFieldRef = useRef<HTMLInputElement>(null);
   const thresholdFieldRef = useRef<HTMLInputElement>(null);
   const riskFieldRef = useRef<HTMLInputElement>(null);
   const exitDropFieldRef = useRef<HTMLInputElement>(null);
   const exitProfitFieldRef = useRef<HTMLInputElement>(null);
+  const autoReEnterFieldRef = useRef<HTMLInputElement>(null);
 
   const quantity = buyOrder?.quantity ?? ORDER_defaults.quantity;
   const threshold = props.stock.trade?.threshold ?? ORDER_defaults.threshold;
@@ -51,21 +53,32 @@ export const Block = (props: { stock: STOCK.all }) => {
   const exitProfit = props.stock.trade?.exitProfit ?? ORDER_defaults.exitProfit;
 
   const enterTrade = () => {
+    console.log("checking auto re-entry value");
+  };
+
+  const _enterTrade = () => {
+    const _orderPrice = priceFieldRef.current ? parseFloat(priceFieldRef.current.value) : ORDER_defaults.price;
+    const _quantity = quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity;
+    const _threshold = thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold;
+    const _risk = riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk;
+    const _exitDrop = exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop;
+    const _exitProfit = exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit;
+
     let execute_buyOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.BUY } = {
       keyId: props.stock.keyId,
       apiKey: process.env.client1ApiKey ?? "",
       strategy: ORDER_defaults.strategy,
       symbol: props.stock.symbol,
       exchange: props.stock.exchange,
-      quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
-      price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
+      quantity: _quantity,
+      price: _orderPrice,
       priceType,
       product: productType,
       action: ORDER_action.BUY,
-      threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
-      risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
-      exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
-      exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
+      threshold: _threshold,
+      risk: _risk,
+      exitDrop: _exitDrop,
+      exitProfit: _exitProfit,
     };
 
     const execute_sellOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.SELL } = {
@@ -74,15 +87,15 @@ export const Block = (props: { stock: STOCK.all }) => {
       strategy: ORDER_defaults.strategy,
       symbol: props.stock.symbol,
       exchange: props.stock.exchange,
-      quantity: quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity,
-      price: buyPriceFieldRef.current ? parseFloat(buyPriceFieldRef.current.value) : ORDER_defaults.price,
+      quantity: _quantity,
+      price: _orderPrice,
       priceType,
       product: productType,
       action: ORDER_action.SELL,
-      threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
-      risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
-      exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
-      exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
+      threshold: _threshold,
+      risk: _risk,
+      exitDrop: _exitDrop,
+      exitProfit: _exitProfit,
     };
     api.event({
       data: {
@@ -98,11 +111,11 @@ export const Block = (props: { stock: STOCK.all }) => {
                 exchange: props.stock.exchange,
                 priceType,
                 product: productType,
-                threshold: thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold,
-                risk: riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk,
-                exitDrop: exitDropFieldRef.current ? parseFloat(exitDropFieldRef.current.value) : exitDrop,
-                exitProfit: exitProfitFieldRef.current ? parseFloat(exitProfitFieldRef.current.value) : exitProfit,
-                autoReEntry: true,
+                threshold: _threshold,
+                risk: _risk,
+                exitDrop: _exitDrop,
+                exitProfit: _exitProfit,
+                //autoReEntry: true,
                 orders: [execute_buyOrder, execute_sellOrder],
               },
             },
@@ -192,6 +205,29 @@ export const Block = (props: { stock: STOCK.all }) => {
           </div>
         </div>
         <div className={styles.actionsGroup}>
+          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={strategy}>
+            <Dropdown.Item
+              onClick={() => {
+                setStrategy("PAIR_T");
+              }}
+            >
+              PAIR
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setStrategy("DRFT_F");
+              }}
+            >
+              DRIFT
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                setStrategy("DRFT_R");
+              }}
+            >
+              DRIFT REVERSE
+            </Dropdown.Item>
+          </DropdownButton>
           <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={priceType}>
             <Dropdown.Item
               onClick={() => {
@@ -288,18 +324,20 @@ export const Block = (props: { stock: STOCK.all }) => {
       {!fieldsHidden && (
         <TradeDetails
           stock={props.stock}
-          buyPriceFieldRef={buyPriceFieldRef}
-          sellPriceFieldRef={sellPriceFieldRef}
+          priceFieldRef={priceFieldRef}
           quantityFieldRef={quantityFieldRef}
           thresholdFieldRef={thresholdFieldRef}
           riskFieldRef={riskFieldRef}
           exitDropFieldRef={exitDropFieldRef}
           exitProfitFieldRef={exitProfitFieldRef}
+          autoReEnterFieldRef={autoReEnterFieldRef}
           quantity={quantity}
           threshold={threshold}
           risk={risk}
           exitDrop={exitDrop}
           exitProfit={exitProfit}
+          autoReEnter={autoReEnter}
+          setAutoReEnter={setAutoReEnter}
           ltp={ltp}
         />
       )}

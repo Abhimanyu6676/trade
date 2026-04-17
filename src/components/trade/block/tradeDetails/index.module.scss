@@ -23,9 +23,13 @@
 
 .childRow {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex: 1;
-  justify-content: space-between;
-  align-items: center;
   padding: 5px 20px;
+
+  @media (min-width: 641px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
