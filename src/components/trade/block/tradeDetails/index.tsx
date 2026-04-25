@@ -8,6 +8,7 @@ import * as variables from "../../../../styles/themeVariables.module.scss";
 import eventBus from "../../../../util/eventBus/index";
 import * as styles from "./index.module.scss";
 import { ThresholdView } from "./thresholdView";
+import { TRADE_status } from "../../../../../../backend/src/crud/trade/trade_constants";
 
 type Props = {
   stock: STOCK.all;
@@ -49,6 +50,7 @@ export const TradeDetails = (props: Props) => {
   const isOrderActive = isBuyOrderActive || isSellOrderActive;
   const isAnyOfOneOrderExited =
     (buyOrder && buyOrder?.status == ORDER_status.EXITED) || (sellOrder && sellOrder?.status == ORDER_status.EXITED);
+  const isTradeActive = props.stock.trade?.status == TRADE_status.ACTIVE;
 
   const buyPnl = decimal(
     buyOrder?.status == ORDER_status.ACTIVE
@@ -75,9 +77,38 @@ export const TradeDetails = (props: Props) => {
     return () => {};
   }, [props.stock]);
 
-  const modifyTrade = (props: any) => {};
+  const modifyTrade = (props: any) => {
+    if (!isModified) {
+      setIsModified(true);
+    }
+  };
   const exitTrade = (props: any) => {};
-  const updateTradeOnServer = (props: any) => {};
+
+  const updateTradeOnServer = () => {
+    if (props.stock.trade && isModified && isTradeActive) {
+      eventBus.emitEvent({
+        type: "TRADE",
+        action: {
+          type: "MODIFY_TRADE",
+          data: {
+            userId: store.getState().user.user?.id ?? "",
+            tradeId: props.stock.trade?.id,
+            data: {
+              threshold: props.thresholdFieldRef.current
+                ? parseFloat(props.thresholdFieldRef.current?.value)
+                : undefined,
+              risk: props.riskFieldRef.current ? parseFloat(props.riskFieldRef.current.value) : undefined,
+              exitDrop: props.exitDropFieldRef.current ? parseFloat(props.exitDropFieldRef.current.value) : undefined,
+              exitProfit: props.exitProfitFieldRef.current
+                ? parseFloat(props.exitProfitFieldRef.current.value)
+                : undefined,
+            },
+          },
+        },
+      });
+      setIsModified(false);
+    }
+  };
 
   return (
     <div // input fields and bottom buttons container
@@ -93,7 +124,7 @@ export const TradeDetails = (props: Props) => {
               ref={props.priceFieldRef}
               className={styles.input}
               type="number"
-              disabled={isBuyOrderActive}
+              disabled={isTradeActive}
               defaultValue={buyOrder ? buyOrder.price : orderPrice}
             />
           </ChildRow>
@@ -102,7 +133,7 @@ export const TradeDetails = (props: Props) => {
               ref={props.quantityFieldRef}
               className={styles.input}
               type="number"
-              disabled={isOrderActive}
+              disabled={isTradeActive}
               defaultValue={props.quantity}
             />
           </ChildRow>
@@ -181,13 +212,15 @@ export const TradeDetails = (props: Props) => {
             <Form>
               <Form.Check
                 reverse
+                ref={props.autoReEnterFieldRef}
                 type="switch"
                 id="custom-switch"
                 label="Toggle Auto-Enter"
                 checked={props.autoReEnter}
                 onChange={(e) => {
                   console.log("switch toggled", e.target.checked);
-                  if (props.stock.trade) {
+                  props.setAutoReEnter(e.target.checked);
+                  if (props.stock.trade?.status == TRADE_status.ACTIVE) {
                     eventBus.emitEvent({
                       type: "TRADE",
                       action: {
@@ -200,7 +233,6 @@ export const TradeDetails = (props: Props) => {
                       },
                     });
                   } else {
-                    props.setAutoReEnter(e.target.checked);
                   }
                 }}
               />
@@ -247,8 +279,8 @@ export const TradeDetails = (props: Props) => {
           }}
         >
           <Button
-            variant={isOrderActive ? "danger" : "outline-danger"}
-            disabled={!isOrderActive}
+            variant={isTradeActive ? "danger" : "outline-danger"}
+            disabled={!isTradeActive}
             style={{}}
             onClick={() => {
               console.log("Exit Order");
@@ -315,17 +347,9 @@ export const TradeDetails = (props: Props) => {
         >
           <Button
             variant={isModified ? "success" : "outline-success"}
-            disabled={!isModified}
+            disabled={!isModified && isTradeActive}
             onClick={() => {
-              console.log("updating Order -- ", isOrderActive);
-              console.log("props", props.threshold, props.risk, props.exitDrop);
-              updateTradeOnServer({
-                stock: props.stock,
-                threshold: props.threshold,
-                risk: props.risk,
-                exitDrop: props.exitDrop,
-              });
-              setIsModified(false);
+              updateTradeOnServer();
             }}
           >
             Update Order

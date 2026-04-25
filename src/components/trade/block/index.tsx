@@ -1,3 +1,4 @@
+import { navigate } from "gatsby";
 import React, { useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -5,19 +6,19 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import {
   ORDER_action,
   ORDER_defaults,
-  ORDER_exchange,
   ORDER_priceType,
   ORDER_productType,
   ORDER_status,
+  ORDER_strategy,
 } from "../../../../../backend/src/crud/order/order_constants";
 import { getSymbolKey } from "../../../../../backend/src/util/helper";
-import api from "../../../services/api/axios";
 import store from "../../../redux";
+import api from "../../../services/api/axios";
 import eventBus from "../../../util/eventBus";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as styles from "./index.module.scss";
-import { navigate } from "gatsby";
+import { TRADE_status } from "../../../../../backend/src/crud/trade/trade_constants";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 
@@ -30,12 +31,10 @@ export const Block = (props: { stock: STOCK.all }) => {
 
   const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
   const [productType, setProductType] = useState<ORDER_productType>(buyOrder?.product || ORDER_productType.MIS);
-  const [strategy, setStrategy] = useState("DRFT_R");
+  const [strategy, setStrategy] = useState<ORDER_strategy>(ORDER_strategy.DRFT_R);
   const [autoReEnter, setAutoReEnter] = useState<boolean>(props.stock.trade?.autoReEntry ?? false);
 
-  const isBuyOrderActive = buyOrder && buyOrder?.status != ORDER_status.EXITED;
-  const isSellOrderActive = sellOrder && sellOrder?.status != ORDER_status.EXITED;
-  const isOrderActive = isBuyOrderActive || isSellOrderActive;
+  const isTradeActive = props.stock.trade?.status == TRADE_status.ACTIVE;
 
   const ltpFieldRef = useRef<HTMLInputElement>(null);
   const priceFieldRef = useRef<HTMLInputElement>(null);
@@ -53,11 +52,12 @@ export const Block = (props: { stock: STOCK.all }) => {
   const exitProfit = props.stock.trade?.exitProfit ?? ORDER_defaults.exitProfit;
 
   const enterTrade = () => {
-    console.log("checking auto re-entry value");
-  };
-
-  const _enterTrade = () => {
-    const _orderPrice = priceFieldRef.current ? parseFloat(priceFieldRef.current.value) : ORDER_defaults.price;
+    const _orderPrice =
+      priceType == ORDER_priceType.MARKET
+        ? 0
+        : priceFieldRef.current
+          ? parseFloat(priceFieldRef.current.value)
+          : ORDER_defaults.price;
     const _quantity = quantityFieldRef.current ? parseInt(quantityFieldRef.current.value) : quantity;
     const _threshold = thresholdFieldRef.current ? parseFloat(thresholdFieldRef.current?.value) : threshold;
     const _risk = riskFieldRef.current ? parseFloat(riskFieldRef.current.value) : risk;
@@ -67,7 +67,7 @@ export const Block = (props: { stock: STOCK.all }) => {
     let execute_buyOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.BUY } = {
       keyId: props.stock.keyId,
       apiKey: process.env.client1ApiKey ?? "",
-      strategy: ORDER_defaults.strategy,
+      strategy,
       symbol: props.stock.symbol,
       exchange: props.stock.exchange,
       quantity: _quantity,
@@ -84,7 +84,7 @@ export const Block = (props: { stock: STOCK.all }) => {
     const execute_sellOrder: Omit<ORDER.executeOrderFields, "action"> & { action: ORDER_action.SELL } = {
       keyId: props.stock.keyId,
       apiKey: process.env.client2ApiKey ?? "",
-      strategy: ORDER_defaults.strategy,
+      strategy,
       symbol: props.stock.symbol,
       exchange: props.stock.exchange,
       quantity: _quantity,
@@ -97,6 +97,7 @@ export const Block = (props: { stock: STOCK.all }) => {
       exitDrop: _exitDrop,
       exitProfit: _exitProfit,
     };
+
     api.event({
       data: {
         event: {
@@ -107,6 +108,7 @@ export const Block = (props: { stock: STOCK.all }) => {
               userId: store.getState().user.user?.id ?? "",
               trade: {
                 keyId: props.stock.keyId,
+                strategy,
                 symbol: props.stock.symbol,
                 exchange: props.stock.exchange,
                 priceType,
@@ -115,8 +117,8 @@ export const Block = (props: { stock: STOCK.all }) => {
                 risk: _risk,
                 exitDrop: _exitDrop,
                 exitProfit: _exitProfit,
-                //autoReEntry: true,
-                orders: [execute_buyOrder, execute_sellOrder],
+                autoReEntry: autoReEnter,
+                orders: strategy == ORDER_strategy.PAIR_T ? [execute_buyOrder, execute_sellOrder] : [],
               },
             },
           },
@@ -205,30 +207,30 @@ export const Block = (props: { stock: STOCK.all }) => {
           </div>
         </div>
         <div className={styles.actionsGroup}>
-          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={strategy}>
+          <DropdownButton disabled={isTradeActive} variant="outline-secondary" title={strategy}>
             <Dropdown.Item
               onClick={() => {
-                setStrategy("PAIR_T");
+                setStrategy(ORDER_strategy.PAIR_T);
               }}
             >
               PAIR
             </Dropdown.Item>
             <Dropdown.Item
               onClick={() => {
-                setStrategy("DRFT_F");
+                setStrategy(ORDER_strategy.DRFT_F);
               }}
             >
               DRIFT
             </Dropdown.Item>
             <Dropdown.Item
               onClick={() => {
-                setStrategy("DRFT_R");
+                setStrategy(ORDER_strategy.DRFT_R);
               }}
             >
               DRIFT REVERSE
             </Dropdown.Item>
           </DropdownButton>
-          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={priceType}>
+          <DropdownButton disabled={isTradeActive} variant="outline-secondary" title={priceType}>
             <Dropdown.Item
               onClick={() => {
                 setPriceType(ORDER_priceType.MARKET);
@@ -261,7 +263,7 @@ export const Block = (props: { stock: STOCK.all }) => {
               SL-M
             </Dropdown.Item>
           </DropdownButton>
-          <DropdownButton disabled={isOrderActive} variant="outline-secondary" title={productType}>
+          <DropdownButton disabled={isTradeActive} variant="outline-secondary" title={productType}>
             <Dropdown.Item
               onClick={() => {
                 setProductType(ORDER_productType.MIS);
@@ -285,7 +287,7 @@ export const Block = (props: { stock: STOCK.all }) => {
               NRML
             </Dropdown.Item>
           </DropdownButton>
-          <Button onClick={enterTrade} disabled={isOrderActive}>
+          <Button onClick={enterTrade} disabled={isTradeActive}>
             Enter Trade
           </Button>
           <DropdownButton variant="outline-secondary" title={""}>
@@ -304,7 +306,7 @@ export const Block = (props: { stock: STOCK.all }) => {
               TRADE DETAILS
             </Dropdown.Item>
             <Dropdown.Item
-              disabled={isOrderActive}
+              disabled={isTradeActive}
               style={{ color: "red" }}
               onClick={() => {
                 eventBus.emitEvent({
