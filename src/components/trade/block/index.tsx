@@ -111,6 +111,7 @@ export const Block = (props: { stock: STOCK.all }) => {
                 strategy,
                 symbol: props.stock.symbol,
                 exchange: props.stock.exchange,
+                quantity: _quantity,
                 priceType,
                 product: productType,
                 threshold: _threshold,
