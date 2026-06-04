@@ -128,7 +128,7 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
   /* const handleLogout = () => {
     console.log("sending test request");
     api.instance
-      .post("/backend/test")
+      .post("/tradeServer/test")
       .then((res) => res)
       .catch((err) => err);
   }; */

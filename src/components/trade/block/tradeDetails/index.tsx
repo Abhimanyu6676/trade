@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import { ORDER_action, ORDER_status } from "../../../../../../backend/src/crud/order/order_constants";
-import { decimal } from "../../../../../../backend/src/util/helper";
+import { ORDER_action, ORDER_status } from "../../../../../../tradeServer/src/crud/order/order_constants";
+import { decimal } from "../../../../../../tradeServer/src/util/helper";
 import store from "../../../../redux/index";
 import * as variables from "../../../../styles/themeVariables.module.scss";
 import eventBus from "../../../../util/eventBus/index";
 import * as styles from "./index.module.scss";
 import { ThresholdView } from "./thresholdView";
-import { TRADE_status } from "../../../../../../backend/src/crud/trade/trade_constants";
+import { TRADE_status } from "../../../../../../tradeServer/src/crud/trade/trade_constants";
 
 type Props = {
   stock: STOCK.all;

@@ -10,15 +10,15 @@ import {
   ORDER_productType,
   ORDER_status,
   ORDER_strategy,
-} from "../../../../../backend/src/crud/order/order_constants";
-import { getSymbolKey } from "../../../../../backend/src/util/helper";
+} from "../../../../../tradeServer/src/crud/order/order_constants";
+import { getSymbolKey } from "../../../../../tradeServer/src/util/helper";
 import store from "../../../redux";
 import api from "../../../services/api/axios";
 import eventBus from "../../../util/eventBus";
 import { TradeDetails } from "./tradeDetails";
 // theme modules are to be imported at last
 import * as styles from "./index.module.scss";
-import { TRADE_status } from "../../../../../backend/src/crud/trade/trade_constants";
+import { TRADE_status } from "../../../../../tradeServer/src/crud/trade/trade_constants";
 
 //TODO [ ] if order status is received as PLACED and is PENDING keep checking for orderStatus in loop for buy & sell both order
 

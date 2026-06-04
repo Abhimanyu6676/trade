@@ -130,5 +130,5 @@ User session continues silently
 
 - `eventBus` is created from a template and acts as the communication layer between classes, components and files. It can notify and publish events to subscribers. It also emits all the client events to server via websocket, and on server side, there is a server instance of eventBus that publish all server events to respective clients
 
-- eventBus events types are that are allowed are declared in `/Users/abhimanyu/Documents/trading/backend/src/util/eventBus/events.d.ts`.
-- all new eventTypes must be declared in `/Users/abhimanyu/Documents/trading/backend/src/util/eventBus/events.d.ts`
+- eventBus events types are that are allowed are declared in `/Users/abhimanyu/Documents/trading/tradeServer/src/util/eventBus/events.d.ts`.
+- all new eventTypes must be declared in `/Users/abhimanyu/Documents/trading/tradeServer/src/util/eventBus/events.d.ts`

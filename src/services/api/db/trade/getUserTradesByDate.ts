@@ -1,5 +1,5 @@
 import api from "../../axios";
-import { _queryUserTradesByDate_gql } from "../../../../../../backend/src/crud/trade/tradeGql";
+import { _queryUserTradesByDate_gql } from "../../../../../../tradeServer/src/crud/trade/tradeGql";
 
 const pad = (n: any) => n.toString().padStart(2, "0");
 

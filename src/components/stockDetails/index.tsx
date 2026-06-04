@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { decimal, getSymbolKeyFromKeyId } from "../../../../backend/src/util/helper";
+import { decimal, getSymbolKeyFromKeyId } from "../../../../tradeServer/src/util/helper";
 import { uuid_v4 } from "../../util/uuid";
 import * as themeVariables from "../../styles/themeVariables.module.scss";
 import Form from "react-bootstrap/Form";
-import { ORDER_action } from "../../../../backend/src/crud/order/order_constants";
+import { ORDER_action } from "../../../../tradeServer/src/crud/order/order_constants";
 import api from "../../services/api/axios";
 
 export const StockDetailsComp = () => {

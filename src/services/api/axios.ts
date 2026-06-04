@@ -8,7 +8,7 @@ import { _dbApi } from "./db";
 /**
  * Axios instance used across the application
  */
-const _api = axios.create({ baseURL: `${process.env.BASE_URL}/backend`, withCredentials: true });
+const _api = axios.create({ baseURL: `${process.env.BASE_URL}/tradeServer`, withCredentials: true });
 
 let refreshPromise: any = null;
 /**
