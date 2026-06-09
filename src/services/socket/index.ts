@@ -36,6 +36,7 @@ class SocketService {
 
   async initiate() {
     const token = await getLocalData("accessToken");
+    logger.socketService("Socket url::--", this.url);
     this.socket = io(this.url, {
       auth: { token: `Bearer ${token}` },
       extraHeaders: { authorization: `Bearer ${token}` },
