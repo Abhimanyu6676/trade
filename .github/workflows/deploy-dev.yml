@@ -1,0 +1,47 @@
+name: Deploy to dev VPS
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Execute remote SSH commands
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT || 22 }}
+          script: |
+            # Navigate to your project directory
+            cd ~/trading/trade
+            ls
+            
+            # Fetch latest changes and reset to origin/develop
+            git reset --hard HEAD
+            git fetch origin develop
+            git checkout develop
+            git pull origin develop
+            
+            # Load Node.js environment (uncomment/modify if using nvm)
+            # export NVM_DIR="$HOME/.nvm"
+            # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            
+            # Install dependencies and build
+            # npm ci # Don't use 'npm install' in CI/CD for best practice
+            
+            # Make the custom script executable and run it
+            # chmod +x ./scripts/start-dev.sh
+            # ./scripts/start-dev.sh
+
+            rm -rf /var/www/trade
+            mkdir /var/www/trade
+            echo "This is a single line of text." > /var/www/trade/index.html
