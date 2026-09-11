@@ -42,4 +42,4 @@ jobs:
             
             # Make the custom script executable and run it
             chmod +x ./scripts/deploy-dev.sh
-            ./scripts/deploy-dev.sh
+            sudo ./scripts/deploy-dev.sh
