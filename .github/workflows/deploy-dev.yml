@@ -35,8 +35,8 @@ jobs:
             
             # Load Node.js environment (uncomment/modify if using nvm)
             # export NVM_DIR="/home/ubuntu/.nvm" # absolute path fot aws Lightsail & EC2 instances
-            # export NVM_DIR="$HOME/.nvm"
-            # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             
             # Install dependencies and build
             npm ci # Don't use 'npm install' in CI/CD for best practice
