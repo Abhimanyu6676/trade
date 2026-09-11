@@ -11,6 +11,7 @@ rm -rf public
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
+echo "--$NVM_DIR--"
 npm run build
 
 echo "Copying build html output directory to '/var/www/trade'"
