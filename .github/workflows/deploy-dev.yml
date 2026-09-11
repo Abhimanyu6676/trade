@@ -23,8 +23,10 @@ jobs:
           script: |
             # Navigate to your project directory
             cd ~/trading/trade
+            echo "==========================================================================================="
             ls
-            
+            echo "==========================================================================================="
+
             # Fetch latest changes and reset to origin/develop
             git reset --hard HEAD
             git fetch origin develop
@@ -39,9 +41,5 @@ jobs:
             # npm ci # Don't use 'npm install' in CI/CD for best practice
             
             # Make the custom script executable and run it
-            # chmod +x ./scripts/start-dev.sh
-            # ./scripts/start-dev.sh
-
-            sudo rm -rf /var/www/trade
-            sudo mkdir /var/www/trade
-            sudo echo "This is a single line of text." > /var/www/trade/index.html
+            chmod +x ./scripts/deploy-dev.sh
+            ./scripts/deploy-dev.sh
