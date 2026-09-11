@@ -8,10 +8,9 @@ rm -rf /var/www/trade
 rm -rf public
 
 # Load Node.js environment (uncomment/modify if using nvm)
-export NVM_DIR="$HOME/.nvm"
+export NVM_DIR="/home/ubuntu/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-echo "--$NVM_DIR--"
 npm run build
 
 echo "Copying build html output directory to '/var/www/trade'"
