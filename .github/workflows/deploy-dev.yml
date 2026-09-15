@@ -18,7 +18,7 @@ jobs:
         with:
           repository: "Abhimanyu6676/tradeServer"
           ref: "develop" # <-- Forces checkout to the develop branch
-          token: ${{ secrets.YOUR_PERSONAL_ACCESS_TOKEN }} # Uncomment if tradeServer is private
+          token: ${{ secrets.DEPENDENT_REPO_PAT }} # Uncomment if tradeServer is private
           path: "tradeServer"
 
       # 2. Clone the CURRENT frontend repository into a sibling folder named 'trade'
