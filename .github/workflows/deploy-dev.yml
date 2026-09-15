@@ -1,4 +1,4 @@
-## this workflow builds the html inside action on github runner
+# This workflow builds the html inside action on github runner
 
 name: Deploy to dev VPS
 
@@ -12,48 +12,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Clone the DEPENDENT repository into a subfolder named 'other-repo'
+      # 1. Clone the DEPENDENT repository into a subfolder named 'tradeServer'
       - name: Checkout Dependent Repo
         uses: actions/checkout@v4
         with:
           repository: "Abhimanyu6676/tradeServer"
-          # If it's a private repo, you will need to add a Personal Access Token (PAT)
-          # token: ${{ secrets.YOUR_PERSONAL_ACCESS_TOKEN }} 
+          ref: "develop" # <-- Forces checkout to the develop branch
+          token: ${{ secrets.YOUR_PERSONAL_ACCESS_TOKEN }} # Uncomment if tradeServer is private
           path: "tradeServer"
 
-      # 2. Clone the CURRENT frontend repository into a sibling folder named 'frontend-repo'
+      # 2. Clone the CURRENT frontend repository into a sibling folder named 'trade'
       - name: Checkout Frontend Repo
         uses: actions/checkout@v4
         with:
+          ref: "develop" # <-- Forces checkout to the develop branch
           path: "trade"
 
+      # 3. Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: "npm"       # Caches npm dependencies to speed up subsequent builds
-          cache-dependency-path: "./trade/package-lock.json"
+          cache: "npm"       
+          cache-dependency-path: "./trade/package-lock.json" # Fixed the double quotes here
 
-      - name: Install Dependencies
-        run: npm ci
-
-      # 1. Build happens here on GitHub's powerful runner
+      # 4. Build happens here on GitHub's powerful runner
       - name: Build Frontend
         working-directory: "./trade"
-        #env:
-          # Cap memory if you are building directly on your 1GB Lightsail runner
-          # NODE_OPTIONS: "--max-old-space-size=768" 
         run: |
           npm ci
           npm run build
 
-      - name: Execute remote SSH commands
-        uses: appleboy/ssh-action@master
+      # 5. Securely upload the built files from GitHub to your Lightsail VPS
+      - name: Copy files via SCP to Lightsail
+        uses: appleboy/scp-action@v0.1.7 # Changed from ssh-action to scp-action to allow file transfers
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           port: ${{ secrets.DEV_PORT || 22 }}
-          source: "trade/public/*"
+          source: "trade/public/*" # Change 'public/*' to 'dist/*' or 'build/*' if your framework uses a different output folder
           target: "/var/www/trade"
-          strip_components: 1 # Moves contents of frontend-repo directly into target
+          strip_components: 2 # Strips 'trade/' and 'public/' so only the raw contents inside public go into /var/www/trade
