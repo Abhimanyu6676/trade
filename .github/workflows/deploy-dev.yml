@@ -72,5 +72,23 @@ jobs:
           key: ${{ secrets.DEV_SSH_KEY }}
           port: ${{ secrets.DEV_PORT || 22 }}
           source: "trade/public/*" # Change 'public/*' to 'dist/*' or 'build/*' if your framework uses a different output folder
-          target: "/var/www/trade"
+          target: "~/trade-temp"
           strip_components: 2 # Strips 'trade/' and 'public/' so only the raw contents inside public go into /var/www/trade
+
+      # 8. Move files to /var/www using sudo permissions on the server
+      - name: Move files to Web Directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT || 22 }}
+          script: |
+            # Create the folder with sudo if it doesn't exist
+            sudo mkdir -p /var/www/trade
+            # Clear out old files
+            sudo rm -rf /var/www/trade/*
+            # Move the new files in
+            sudo cp -r ~/trade-temp/* /var/www/trade/
+            # Clean up the temp folder
+            rm -rf ~/trade-temp
