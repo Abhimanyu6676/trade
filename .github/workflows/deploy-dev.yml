@@ -40,7 +40,7 @@ jobs:
       # 1. Build happens here on GitHub's powerful runner
       - name: Build Frontend
         working-directory: "./trade"
-        env:
+        #env:
           # Cap memory if you are building directly on your 1GB Lightsail runner
           # NODE_OPTIONS: "--max-old-space-size=768" 
         run: |
