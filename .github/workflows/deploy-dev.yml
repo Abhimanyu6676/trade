@@ -12,21 +12,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      # 1. Clone the DEPENDENT repository into a subfolder named 'other-repo'
+      - name: Checkout Dependent Repo
         uses: actions/checkout@v4
+        with:
+          repository: 'Abhimanyu6676/tradeServer'
+          # If it's a private repo, you will need to add a Personal Access Token (PAT)
+          # token: ${{ secrets.YOUR_PERSONAL_ACCESS_TOKEN }} 
+          path: 'tradeServer'
 
+      # 2. Clone the CURRENT frontend repository into a sibling folder named 'frontend-repo'
+      - name: Checkout Frontend Repo
+        uses: actions/checkout@v4
+        with:
+          path: 'trade'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'npm'       # Caches npm dependencies to speed up subsequent builds
+          cache-dependency-path: './trade/package-lock.json'
 
       - name: Install Dependencies
         run: npm ci
 
       # 1. Build happens here on GitHub's powerful runner
       - name: Build Frontend
-        run: npm run build 
+        working-directory: ./trade
+        env:
+          # Cap memory if you are building directly on your 1GB Lightsail runner
+          # NODE_OPTIONS: "--max-old-space-size=768" 
+        run: |
+          npm ci
+          npm run build
 
       - name: Execute remote SSH commands
         uses: appleboy/ssh-action@master
@@ -35,5 +54,6 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           port: ${{ secrets.DEV_PORT || 22 }}
-          source: "public/*"
+          source: "trade/public/*"
           target: "/var/www/trade"
+          strip_components: 1 # Moves contents of frontend-repo directly into target
