@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"       # Caches npm dependencies to speed up subsequent builds
-          cache-dependency-path: ""./trade/package-lock.json"
+          cache-dependency-path: "./trade/package-lock.json"
 
       - name: Install Dependencies
         run: npm ci
