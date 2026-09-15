@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { decimal, getSymbolKeyFromKeyId } from "../../../../tradeServer/src/util/helper";
+import { decimal, parseSymbolKey } from "../../../../tradeServer/src/util/helper";
 import { uuid_v4 } from "../../util/uuid";
 import * as themeVariables from "../../styles/themeVariables.module.scss";
 import Form from "react-bootstrap/Form";
@@ -51,7 +51,7 @@ export const StockDetailsComp = () => {
             }}
           >
             <div style={{ display: "flex", flexDirection: "row", gap: 30 }}>
-              <OrderDetailBlock subText="Stock Name" heading={getSymbolKeyFromKeyId({ keyId: keyId })} />
+              <OrderDetailBlock subText="Stock Name" heading={parseSymbolKey({ stockKey: keyId })} />
               <OrderDetailBlock
                 subText="Total Pnl"
                 heading={(() => {
