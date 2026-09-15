@@ -33,17 +33,37 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: "npm"       
-          cache-dependency-path: "./trade/package-lock.json" # Fixed the double quotes here
+          # cache: "npm"       
+          # cache-dependency-path: "./trade/package-lock.json" # Fixed the double quotes here
 
-      # 4. Build happens here on GitHub's powerful runner
+      # 4. Cache npm global cache for both repositories
+      - name: Cache Node Modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          # The cache key changes whenever either package-lock.json is altered
+          key: ${{ runner.os }}-node-${{ hashFiles('trade/package-lock.json', 'tradeServer/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 5. Install dependencies for the DEPENDENT repository
+      - name: Install Dependent Repo Dependencies
+        working-directory: "./tradeServer"
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      # 6. Build happens here on GitHub's powerful runner
       - name: Build Frontend
         working-directory: "./trade"
         run: |
           npm ci
           npm run build
 
-      # 5. Securely upload the built files from GitHub to your Lightsail VPS
+      # 7. Securely upload the built files from GitHub to your Lightsail VPS
       - name: Copy files via SCP to Lightsail
         uses: appleboy/scp-action@v0.1.7 # Changed from ssh-action to scp-action to allow file transfers
         with:
