@@ -17,7 +17,7 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 
     rm -rf public
 
-    #npm run build
+    npm run build
 
 
 else
