@@ -11,7 +11,7 @@ import {
   ORDER_status,
   ORDER_strategy,
 } from "../../../../../tradeServer/src/crud/order/order_constants";
-import { getSymbolKey } from "../../../../../tradeServer/src/util/helper";
+import { generateSymbolKey } from "../../../../../tradeServer/src/util/helper";
 import store from "../../../redux";
 import api from "../../../services/api/axios";
 import eventBus from "../../../util/eventBus";
@@ -136,7 +136,7 @@ export const Block = (props: { stock: STOCK.all }) => {
         case "LTP":
           {
             if (
-              props.stock.keyId.includes(getSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }))
+              props.stock.keyId.includes(generateSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }))
             ) {
               setLtp((preLtp) => {
                 if (action.data.ltp > preLtp) {
