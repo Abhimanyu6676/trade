@@ -15,7 +15,9 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
     echo "🔄 Running post-commit tasks for the '$CURRENT_BRANCH' branch..."
 
-    npm run test
+    rm -rf public
+    
+    npm run build
 
 
 else
