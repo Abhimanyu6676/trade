@@ -5,10 +5,10 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 
 {
-        echo "🔄 Running background tasks for develop..."
-        # Your long-running command here
+    echo "🔄 Running background tasks for develop..."
+    # Your long-running command here
 
-    } > /root/trading/trade/.git/post_commit.log 2>&1 & 
+} > /root/trading/trade/.git/post_commit.log 2>&1 & 
 
 
 # Check if the current branch is 'develop'
