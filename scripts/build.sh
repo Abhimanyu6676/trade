@@ -19,6 +19,8 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 
     npm run build
 
+    cp -r public/* /var/www/trade/
+
 
 else
 
