@@ -13,7 +13,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Check if the current branch is 'develop'
 if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
-    echo "🔄 Running post-commit tasks for the 'develop' branch..."
+    echo "🔄 Running post-commit tasks for the $CURRENT_BRANCH branch..."
 
 
 else
