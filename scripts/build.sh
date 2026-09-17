@@ -4,22 +4,21 @@
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 
-{
-    echo "🔄 Running background tasks for develop..."
-    # Your long-running command here
-
-} # > /root/trading/trade/.git/post_commit.log 2>&1 & 
+#{
+#    echo "🔄 Running background tasks for develop..."
+#    # Your long-running command here
+#
+#} > /root/trading/trade/.git/post_commit.log 2>&1 & 
 
 
 # Check if the current branch is 'develop'
-if [ "$CURRENT_BRANCH" = "develop" ]; then
+if [ "$CURRENT_BRANCH" in feature/*|hotfix/* ]; then
     echo "🔄 Running post-commit tasks for the 'develop' branch..."
 
 
 else
 
-    echo "This hook is meant to run on develop branch only.."
-    echo "CURRENT BRANCH:- $CURRENT_BRANCH"
+    echo "This hook is meant to run on develop branch only. CURRENT BRANCH:- $CURRENT_BRANCH"
     # Quietly exit if it's any other branch
     exit 0
 fi
