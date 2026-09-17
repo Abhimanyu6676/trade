@@ -14,7 +14,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 # Check if the current branch is 'develop'
 if [ "$CURRENT_BRANCH" = "develop" ]; then
     echo "🔄 Running post-commit tasks for the 'develop' branch..."
-    
+
 
 else
 
