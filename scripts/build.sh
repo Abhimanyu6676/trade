@@ -21,6 +21,6 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 else
 
     echo "This hook is meant to run on develop branch only. CURRENT BRANCH:- $CURRENT_BRANCH"
-    # Quietly exit if it's any other branch..
+    # Quietly exit if it's any other branch
     exit 0
 fi
