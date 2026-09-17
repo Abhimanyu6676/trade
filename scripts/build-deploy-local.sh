@@ -51,6 +51,8 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 
     cp -r public /var/www/trade
 
+    echo "Local Deployment completed successfully."
+
 
 else
 
