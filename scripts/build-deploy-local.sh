@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## paste & uncomment the follwing script in the post-commit 
+## hook inside .git/hooks/post-commit and make it executable.
 
 ########################################################
 ########################################################
@@ -7,8 +9,6 @@
 ########################################################
 ########################################################
 ########################################################
-
-## past the follwing script in the post-commit hook inside .git/hooks/post-commit and make it executable.
 
 ###     #!/bin/bash
 ###
