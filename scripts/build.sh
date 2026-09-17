@@ -16,7 +16,6 @@ if [ "$CURRENT_BRANCH" = "develop" ]; then
     echo "🔄 Running post-commit tasks for the 'develop' branch..."
     
 
-
 else
 
     echo "This hook is meant to run on develop branch only."
