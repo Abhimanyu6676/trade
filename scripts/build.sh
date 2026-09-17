@@ -17,8 +17,6 @@ if [ "$CURRENT_BRANCH" = "develop" ]; then
     
 
 
-
-    
 else
 
     echo "This hook is meant to run on develop branch only."
