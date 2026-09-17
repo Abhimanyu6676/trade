@@ -16,8 +16,8 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
     echo "🔄 Running post-commit tasks for the '$CURRENT_BRANCH' branch..."
 
     rm -rf public
-    
-    npm run build
+
+    #npm run build
 
 
 else
