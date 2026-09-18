@@ -53,6 +53,8 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 
     echo "Local Deployment completed successfully."
 
+    echo "Local Development Build deployed at $(date)"
+
 
 else
 
