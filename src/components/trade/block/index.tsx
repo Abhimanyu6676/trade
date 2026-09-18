@@ -26,7 +26,7 @@ export const Block = (props: { stock: STOCK.all }) => {
   const buyOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
   const sellOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
 
-  const [ltp, setLtp] = useState<{ ltp: number; timestamp: string }>({ ltp: 0, timestamp: "0" });
+  const [ltp, setLtp] = useState<{ ltp: number; timestamp: string }>({ ltp: 0, timestamp: "" });
   const [fieldsHidden, setFieldsHidden] = useState(props.stock?.trade == undefined);
 
   const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
