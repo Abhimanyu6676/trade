@@ -204,9 +204,11 @@ export const Block = (props: { stock: STOCK.all }) => {
             <div className={[styles.infoCard, styles.ltpCard].join(" ")}>
               <p style={{ display: "flex", flexDirection: "row", alignItems: "flex-end" }}>
                 <p className={`${styles.labelText}`}>LTP</p>
-                <div style={{ width: 30, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
-                  <p style={{ fontSize: 10, color: "#999" }}>{Date.now() - Number(ltp.timestamp)}ms</p>
-                </div>
+                {ltp.timestamp && (
+                  <div style={{ width: 30, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
+                    <p style={{ fontSize: 10, color: "#999" }}>{Number(ltp.timestamp) - Date.now()}ms</p>
+                  </div>
+                )}
               </p>
               <h5 ref={ltpFieldRef} className={styles.valueText}>
                 {ltp.ltp}
