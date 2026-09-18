@@ -47,6 +47,8 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 
     rm -rf public
 
+    npm run clean
+
     npm run build
 
     cp -r public /var/www/trade
