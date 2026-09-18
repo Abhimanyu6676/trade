@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-          # cache: "npm"       
+          # cache: "npm"
           # cache-dependency-path: "./trade/package-lock.json" # Fixed the double quotes here
 
       # 4. Cache npm global cache for both repositories
@@ -84,10 +84,10 @@ jobs:
           key: ${{ secrets.DEV_SSH_KEY }}
           port: ${{ secrets.DEV_PORT || 22 }}
           script: |
+            # Clear out old files
+            sudo rm -rf /var/www/trade
             # Create the folder with sudo if it doesn't exist
             sudo mkdir -p /var/www/trade
-            # Clear out old files
-            sudo rm -rf /var/www/trade/*
             # Move the new files in
             sudo cp -r ~/trade-temp/* /var/www/trade/
             # Clean up the temp folder
