@@ -1,4 +1,4 @@
-# Trading App
+# Trading App.
 
 ## Project Structure
 
