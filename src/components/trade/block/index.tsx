@@ -26,7 +26,7 @@ export const Block = (props: { stock: STOCK.all }) => {
   const buyOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.BUY);
   const sellOrder = props.stock.trade?.orders?.find((o) => o.action == ORDER_action.SELL);
 
-  const [ltp, setLtp] = useState(0);
+  const [ltp, setLtp] = useState<{ ltp: number; timestamp: string }>({ ltp: 0, timestamp: "0" });
   const [fieldsHidden, setFieldsHidden] = useState(props.stock?.trade == undefined);
 
   const [priceType, setPriceType] = useState<ORDER_priceType>(buyOrder?.priceType || ORDER_priceType.MARKET);
@@ -136,15 +136,17 @@ export const Block = (props: { stock: STOCK.all }) => {
         case "LTP":
           {
             if (
-              props.stock.keyId.includes(generateSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }))
+              props.stock.keyId.includes(
+                generateSymbolKey({ symbol: action.data.symbol, exchange: action.data.exchange }),
+              )
             ) {
               setLtp((preLtp) => {
-                if (action.data.ltp > preLtp) {
+                if (action.data.ltp > preLtp.ltp) {
                   if (ltpFieldRef.current) ltpFieldRef.current.style.color = "#00cc00";
-                } else if (action.data.ltp < preLtp) {
+                } else if (action.data.ltp < preLtp.ltp) {
                   if (ltpFieldRef.current) ltpFieldRef.current.style.color = "#aa0000";
                 }
-                return action.data.ltp;
+                return { ltp: action.data.ltp, timestamp: action.data.timestamp };
               });
             }
           }
@@ -200,9 +202,14 @@ export const Block = (props: { stock: STOCK.all }) => {
               </div>
             </div>
             <div className={[styles.infoCard, styles.ltpCard].join(" ")}>
-              <p className={`${styles.labelText}`}>LTP</p>
+              <p style={{ display: "flex", flexDirection: "row", alignItems: "flex-end" }}>
+                <p className={`${styles.labelText}`}>LTP</p>
+                <div style={{ width: 30, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
+                  <p style={{ fontSize: 10, color: "#999" }}>{Date.now() - Number(ltp.timestamp)}ms</p>
+                </div>
+              </p>
               <h5 ref={ltpFieldRef} className={styles.valueText}>
-                {ltp}
+                {ltp.ltp}
               </h5>
             </div>
           </div>
@@ -341,7 +348,7 @@ export const Block = (props: { stock: STOCK.all }) => {
           exitProfit={exitProfit}
           autoReEnter={autoReEnter}
           setAutoReEnter={setAutoReEnter}
-          ltp={ltp}
+          ltp={ltp.ltp}
         />
       )}
     </div>
