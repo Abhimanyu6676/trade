@@ -1,0 +1,22 @@
+GNU nano 7.2                                                                          .git/hooks/post-commit                                                                                    
+#!/bin/bash
+
+BUILD_SCRIPT_PATH="$HOME/trading/trade/scripts/build-deploy-local.sh"
+{
+# rm -rf $HOME/trading/trade/.git/post-commit.log
+
+if [ -f "$BUILD_SCRIPT_PATH" ]; then
+        # Run the script in the background so VS Code doesn't hang
+        echo "Executing Script > $BUILD_SCRIPT_PATH"
+        $BUILD_SCRIPT_PATH
+else
+        echo "Warning: Post-commit script not found at $BUILD_SCRIPT_PATH" >&2
+fi
+} > $HOME/trading/trade/.git/post-commit.log 2>&1 & 
+
+
+
+
+
+
+
