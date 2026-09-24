@@ -93,6 +93,7 @@ export const TradeDetails = (props: Props) => {
           data: {
             userId: store.getState().user.user?.id ?? "",
             tradeId: props.stock.trade?.id,
+            keyId: props.stock.trade.keyId,
             data: {
               threshold: props.thresholdFieldRef.current
                 ? parseFloat(props.thresholdFieldRef.current?.value)
