@@ -6,29 +6,59 @@ import { FaServer } from "react-icons/fa";
 import { GrTest } from "react-icons/gr";
 import { CgMediaLive } from "react-icons/cg";
 import socketService from "../../../services/socket";
+import eventBus from "../../../util/eventBus";
+import store from "../../../redux";
+
+const getClientStatus = () => {
+  eventBus.emitEvent({
+    type: "OPENALGO",
+    action: { type: "GET_CLIENT_STATUS", data: { userId: store.getState().user.user?.id ?? "" } },
+  });
+};
 
 export const ClientStatus = (props: {}) => {
   const [client1Connected, setClient1Connected] = useState(false);
   const [client1WebSocketConnected, setClient1WebSocketConnected] = useState(false);
-  const [client1Analyzer, setClient1Analyzer] = useState(true);
+  const [client1Analyzer, setClient1Analyzer] = useState(false);
 
   const [client2Connected, setClient2Connected] = useState(false);
   const [client2WebSocketConnected, setClient2WebSocketConnected] = useState(false);
-  const [client2Analyzer, setClient2Analyzer] = useState(true);
+  const [client2Analyzer, setClient2Analyzer] = useState(false);
   const [serverSocketStatus, setServerSocketStatus] = useState(false);
 
   const interval = setInterval(() => {
     if (socketService.socketConnected != serverSocketStatus) setServerSocketStatus(socketService.socketConnected);
   }, 2000);
 
+  const openAlgo_openAlgoCmdHandler = async (action: _getEventAction_t<"OPENALGO">) => {
+    switch (action.type) {
+      case "CLIENT_STATUS":
+        const status = action.data.status;
+        if (status.client1Connected != undefined) setClient1Connected(status.client1Connected);
+        if (status.client1Analyzer != undefined) setClient1Analyzer(status.client1Analyzer);
+        if (status.client1WebSocketConnected != undefined)
+          setClient1WebSocketConnected(status.client1WebSocketConnected);
+
+        if (status.client2Connected != undefined) setClient2Connected(status.client2Connected);
+        if (status.client2Analyzer != undefined) setClient2Analyzer(status.client2Analyzer);
+        if (status.client2WebSocketConnected != undefined)
+          setClient2WebSocketConnected(status.client2WebSocketConnected);
+        break;
+
+      default:
+        break;
+    }
+  };
+
   useEffect(() => {
+    const openalgoClientStatusListenerID = "OPENALGO-CLIENT-STATUS-LISTENER";
+    eventBus.setEventListener(openalgoClientStatusListenerID, "OPENALGO", openAlgo_openAlgoCmdHandler);
     setTimeout(() => {
-      console.log("sending getClientStatus msg to server");
-      //TODO socketService.sendMsg({ type: "getClientStatus", data: {} });
+      getClientStatus();
     }, 2000);
     return () => {
       clearInterval(interval);
-      //TODO socketService.socketMessageSubscriberList.unSubscribe("clientStatus");
+      eventBus.removeEventListener(openalgoClientStatusListenerID, "OPENALGO");
     };
   }, [socketService.socketConnected]);
 
@@ -97,7 +127,7 @@ const Status = (props: {
           padding: "0px 10px",
         }}
         onClick={() => {
-          //TODO socketService.sendMsg({ type: "getClientStatus", data: {} });
+          getClientStatus();
         }}
       >
         <FaNetworkWired size={18} color={props.clientConnected ? "#27F598" : "#F55427"} style={{ marginRight: 15 }} />
@@ -118,10 +148,20 @@ const Status = (props: {
           padding: "0px 10px",
         }}
         onClick={() => {
-          /* TODO socketService.sendMsg({
-            type: "toggleAnalyzer",
-            data: { clientApiKey: props.clientApiKey, analyzerOn: !props.clientAnalyzer },
-          }); */
+          eventBus.emitEvent({
+            type: "OPENALGO",
+            action: {
+              type: "TOGGLE_ANALYZER",
+              data: {
+                userId: store.getState().user.user?.id ?? "",
+                analyzerOn: !props.clientAnalyzer,
+                clientApiKey: props.clientApiKey,
+              },
+            },
+          });
+          setTimeout(() => {
+            getClientStatus();
+          }, 2000);
         }}
       >
         {props.clientAnalyzer ? <GrTest color="#27F598" size={16} /> : <CgMediaLive color="#F55427" size={16} />}
