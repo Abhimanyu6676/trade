@@ -218,27 +218,11 @@ export const Block = (props: { stock: STOCK.all }) => {
         </div>
         <div className={styles.actionsGroup}>
           <DropdownButton disabled={isTradeActive} variant="outline-secondary" title={strategy}>
-            <Dropdown.Item
-              onClick={() => {
-                setStrategy(ORDER_strategy.PAIR_T);
-              }}
-            >
-              PAIR
-            </Dropdown.Item>
-            <Dropdown.Item
-              onClick={() => {
-                setStrategy(ORDER_strategy.DRFT_F);
-              }}
-            >
-              DRIFT
-            </Dropdown.Item>
-            <Dropdown.Item
-              onClick={() => {
-                setStrategy(ORDER_strategy.DRFT_R);
-              }}
-            >
-              DRIFT REVERSE
-            </Dropdown.Item>
+            {Object.values(ORDER_strategy).map((strategyOption) => (
+              <Dropdown.Item key={strategyOption} onClick={() => setStrategy(strategyOption)}>
+                {strategyOption}
+              </Dropdown.Item>
+            ))}
           </DropdownButton>
           <DropdownButton disabled={isTradeActive} variant="outline-secondary" title={priceType}>
             <Dropdown.Item
