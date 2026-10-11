@@ -7,13 +7,13 @@ export const _eventApi: (props: {
   const _response = await api
     .post("event", "/event", data)
     .then((res) => {
-      console.log("/event api response --- ", res.data);
+      //console.log("/event api response --- ", res.data);
       if (res.data) {
         return res;
       } else throw res;
     })
     .catch((err) => {
-      console.log("/event api --- ", err);
+      //console.log("/event api --- ", err);
 
       return err;
     });
