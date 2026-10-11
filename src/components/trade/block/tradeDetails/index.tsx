@@ -228,6 +228,7 @@ export const TradeDetails = (props: Props) => {
                         type: "MODIFY_TRADE",
                         data: {
                           tradeId: props.stock?.trade?.id ?? "",
+                          keyId: props.stock.trade.keyId,
                           data: { autoReEntry: e.target.checked },
                           userId: store.getState().user.user?.id ?? "",
                         },

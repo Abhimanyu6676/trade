@@ -26,22 +26,28 @@ export const ClientStatus = (props: {}) => {
   const [client2Analyzer, setClient2Analyzer] = useState(false);
   const [serverSocketStatus, setServerSocketStatus] = useState(false);
 
-  const interval = setInterval(() => {
-    if (socketService.socketConnected != serverSocketStatus) setServerSocketStatus(socketService.socketConnected);
-  }, 2000);
-
   const openAlgo_openAlgoCmdHandler = async (action: _getEventAction_t<"OPENALGO">) => {
     switch (action.type) {
       case "CLIENT_STATUS":
         const status = action.data.status;
-        if (status.client1Connected != undefined) setClient1Connected(status.client1Connected);
-        if (status.client1Analyzer != undefined) setClient1Analyzer(status.client1Analyzer);
-        if (status.client1WebSocketConnected != undefined)
+        if (status.client1Connected != undefined && client1Connected != status.client1Connected)
+          setClient1Connected(status.client1Connected);
+        if (status.client1Analyzer != undefined && client1Analyzer != status.client1Analyzer)
+          setClient1Analyzer(status.client1Analyzer);
+        if (
+          status.client1WebSocketConnected != undefined &&
+          client1WebSocketConnected != status.client1WebSocketConnected
+        )
           setClient1WebSocketConnected(status.client1WebSocketConnected);
 
-        if (status.client2Connected != undefined) setClient2Connected(status.client2Connected);
-        if (status.client2Analyzer != undefined) setClient2Analyzer(status.client2Analyzer);
-        if (status.client2WebSocketConnected != undefined)
+        if (status.client2Connected != undefined && client2Connected != status.client2Connected)
+          setClient2Connected(status.client2Connected);
+        if (status.client2Analyzer != undefined && client2Analyzer != status.client2Analyzer)
+          setClient2Analyzer(status.client2Analyzer);
+        if (
+          status.client2WebSocketConnected != undefined &&
+          client2WebSocketConnected != status.client2WebSocketConnected
+        )
           setClient2WebSocketConnected(status.client2WebSocketConnected);
         break;
 
@@ -53,11 +59,16 @@ export const ClientStatus = (props: {}) => {
   useEffect(() => {
     const openalgoClientStatusListenerID = "OPENALGO-CLIENT-STATUS-LISTENER";
     eventBus.setEventListener(openalgoClientStatusListenerID, "OPENALGO", openAlgo_openAlgoCmdHandler);
-    setTimeout(() => {
+    const clientStatusInterval = setInterval(() => {
       getClientStatus();
     }, 2000);
+    const socketStatusInterval = setInterval(() => {
+      setServerSocketStatus(socketService.socketConnected);
+    }, 2000);
+
     return () => {
-      clearInterval(interval);
+      clearInterval(clientStatusInterval);
+      clearInterval(socketStatusInterval);
       eventBus.removeEventListener(openalgoClientStatusListenerID, "OPENALGO");
     };
   }, [socketService.socketConnected]);

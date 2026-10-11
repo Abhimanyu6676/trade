@@ -139,4 +139,11 @@ class SocketService {
   }
 }
 
-export default new SocketService();
+declare global {
+  var __tradeFrontendSocketService: SocketService | undefined;
+}
+
+const socketService = globalThis.__tradeFrontendSocketService ?? new SocketService();
+globalThis.__tradeFrontendSocketService = socketService;
+
+export default socketService;
