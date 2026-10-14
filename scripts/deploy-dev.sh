@@ -15,4 +15,4 @@ npm run build
 
 echo "Copying build html output directory to '/var/www/trade'"
 
-cp -r public /var/www/trade
+cp -r public/* /var/www/trade

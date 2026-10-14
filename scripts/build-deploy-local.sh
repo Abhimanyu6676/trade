@@ -53,7 +53,7 @@ if [[ "$CURRENT_BRANCH" =~ feature/*|hotfix/* ]]; then
 
     npm run build
 
-    cp -r public /var/www/trade
+    cp -r public/* /var/www/trade
 
     echo "Local Deployment completed successfully."
 
