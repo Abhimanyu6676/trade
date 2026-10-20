@@ -1,75 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Dropdown } from "react-bootstrap";
-import { MdDarkMode, MdLightMode, MdAccountCircle } from "react-icons/md";
+import { MdAccountCircle, MdDarkMode, MdLightMode } from "react-icons/md";
 import { useSelector } from "react-redux";
-import { authApi } from "../../services/api/auth";
 import { RootState } from "../../redux";
+import { authApi } from "../../services/api/auth";
 import { DefaultRootTheme, RootThemes_e, RootThemes_t } from "../../styles/theme";
+import { HeaderMenu } from "./headerMenu";
 import * as styles from "./index.module.scss";
 
-const lightTheme = {
-  background: "#f1f1f1",
-  border: "#eeeeee",
-  containerBackground: "#ffffff",
-  text: "#000000",
-  subtleText: "#777777",
-  headingText: "#000000",
-  valueText: "#000000",
-  icon: "#888888",
-  iconMuted: "#aaaaaa",
-  stockExchangeBorder: "#000000",
-  threshold: { pointer: "#555", text: "#888" },
-};
+type HeaderProps = { onLogout?: () => void };
 
-const darkTheme = {
-  background: "#222730",
-  border: "#333942",
-  containerBackground: "#161a21",
-  text: "#d1d4dc",
-  subtleText: "#848e9c",
-  headingText: "#d1d4dc",
-  valueText: "#d1d4dc",
-  icon: "#848e9c",
-  iconMuted: "#666",
-  stockExchangeBorder: "#d1d4dc",
-  threshold: { pointer: "#d1d4dc", text: "#848e9c" },
-};
-
-type MenuItem = { id: string; label: string; children: { id: string; label: string }[] };
-
-type HeaderProps = { onLogout?: () => void; menuItems?: MenuItem[] };
-
-const defaultMenuItems: MenuItem[] = [
-  {
-    id: "account",
-    label: "Account",
-    children: [
-      { id: "profile", label: "Profile" },
-      { id: "security", label: "Security" },
-      { id: "billing", label: "Billing" },
-    ],
-  },
-  {
-    id: "trade",
-    label: "Trade",
-    children: [
-      { id: "orders", label: "Orders" },
-      { id: "positions", label: "Positions" },
-      { id: "watchlist", label: "Watchlist" },
-    ],
-  },
-  {
-    id: "tools",
-    label: "Tools",
-    children: [
-      { id: "alerts", label: "Alerts" },
-      { id: "reports", label: "Reports" },
-      { id: "api", label: "API Keys" },
-    ],
-  },
-];
-
-const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
+const Header = ({ onLogout }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [path, setPath] = useState("/");
@@ -141,7 +82,7 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
             className={styles.hamburger}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             onClick={toggleMenu}
-            disabled
+            //disabled
           >
             <span className={isMenuOpen ? styles.hamburgerOpen : ""} />
             <span className={isMenuOpen ? styles.hamburgerOpen : ""} />
@@ -193,34 +134,13 @@ const Header = ({ onLogout, menuItems = defaultMenuItems }: HeaderProps) => {
 
       <aside className={`${styles.sideMenu} ${isMenuOpen ? styles.sideMenuOpen : ""}`} aria-hidden={!isMenuOpen}>
         <div className={styles.menuHeader}>
-          <span className={styles.menuTitle}>Menu</span>
+          <span className={styles.menuTitle}>Trade View</span>
           <button className={styles.closeBtn} onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
             x
           </button>
         </div>
 
-        <nav className={styles.menuList}>
-          {menuItems.map((item) => {
-            const isOpen = openItemId === item.id;
-            return (
-              <div className={styles.menuItem} key={item.id}>
-                <button className={styles.menuButton} onClick={() => toggleItem(item.id)} aria-expanded={isOpen}>
-                  <span>{item.label}</span>
-                  <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}>v</span>
-                </button>
-                <div className={`${styles.subMenu} ${isOpen ? styles.subMenuOpen : ""}`}>
-                  <div className={styles.subMenuInner}>
-                    {item.children.map((child) => (
-                      <button className={styles.subMenuItem} key={child.id}>
-                        {child.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </nav>
+        <HeaderMenu openItemId={openItemId} toggleItem={toggleItem} />
       </aside>
     </>
   );

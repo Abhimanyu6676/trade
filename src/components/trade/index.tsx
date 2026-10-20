@@ -10,7 +10,6 @@ export default function TradeComponent() {
   return (
     <div className="container" style={{ position: "relative" }}>
       <AddSymbol />
-      <ClientStatus />
       <div style={{}}>
         {stocksState.stocksList.map((stock, stockIndex) => (
           <Block key={stockIndex + stock.keyId} stock={stock} />

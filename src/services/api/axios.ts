@@ -10,7 +10,6 @@ import { _dbApi } from "./db";
  */
 const _api = axios.create({ baseURL: `${process.env.BASE_URL}/backend`, withCredentials: true });
 
-let refreshPromise: any = null;
 /**
  * Attach access token automatically
  */
